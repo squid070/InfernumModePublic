@@ -1,0 +1,9 @@
+author = Dominic Karma
+version = 1.8.17
+displayName = Calamity Mod Infernum Mode
+modReferences=CalamityMod, SubworldLibrary
+hideCode=false
+hideResources=false
+includeSource = true
+buildIgnore = *.csproj, *.user, obj\*, bin\*, .vs\*
+homepage = https://discord.gg/cKh6nyrSE7
