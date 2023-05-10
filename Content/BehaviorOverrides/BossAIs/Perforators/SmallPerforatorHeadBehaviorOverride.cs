@@ -2,6 +2,7 @@ using CalamityMod;
 using CalamityMod.Events;
 using CalamityMod.NPCs;
 using CalamityMod.NPCs.Perforator;
+using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using System;
@@ -59,8 +60,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Perforators
                 // Reset the falling ichor flag for later.
                 hasReleasedFallingIchor = 0f;
 
-                float xDamp = Utilities.Remap(Math.Abs(Vector2.Dot(npc.velocity.SafeNormalize(Vector2.Zero), Vector2.UnitX)), 0f, 1f, 0.3f, 1f);
-                float yDamp = Utilities.Remap(Math.Abs(Vector2.Dot(npc.velocity.SafeNormalize(Vector2.Zero), Vector2.UnitY)), 0f, 1f, 0.3f, 1f);
+                float xDamp = Utils.Remap(Math.Abs(Vector2.Dot(npc.velocity.SafeNormalize(Vector2.Zero), Vector2.UnitX)), 0f, 1f, 0.3f, 1f);
+                float yDamp = Utils.Remap(Math.Abs(Vector2.Dot(npc.velocity.SafeNormalize(Vector2.Zero), Vector2.UnitY)), 0f, 1f, 0.3f, 1f);
                 Vector2 flyDestination = target.Center + Vector2.UnitY * 375f;
                 Vector2 velocityStep = npc.SafeDirectionTo(flyDestination) * new Vector2(xDamp, yDamp) * 0.8f;
                 npc.velocity = (npc.velocity + velocityStep).ClampMagnitude(0f, maxFlySpeed);
@@ -98,7 +99,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Perforators
                             float horizontalSpeed = MathHelper.Lerp(-21f, 21f, projectileOffsetInterpolant) + Main.rand.NextFloatDirection() / fallingIchorCount * 6f;
                             float verticalSpeed = Main.rand.NextFloat(-12f, -11f);
                             Vector2 ichorVelocity = new(horizontalSpeed, verticalSpeed);
-                            Utilities.NewProjectileBetter(npc.Top + Vector2.UnitY * 10f, ichorVelocity, ModContent.ProjectileType<FallingIchor>(), 80, 0f);
+
+                            ProjectileSpawnManagementSystem.PrepareProjectileForSpawning(ichor =>
+                            {
+                                ichor.tileCollide = false;
+                            });
+                            Utilities.NewProjectileBetter(npc.Top + Vector2.UnitY * 10f, ichorVelocity, ModContent.ProjectileType<FallingIchor>(), PerforatorHiveBehaviorOverride.IchorSpitDamage, 0f);
                         }
                         npc.netUpdate = true;
                     }

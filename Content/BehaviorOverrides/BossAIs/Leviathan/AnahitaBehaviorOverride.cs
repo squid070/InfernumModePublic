@@ -4,7 +4,9 @@ using CalamityMod.NPCs;
 using CalamityMod.NPCs.Leviathan;
 using CalamityMod.Projectiles.Boss;
 using CalamityMod.Sounds;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Assets.Sounds;
+using InfernumMode.Content.Projectiles.Pets;
+using InfernumMode.Core.GlobalInstances;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -15,7 +17,7 @@ using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-
+using static InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan.LeviathanComboAttackManager;
 using LeviathanNPC = CalamityMod.NPCs.Leviathan.Leviathan;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
@@ -41,8 +43,20 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
 
         public override float[] PhaseLifeRatioThresholds => new float[]
         {
-            ComboAttackManager.LeviathanSummonLifeRatio
+            LeviathanSummonLifeRatio
         };
+
+        public override void Load()
+        {
+            GlobalNPCOverrides.BossHeadSlotEvent += DisableMapIconWhenInvisible;
+        }
+
+        private void DisableMapIconWhenInvisible(NPC npc, ref int index)
+        {
+            // Make Anahita completely invisible on the map when sufficiently faded out.
+            if (npc.type == ModContent.NPCType<Anahita>() && npc.Opacity < 0.1f)
+                index = -1;
+        }
 
         public override bool PreAI(NPC npc)
         {
@@ -78,7 +92,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             CalamityGlobalNPC.siren = npc.whoAmI;
 
             // Inherit attributes from the leader.
-            ComboAttackManager.InheritAttributesFromLeader(npc);
+            InheritAttributesFromLeader(npc);
 
             float lifeRatio = npc.life / (float)npc.lifeMax;
             Vector2 headPosition = npc.Center + new Vector2(npc.spriteDirection * 16f, -42f);
@@ -88,8 +102,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             ref float horizontalAfterimageInterpolant = ref npc.localAI[1];
 
             // Reset things.
-            bool shouldGoAway = ComboAttackManager.FightState == LeviAnahitaFightState.LeviathanAlone;
-            bool enraged = ComboAttackManager.FightState == LeviAnahitaFightState.AloneEnraged;
+            bool shouldGoAway = FightState == LeviAnahitaFightState.LeviathanAlone;
+            bool enraged = FightState == LeviAnahitaFightState.AloneEnraged;
             if (enraged)
                 HatGirl.SayThingWhileOwnerIsAlive(target, "Home stretch! Do the same as you did before!");
 
@@ -108,7 +122,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
 
             // Summon the Leviathan once ready.
             bool canSummonLeviathan = !NPC.AnyNPCs(ModContent.NPCType<LeviathanNPC>()) && !Utilities.AnyProjectiles(ModContent.ProjectileType<LeviathanSpawner>());
-            if (lifeRatio < ComboAttackManager.LeviathanSummonLifeRatio && canSummonLeviathan && hasSummonedLeviathan == 0f)
+            if (lifeRatio < LeviathanSummonLifeRatio && canSummonLeviathan && hasSummonedLeviathan == 0f)
             {
                 npc.ai[0] = 0f;
                 attackTimer = 0f;
@@ -150,7 +164,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
                     DoBehavior_AtlantisCharge(npc, target, ref attackTimer);
                     break;
             }
-            ComboAttackManager.DoComboAttacks(npc, target, ref attackTimer);
+            DoComboAttacks(npc, target, ref attackTimer);
 
             attackTimer++;
             return false;
@@ -305,7 +319,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
                             waterBoltShootVelocity = waterBoltShootVelocity.RotatedBy(shootOffsetAngle);
                         }
 
-                        Utilities.NewProjectileBetter(shootPosition, waterBoltShootVelocity, ModContent.ProjectileType<WaterBolt>(), 175, 0f);
+                        Utilities.NewProjectileBetter(shootPosition, waterBoltShootVelocity, ModContent.ProjectileType<WaterBolt>(), WaterSpearDamage, 0f);
                     }
                 }
             }
@@ -317,11 +331,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
         public static void DoBehavior_PlaySinusoidalSong(NPC npc, Player target, bool enraged, Vector2 headPosition, ref float attackTimer)
         {
             int shootDelay = 72;
-            int shootTime = 330;
-            int shootRate = 9;
+            int shootTime = 250;
+            int shootRate = 17;
             float bobAmplitude = 325f;
             float bobPeriod = 30f;
-            float songShootSpeed = 16f;
+            float songShootSpeed = 13f;
             if (enraged)
             {
                 shootRate -= 2;
@@ -335,7 +349,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             // Hover to the side of the target and bob up and down.
             Vector2 hoverDestination = target.Center + Vector2.UnitX * (target.Center.X < npc.Center.X).ToDirectionInt() * 600f;
             if (attackTimer >= shootDelay)
-                hoverDestination.Y += (float)Math.Sin((attackTimer - shootDelay) * MathHelper.TwoPi / bobPeriod) * bobAmplitude;
+                hoverDestination.Y += MathF.Sin((attackTimer - shootDelay) * MathHelper.TwoPi / bobPeriod) * bobAmplitude;
             npc.spriteDirection = (target.Center.X > npc.Center.X).ToDirectionInt();
             DoDefaultMovement(npc, hoverDestination, new Vector2(19.6f, 12.5f), 0.8f);
 
@@ -343,11 +357,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             if (ableToShoot && attackTimer % shootRate == shootRate - 1f && !npc.WithinRange(target.Center, 270f))
             {
                 Main.musicPitch = Main.rand.NextFloatDirection() * 0.25f;
-                SoundEngine.PlaySound(SoundID.Item26, target.position);
+                SoundEngine.PlaySound(InfernumSoundRegistry.AnahitaSingSound with { Volume = 0.4f, PitchVariance = 0f, MaxInstances = 6 }, target.position);
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 songShootVelocity = Vector2.UnitX * npc.spriteDirection * songShootSpeed;
-                    Utilities.NewProjectileBetter(headPosition, songShootVelocity, ModContent.ProjectileType<HeavenlyLullaby>(), 175, 0f);
+                    Utilities.NewProjectileBetter(headPosition, songShootVelocity, ModContent.ProjectileType<HeavenlyLullaby>(), LullabyDamage, 0f);
                 }
             }
 
@@ -361,8 +375,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             int teleportChargeTime = 60;
             int teleportCount = 5;
             int mistReleaseRate = 10;
-            float mistMaxSpeed = 7.75f;
-            float horizontalTeleportOffset = 240f;
+            float mistMaxSpeed = 8.5f;
+            float horizontalTeleportOffset = 360f;
             float verticalTeleportOffset = 540f;
             if (enraged)
             {
@@ -399,7 +413,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         Vector2 icicleShootVelocity = (target.Center - headPosition).SafeNormalize(Vector2.UnitY) * Main.rand.NextFloat(0.6f, 1f) * mistMaxSpeed;
-                        Utilities.NewProjectileBetter(headPosition + icicleShootVelocity * 4f, icicleShootVelocity, ModContent.ProjectileType<FrostMist>(), 175, 0f);
+                        Utilities.NewProjectileBetter(headPosition + icicleShootVelocity * 4f, icicleShootVelocity, ModContent.ProjectileType<FrostMist>(), FrostMistDamage, 0f);
                     }
                 }
             }
@@ -491,7 +505,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
                         {
                             Vector2 waterSpearVelocity = (MathHelper.TwoPi * i / waterSpearCount + j * 0.33f).ToRotationVector2() * waterSpearShootSpeed;
                             waterSpearVelocity *= MathHelper.Lerp(1f, 0.32f, j / (float)(ringCount - 1f));
-                            Utilities.NewProjectileBetter(npc.Center, waterSpearVelocity, ModContent.ProjectileType<WaterBolt>(), 180, 0f);
+                            Utilities.NewProjectileBetter(npc.Center, waterSpearVelocity, ModContent.ProjectileType<WaterBolt>(), WaterSpearDamage, 0f);
                         }
                     }
                 }
@@ -565,7 +579,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
                         Vector2 dustVelocity = Main.rand.NextFloat(-MathHelper.PiOver2, MathHelper.PiOver2).ToRotationVector2() * Main.rand.NextFloat(6f, 16f);
                         dustSpawnOffset += dustVelocity * 0.5f;
 
-                        Dust water = Dust.NewDustDirect(npc.Center + dustSpawnOffset, 0, 0, 172, dustVelocity.X, dustVelocity.Y, 100, default, 1.4f);
+                        Dust water = Dust.NewDustDirect(npc.Center + dustSpawnOffset, 0, 0, DustID.DungeonWater, dustVelocity.X, dustVelocity.Y, 100, default, 1.4f);
                         water.velocity /= 4f;
                         water.velocity -= npc.velocity;
                         water.noGravity = true;
@@ -590,7 +604,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         for (float offset = 0f; offset < 110f; offset += 10f)
-                            Utilities.NewProjectileBetter(npc.Center + spearDirection * (15f + offset), spearDirection * (20f + offset * 0.4f), ModContent.ProjectileType<AtlantisSpear>(), 200, 0f);
+                            Utilities.NewProjectileBetter(npc.Center + spearDirection * (15f + offset), spearDirection * (20f + offset * 0.4f), ModContent.ProjectileType<AtlantisSpear>(), AtlantisSpearDamage, 0f);
                     }
                     atlantisCooldown = 30f;
                 }
@@ -655,7 +669,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
         {
             npc.ai[2]++;
 
-            bool enraged = ComboAttackManager.FightState == LeviAnahitaFightState.AloneEnraged;
+            bool enraged = FightState == LeviAnahitaFightState.AloneEnraged;
             AnahitaAttackType[] patternToUse = new AnahitaAttackType[]
             {
                 AnahitaAttackType.FloatTowardsPlayer,
@@ -672,7 +686,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
 
             // Go to the next AI state.
             npc.ai[0] = (int)nextAttackType;
-            ComboAttackManager.SelectNextAttackSpecific(npc);
+            SelectNextAttackSpecific(npc);
 
             // Reset the attack timer.
             npc.ai[1] = 0f;
@@ -739,7 +753,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
         public override IEnumerable<Func<NPC, string>> GetTips()
         {
             yield return n => "You can weave through the clefs if you manipulate her movement well!";
-            yield return n => NPC.AnyNPCs(ModContent.NPCType<LeviathanNPC>()) ? "The meteors all split in the same way; use this to your advantage!" : string.Empty;
+            yield return n =>
+            {
+                if (NPC.AnyNPCs(ModContent.NPCType<LeviathanNPC>()))
+                    return "The meteors all split in the same way; use this to your advantage!";
+                return string.Empty;
+            };
         }
     }
 }

@@ -3,7 +3,8 @@ using CalamityMod.Particles;
 using CalamityMod.Projectiles.BaseProjectiles;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -50,7 +51,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
             Projectile.tileCollide = false;
             Projectile.timeLeft = LaserLifetime;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -123,7 +124,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
         public static Color LaserColorFunction(float completionRatio)
         {
             float opacity = Utils.GetLerpValue(0f, 0.12f, completionRatio, true);
-            float colorInterpolant = (float)Math.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 13f) * 0.5f + 0.5f;
+            float colorInterpolant = MathF.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 13f) * 0.5f + 0.5f;
             return Color.Lerp(Color.Red, new(249, 225, 193), colorInterpolant * 0.67f) * opacity;
         }
 

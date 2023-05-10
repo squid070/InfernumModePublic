@@ -31,6 +31,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             Projectile.tileCollide = false;
             Projectile.hide = true;
             Projectile.timeLeft = 900;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -74,7 +75,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             Vector2 drawPosition = Projectile.Center - Main.screenPosition;
             for (int i = 0; i < 16; i++)
             {
-                float drawOffsetFactor = ((float)Math.Cos(Main.GlobalTimeWrappedHourly * 40f) * 0.5f + 0.5f) * scaleFactor * fadeToOrange * 8f + 1f;
+                float drawOffsetFactor = (MathF.Cos(Main.GlobalTimeWrappedHourly * 40f) * 0.5f + 0.5f) * scaleFactor * fadeToOrange * 8f + 1f;
                 Vector2 drawOffset = (MathHelper.TwoPi * i / 16f).ToRotationVector2() * drawOffsetFactor;
                 spriteBatch.Draw(starTexture, drawPosition + drawOffset, null, starColor * 0.4f, 0f, starTexture.Size() * 0.5f, Projectile.scale * scaleFactor, SpriteEffects.None, 0f);
             }
@@ -106,8 +107,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             if (Projectile.identity % 2f == 1f)
                 initialVelocity = initialVelocity.RotatedBy(MathHelper.PiOver2);
 
-            Utilities.NewProjectileBetter(Projectile.Center, -initialVelocity, ModContent.ProjectileType<AstralPlasmaSpark>(), 200, 0f);
-            Utilities.NewProjectileBetter(Projectile.Center, initialVelocity, ModContent.ProjectileType<AstralPlasmaSpark>(), 200, 0f);
+            Utilities.NewProjectileBetter(Projectile.Center, -initialVelocity, ModContent.ProjectileType<AstralPlasmaSpark>(), AstrumDeusHeadBehaviorOverride.AstralPlasmaSparkDamage, 0f, -1, 1f);
+            Utilities.NewProjectileBetter(Projectile.Center, initialVelocity, ModContent.ProjectileType<AstralPlasmaSpark>(), AstrumDeusHeadBehaviorOverride.AstralPlasmaSparkDamage, 0f, -1, 1f);
             Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<MoonLordExplosion>(), 0, 0f);
         }
     }

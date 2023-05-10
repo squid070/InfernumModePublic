@@ -1,4 +1,5 @@
 using CalamityMod;
+using InfernumMode.Assets.ExtraTextures;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -40,6 +41,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
             Projectile.hostile = true;
             Projectile.timeLeft = Lifetime;
             Projectile.scale = 0.001f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -52,7 +54,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
 
             Projectile.Center = Owner.Center;
 
-            Radius = (float)Math.Sin(Projectile.timeLeft / (float)Lifetime * MathHelper.Pi) * MaxRadius * 4f;
+            Radius = MathF.Sin(Projectile.timeLeft / (float)Lifetime * MathHelper.Pi) * MaxRadius * 4f;
             if (Radius > MaxRadius)
                 Radius = MaxRadius;
             Projectile.scale = 2f;
@@ -61,45 +63,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
             if (!alone && Projectile.timeLeft < HealTime)
                 Projectile.timeLeft = HealTime;
 
-            for (int i = 0; i < Main.maxProjectiles; i++)
-            {
-                if (!Main.projectile[i].active || !Main.projectile[i].friendly || !Projectile.WithinRange(Main.projectile[i].Center, Radius * 0.9f))
-                    continue;
-
-                Projectile proj = Main.projectile[i];
-                if (proj.timeLeft > 10 && proj.damage > 0)
-                {
-                    proj.friendly = false;
-                    proj.velocity = Vector2.Reflect(proj.velocity, Projectile.SafeDirectionTo(Main.player[Player.FindClosest(proj.Center, 1, 1)].Center));
-                    proj.penetrate = 1;
-                    proj.netUpdate = true;
-                }
-            }
-
             Projectile.ExpandHitboxBy((int)(Radius * Projectile.scale), (int)(Radius * Projectile.scale));
         }
         public override bool PreDraw(ref Color lightColor)
         {
             if (!Main.npc.IndexInRange((int)OwnerIndex) || !Main.npc[(int)OwnerIndex].active)
                 return false;
-
-            Main.spriteBatch.EnterShaderRegion();
-
-            Vector2 scale = new(1.5f, 1f);
-            DrawData drawData = new(ModContent.Request<Texture2D>("Terraria/Images/Misc/Perlin").Value,
-                Projectile.Center - Main.screenPosition + Projectile.Size * scale * 0.5f,
-                new Rectangle(0, 0, Projectile.width, Projectile.height),
-                new Color(new Vector4(1f)) * 0.7f * Projectile.Opacity,
-                Projectile.rotation,
-                Projectile.Size,
-                scale,
-                SpriteEffects.None, 0);
-
-            GameShaders.Misc["ForceField"].UseColor(Owner.type == NPCID.Spazmatism ? Color.LimeGreen : Color.Red);
-            GameShaders.Misc["ForceField"].Apply(drawData);
-            drawData.Draw(Main.spriteBatch);
-
-            Main.spriteBatch.ExitShaderRegion();
+            Cultist.CultistBehaviorOverride.DrawForcefield(Projectile.Center - Main.screenPosition, Projectile.Opacity, Owner.type == NPCID.Spazmatism ? Color.LimeGreen : Color.Red, InfernumTextureRegistry.HexagonGrid.Value, false, 1.3f * (Radius / MaxRadius), fresnelScaleFactor: 1.3f, noiseScaleFactor: 1.05f);
             return false;
         }
     }

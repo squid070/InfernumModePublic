@@ -1,4 +1,5 @@
 using CalamityMod.NPCs.DesertScourge;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.DesertScourge;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
@@ -11,7 +12,7 @@ namespace InfernumMode.Content.BossIntroScreens
     {
         public override TextColorData TextColor => new(completionRatio =>
         {
-            float colorFadeInterpolant = (float)Math.Sin(AnimationCompletion * MathHelper.TwoPi) * 0.5f + 0.5f;
+            float colorFadeInterpolant = MathF.Sin(AnimationCompletion * MathHelper.TwoPi) * 0.5f + 0.5f;
             return Color.Lerp(new Color(229, 197, 146), new Color(119, 76, 38), colorFadeInterpolant);
         });
 
@@ -21,8 +22,12 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override string TextToDisplay => "Dried Glutton\nThe Desert Scourge";
 
-        public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<DesertScourgeHead>());
+        public override bool ShouldBeActive()
+        {
+            int desertScourgeIndex = NPC.FindFirstNPC(ModContent.NPCType<DesertScourgeHead>());
+            return desertScourgeIndex >= 0 && (Main.npc[desertScourgeIndex].ai[0] != (int)DesertScourgeHeadBigBehaviorOverride.DesertScourgeAttackType.SpawnAnimation || Main.npc[desertScourgeIndex].Infernum().ExtraAI[0] >= 1f);
+        }
 
-        public override SoundStyle? SoundToPlayWithTextCreation => new SoundStyle("CalamityMod/Sounds/Custom/DesertScourgeRoar");
+        public override SoundStyle? SoundToPlayWithTextCreation => null;
     }
 }

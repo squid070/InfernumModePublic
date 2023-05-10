@@ -1,8 +1,7 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
-using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
@@ -19,12 +18,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
             Projectile.ignoreWater = true;
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
-            Projectile.timeLeft = 60;
+            Projectile.timeLeft = 90;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
-            Projectile.Opacity = (float)Math.Sqrt(Projectile.timeLeft / 60f);
+            Projectile.Opacity = MathF.Sqrt(Projectile.timeLeft / 90f);
             Projectile.rotation += Projectile.velocity.Y * 0.015f;
             Projectile.velocity *= 0.98f;
         }

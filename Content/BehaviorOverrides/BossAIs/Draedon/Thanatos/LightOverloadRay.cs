@@ -2,11 +2,13 @@ using CalamityMod;
 using CalamityMod.NPCs;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
@@ -40,6 +42,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             Projectile.ignoreWater = true;
             Projectile.timeLeft = Lifetime;
             Projectile.hostile = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

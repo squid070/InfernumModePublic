@@ -1,4 +1,3 @@
-using CalamityMod.NPCs;
 using CalamityMod.NPCs.DevourerofGods;
 using InfernumMode.Assets.Sounds;
 using InfernumMode.Common.Graphics;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
-using Terraria.GameContent;
 using Terraria.Graphics.Effects;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -17,7 +15,7 @@ namespace InfernumMode.Content.Skies
 {
     public class DoGSkyScene : ModSceneEffect
     {
-        public override bool IsSceneEffectActive(Player player) => InfernumMode.CanUseCustomAIs && CalamityGlobalNPC.DoGHead != -1;
+        public override bool IsSceneEffectActive(Player player) => CosmicBackgroundSystem.EffectIsActive || CosmicBackgroundSystem.MonolithIntensity > 0f;
 
         // FUCK YOU FUCK YOU
         public override SceneEffectPriority Priority => SceneEffectPriority.BiomeLow;
@@ -26,6 +24,8 @@ namespace InfernumMode.Content.Skies
 
         public override void SpecialVisuals(Player player, bool isActive)
         {
+            if (!CosmicBackgroundSystem.EffectIsActive)
+                CosmicBackgroundSystem.MonolithIntensity = MathHelper.Clamp(CosmicBackgroundSystem.MonolithIntensity - 0.02f, 0f, 1f);
             player.ManageSpecialBiomeVisuals("InfernumMode:DoG", isActive);
         }
     }
@@ -139,7 +139,7 @@ namespace InfernumMode.Content.Skies
                 }
             }
 
-            if (CosmicBackgroundSystem.EffectIsActive)
+            if (CosmicBackgroundSystem.EffectIsActive || CosmicBackgroundSystem.MonolithIntensity > 0f)
             {
                 Main.spriteBatch.End();
                 Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.AnisotropicWrap, DepthStencilState.None, Main.Rasterizer, null, Matrix.Identity);

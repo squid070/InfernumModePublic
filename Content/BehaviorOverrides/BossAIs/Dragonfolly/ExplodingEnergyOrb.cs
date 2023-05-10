@@ -19,9 +19,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dragonfolly
             Projectile.height = 36;
             Projectile.hostile = false;
             Projectile.friendly = false;
-            Projectile.tileCollide = true;
+            Projectile.tileCollide = false;
             Projectile.scale = 0.96f;
             Projectile.timeLeft = 90;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -74,7 +75,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dragonfolly
             {
                 float shootOffsetAngle = MathHelper.Lerp(-0.56f, 0.56f, i / 4f);
                 Vector2 lightningVelocity = Projectile.SafeDirectionTo(target.Center).RotatedBy(shootOffsetAngle) * 8f;
-                Utilities.NewProjectileBetter(Projectile.Center, lightningVelocity, ModContent.ProjectileType<RedSpark>(), 240, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center, lightningVelocity, ModContent.ProjectileType<RedSpark>(), DragonfollyBehaviorOverride.RedSparkDamage, 0f);
             }
         }
     }

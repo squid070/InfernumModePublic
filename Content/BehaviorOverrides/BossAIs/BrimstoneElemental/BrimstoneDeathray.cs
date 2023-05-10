@@ -3,13 +3,14 @@ using CalamityMod.Events;
 using CalamityMod.Projectiles.BaseProjectiles;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
 using System;
 using System.IO;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -45,7 +46,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
             Projectile.tileCollide = false;
             Projectile.timeLeft = (int)Lifetime;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -70,10 +71,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
 
             if (Projectile.timeLeft == 10)
             {
+                SoundEngine.PlaySound(CalamityMod.NPCs.SupremeCalamitas.SupremeCalamitas.BrimstoneShotSound, Projectile.Center);
                 if (Main.netMode == NetmodeID.MultiplayerClient)
                     return;
 
-                int petalDamage = 130;
                 for (float petalOffset = 20f; petalOffset < LaserLength; petalOffset += 165f)
                 {
                     Vector2 petalSpawnPosition = OwnerEyePosition + Projectile.velocity * petalOffset;
@@ -82,17 +83,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
                         Vector2 petalVelocity = Projectile.velocity.RotatedBy(MathHelper.PiOver2 * i) * 8f;
                         if (BossRushEvent.BossRushActive)
                             petalVelocity *= 1.85f;
-                        Utilities.NewProjectileBetter(petalSpawnPosition, petalVelocity, ModContent.ProjectileType<BrimstonePetal2>(), petalDamage, 0f);
+                        Utilities.NewProjectileBetter(petalSpawnPosition, petalVelocity, ModContent.ProjectileType<BrimstonePetal2>(), BrimstoneElementalBehaviorOverride.BrimstonePetalDamage, 0f);
                     }
                 }
             }
         }
 
-        public float LaserWidthFunction(float _) => Projectile.scale * Projectile.width * 3;
+        public float LaserWidthFunction(float completionRatio) => Projectile.scale * Projectile.width * Utils.GetLerpValue(0.02f, 0.05f, completionRatio, true) * 3f;
 
         public static Color LaserColorFunction(float completionRatio)
         {
-            float colorInterpolant = (float)Math.Sin(Main.GlobalTimeWrappedHourly * -5.2f + completionRatio * 23f) * 0.5f + 0.5f;
+            float colorInterpolant = MathF.Sin(Main.GlobalTimeWrappedHourly * -5.2f + completionRatio * 23f) * 0.5f + 0.5f;
             return Color.Lerp(Color.Red, new(255, 0, 25), colorInterpolant) * Utils.GetLerpValue(0.02f, 0.05f, completionRatio, true);
         }
 

@@ -1,7 +1,8 @@
 using CalamityMod.NPCs;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -33,6 +34,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 96000;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -53,10 +55,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 
         internal Color PrimitiveColorFunction(float completionRatio)
         {
-            float opacity = Projectile.Opacity * Utils.GetLerpValue(0.97f, 0.9f, completionRatio, true) *
-                Utils.GetLerpValue(0f, MathHelper.Clamp(15f / LaserLength, 0f, 0.5f), completionRatio, true) *
-                (float)Math.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3D);
-            float flameInterpolant = (float)Math.Sin(completionRatio * 3f + Main.GlobalTimeWrappedHourly * 0.5f + Projectile.identity * 0.3156f) * 0.5f + 0.5f;
+            float lengthFadeOut = Utils.GetLerpValue(0f, MathHelper.Clamp(15f / LaserLength, 0f, 0.5f), completionRatio, true);
+            float lengthFadeIn = MathF.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3f);
+            float endOpacity = Utils.GetLerpValue(0.97f, 0.9f, completionRatio, true);
+            float opacity = Projectile.Opacity * endOpacity * lengthFadeIn * lengthFadeOut;
+
+            float flameInterpolant = MathF.Sin(completionRatio * 3f + Main.GlobalTimeWrappedHourly * 0.5f + Projectile.identity * 0.3156f) * 0.5f + 0.5f;
             Color c = Color.Lerp(Color.White, Color.Orange, MathHelper.Lerp(0.5f, 0.8f, flameInterpolant)) * opacity;
             c.A = 0;
 

@@ -19,6 +19,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
             Projectile.tileCollide = true;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 120;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -37,7 +38,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
             for (int i = 0; i < 7; i++)
             {
                 Vector2 seekerVelocity = (MathHelper.TwoPi * (i + 0.5f) / 7f).ToRotationVector2() * 13.5f;
-                Utilities.NewProjectileBetter(Projectile.Center, seekerVelocity, ModContent.ProjectileType<HostilePlagueSeeker>(), 155, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center, seekerVelocity, ModContent.ProjectileType<HostilePlagueSeeker>(), PlaguebringerGoliathBehaviorOverride.PlagueSeekerDamage, 0f);
             }
         }
 

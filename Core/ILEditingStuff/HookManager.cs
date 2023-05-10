@@ -1,14 +1,17 @@
 using CalamityMod;
+using CalamityMod.BiomeManagers;
 using CalamityMod.CalPlayer;
 using CalamityMod.Events;
+using CalamityMod.ILEditing;
 using CalamityMod.Items.SummonItems;
 using CalamityMod.NPCs;
-using CalamityMod.NPCs.DevourerofGods;
+using CalamityMod.NPCs.AquaticScourge;
 using CalamityMod.NPCs.ExoMechs;
 using CalamityMod.NPCs.ExoMechs.Ares;
 using CalamityMod.NPCs.Providence;
 using CalamityMod.NPCs.SupremeCalamitas;
 using CalamityMod.NPCs.Yharon;
+using CalamityMod.Projectiles.Magic;
 using CalamityMod.Skies;
 using CalamityMod.Systems;
 using CalamityMod.UI.DraedonSummoning;
@@ -20,7 +23,7 @@ using System;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace InfernumMode.ILEditingStuff
+namespace InfernumMode.Core.ILEditingStuff
 {
     public static partial class HookManager
     {
@@ -234,12 +237,101 @@ namespace InfernumMode.ILEditingStuff
             remove => HookEndpointManager.Unmodify(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.Explosives.InstabridgeProj").GetMethod("Kill", Utilities.UniversalBindingFlags), value);
         }
 
+        public static event ILContext.Manipulator GenerateSulphSeaCheeseCaves
+        {
+            add => HookEndpointManager.Modify(typeof(SulphurousSea).GetMethod("GenerateCheeseWaterCaves", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(SulphurousSea).GetMethod("GenerateCheeseWaterCaves", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator GenerateSulphSeaSpaghettiCaves
+        {
+            add => HookEndpointManager.Modify(typeof(SulphurousSea).GetMethod("GenerateSpaghettiWaterCaves", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(SulphurousSea).GetMethod("GenerateSpaghettiWaterCaves", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event Action<Action> GenerateAbyss
+        {
+            add => HookEndpointManager.Add(typeof(Abyss).GetMethod("PlaceAbyss", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(Abyss).GetMethod("PlaceAbyss", Utilities.UniversalBindingFlags), value);
+        }
+
         public static event ILContext.Manipulator ExoMechTileTileColor
         {
             add => HookEndpointManager.Modify(typeof(ExoMechsSky).GetMethod("OnTileColor", Utilities.UniversalBindingFlags), value);
             remove => HookEndpointManager.Unmodify(typeof(ExoMechsSky).GetMethod("OnTileColor", Utilities.UniversalBindingFlags), value);
         }
 
+        public delegate bool AbyssRequirementDelegate(Player player, out int playerYTileCoords);
+
+        public delegate bool AbyssRequirementHookDelegate(AbyssRequirementDelegate orig, Player player, out int playerYTileCoords);
+
+        public delegate bool AbyssInBiomeHookDelegate1(Func<AbyssLayer1Biome, Player, bool> orig, AbyssLayer1Biome self, Player player);
+
+        public delegate bool AbyssInBiomeHookDelegate2(Func<AbyssLayer2Biome, Player, bool> orig, AbyssLayer2Biome self, Player player);
+
+        public delegate bool AbyssInBiomeHookDelegate3(Func<AbyssLayer3Biome, Player, bool> orig, AbyssLayer3Biome self, Player player);
+
+        public delegate bool AbyssInBiomeHookDelegate4(Func<AbyssLayer4Biome, Player, bool> orig, AbyssLayer4Biome self, Player player);
+
+        public delegate void SCalSkyDrawDelegate(Action<SCalBackgroundScene, Player, bool> orig, SCalBackgroundScene instance, Player player, bool isActive);
+
+        public delegate void CalCloneSkyDrawDelegate(Action<CalamitasCloneBackgroundScene, Player, bool> orig, CalamitasCloneBackgroundScene instance, Player player, bool isActive);
+
+        public delegate void YharonSkyDrawDelegate(Action<YharonBackgroundScene, Player, bool> orig, YharonBackgroundScene instance, Player player, bool isActive);
+
+        public static event AbyssRequirementHookDelegate MeetsBaseAbyssRequirement
+        {
+            add => HookEndpointManager.Add(typeof(AbyssLayer1Biome).GetMethod("MeetsBaseAbyssRequirement", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(AbyssLayer1Biome).GetMethod("MeetsBaseAbyssRequirement", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event AbyssInBiomeHookDelegate1 IsAbyssLayer1BiomeActive
+        {
+            add => HookEndpointManager.Add(typeof(AbyssLayer1Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(AbyssLayer1Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event AbyssInBiomeHookDelegate2 IsAbyssLayer2BiomeActive
+        {
+            add => HookEndpointManager.Add(typeof(AbyssLayer2Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(AbyssLayer2Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event AbyssInBiomeHookDelegate3 IsAbyssLayer3BiomeActive
+        {
+            add => HookEndpointManager.Add(typeof(AbyssLayer3Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(AbyssLayer3Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event AbyssInBiomeHookDelegate4 IsAbyssLayer4BiomeActive
+        {
+            add => HookEndpointManager.Add(typeof(AbyssLayer4Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(AbyssLayer4Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator AbyssLayer1Color
+        {
+            add => HookEndpointManager.Modify(typeof(AbyssLayer1Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(AbyssLayer1Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator AbyssLayer2Color
+        {
+            add => HookEndpointManager.Modify(typeof(AbyssLayer2Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(AbyssLayer2Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator AbyssLayer3Color
+        {
+            add => HookEndpointManager.Modify(typeof(AbyssLayer3Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(AbyssLayer3Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator AbyssLayer4Color
+        {
+            add => HookEndpointManager.Modify(typeof(AbyssLayer4Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(AbyssLayer4Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+        }
         public static event ILContext.Manipulator BRSkyColor
         {
             add => HookEndpointManager.Modify(typeof(BossRushSky).GetMethod("get_GeneralColor", Utilities.UniversalBindingFlags), value);
@@ -256,6 +348,96 @@ namespace InfernumMode.ILEditingStuff
         {
             add => HookEndpointManager.Modify(typeof(DoGBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
             remove => HookEndpointManager.Unmodify(typeof(DoGBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event SCalSkyDrawDelegate SCalSkyDraw
+        {
+            add => HookEndpointManager.Add(typeof(SCalBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(SCalBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event CalCloneSkyDrawDelegate CalCloneSkyDraw
+        {
+            add => HookEndpointManager.Add(typeof(CalamitasCloneBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(CalamitasCloneBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event YharonSkyDrawDelegate YharonSkyDraw
+        {
+            add => HookEndpointManager.Add(typeof(YharonBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Remove(typeof(YharonBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator UpdateBadLifeRegen
+        {
+            add => HookEndpointManager.Modify(typeof(CalamityPlayer).GetMethod("UpdateBadLifeRegen", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(CalamityPlayer).GetMethod("UpdateBadLifeRegen", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator SelectSulphuricWaterColor
+        {
+            add => HookEndpointManager.Modify(typeof(ILChanges).GetMethod("SelectSulphuricWaterColor", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(ILChanges).GetMethod("SelectSulphuricWaterColor", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator DrawCodebreakerUI
+        {
+            add => HookEndpointManager.Modify(typeof(CodebreakerUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(CodebreakerUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator DisplayCodebreakerCommunicationPanel
+        {
+            add => HookEndpointManager.Modify(typeof(CodebreakerUI).GetMethod("DisplayCommunicationPanel", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(CodebreakerUI).GetMethod("DisplayCommunicationPanel", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator RuneOfKosCanUseItem
+        {
+            add => HookEndpointManager.Modify(typeof(RuneofKos).GetMethod("CanUseItem", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(RuneofKos).GetMethod("CanUseItem", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator RuneOfKosUseItem
+        {
+            add => HookEndpointManager.Modify(typeof(RuneofKos).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(RuneofKos).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator PlaceForbiddenArchive
+        {
+            add => HookEndpointManager.Modify(typeof(DungeonArchive).GetMethod("PlaceArchive", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(DungeonArchive).GetMethod("PlaceArchive", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator ProfanedShardUseItem
+        {
+            add => HookEndpointManager.Modify(typeof(ProfanedShard).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(ProfanedShard).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator CalGlobalNPCPostDraw
+        {
+            add => HookEndpointManager.Modify(typeof(CalamityGlobalNPC).GetMethod("PostDraw", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(CalamityGlobalNPC).GetMethod("PostDraw", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator AquaticScourgeSpecialOnKill
+        {
+            add => HookEndpointManager.Modify(typeof(AquaticScourgeHead).GetMethod("SpecialOnKill", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(AquaticScourgeHead).GetMethod("SpecialOnKill", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator CalPlayerProcessTriggers
+        {
+            add => HookEndpointManager.Modify(typeof(CalamityPlayer).GetMethod("ProcessTriggers", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(CalamityPlayer).GetMethod("ProcessTriggers", Utilities.UniversalBindingFlags), value);
+        }
+
+        public static event ILContext.Manipulator EternityHexAI
+        {
+            add => HookEndpointManager.Modify(typeof(EternityHex).GetMethod("AI", Utilities.UniversalBindingFlags), value);
+            remove => HookEndpointManager.Unmodify(typeof(EternityHex).GetMethod("AI", Utilities.UniversalBindingFlags), value);
         }
     }
 }

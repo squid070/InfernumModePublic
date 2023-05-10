@@ -1,10 +1,10 @@
 using CalamityMod;
 using CalamityMod.Projectiles.BaseProjectiles;
-using InfernumMode;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
-using InfernumMode.GlobalInstances;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
+using InfernumMode.Core.GlobalInstances;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -12,6 +12,7 @@ using System;
 using System.IO;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
@@ -43,7 +44,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             Projectile.tileCollide = false;
             Projectile.timeLeft = (int)Lifetime;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -77,7 +78,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
 
         public static Color LaserColorFunction(float completionRatio)
         {
-            float colorInterpolant = (float)Math.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 23f) * 0.5f + 0.5f;
+            float colorInterpolant = MathF.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 23f) * 0.5f + 0.5f;
             return Color.Lerp(new(109, 242, 196), new(46, 146, 143), colorInterpolant * 0.67f);
         }
 

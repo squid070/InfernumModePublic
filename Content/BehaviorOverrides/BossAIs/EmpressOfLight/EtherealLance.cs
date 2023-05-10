@@ -1,5 +1,5 @@
 ﻿using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
@@ -48,6 +48,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
         public static int FireDelay => 68;
 
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.FireWhipProj}";
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Ethereal Lance");
@@ -69,6 +71,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             Projectile.tileCollide = false;
             Projectile.ignoreWater = true;
             Projectile.hide = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)

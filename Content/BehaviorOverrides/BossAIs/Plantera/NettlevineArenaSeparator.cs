@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Plantera
@@ -22,6 +23,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Plantera
                 return new Vector2(Projectile.ai[0], Projectile.ai[1]);
             }
         }
+
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.NettleBurstEnd}";
+
         public override void SetStaticDefaults() => DisplayName.SetDefault("Nettlevine");
 
         public override void SetDefaults()
@@ -32,6 +36,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Plantera
             Projectile.timeLeft = 660;
             Projectile.penetrate = -1;
             Projectile.Calamity().DealsDefenseDamage = true;
+            Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -46,8 +52,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Plantera
         public override bool PreDraw(ref Color lightColor)
         {
             Texture2D tipTexture = TextureAssets.Projectile[Projectile.type].Value;
-            Texture2D body1Texture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Plantera/NettlevineArenaSeparatorBody1").Value;
-            Texture2D body2Texture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Plantera/NettlevineArenaSeparatorBody2").Value;
+            Texture2D body1Texture = TextureAssets.Projectile[ProjectileID.NettleBurstRight].Value;
+            Texture2D body2Texture = TextureAssets.Projectile[ProjectileID.NettleBurstLeft].Value;
+
+            Main.instance.LoadProjectile(ProjectileID.NettleBurstRight);
+            Main.instance.LoadProjectile(ProjectileID.NettleBurstLeft);
+
             Vector2 bodyOrigin = body1Texture.Size() * new Vector2(0.5f, 1f);
             Vector2 tipOrigin = tipTexture.Size() * new Vector2(0.5f, 1f);
             Vector2 currentDrawPosition = StartingPosition;
@@ -73,6 +83,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Plantera
             float _ = 0f;
             return Collision.CheckAABBvLineCollision(targetHitbox.TopLeft(), targetHitbox.Size(), start, end, 8f, ref _);
         }
+
+        public override bool? CanDamage() => !Projectile.WithinRange(StartingPosition, 720f);
 
         public override Color? GetAlpha(Color lightColor) => Color.White * Projectile.Opacity;
     }

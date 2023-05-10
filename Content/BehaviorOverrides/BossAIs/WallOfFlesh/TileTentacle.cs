@@ -1,11 +1,13 @@
 using CalamityMod.DataStructures;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
@@ -30,6 +32,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
             Projectile.ignoreWater = true;
             Projectile.hide = true;
             Projectile.timeLeft = 150;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -45,7 +48,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
                 Vector2 offset = (RestingSpot - Projectile.Center).SafeNormalize(Vector2.UnitY).RotatedBy(MathHelper.PiOver2) * 40f;
 
                 // And make it sway a bit, like a flag.
-                offset *= (float)Math.Sin(i / (float)ControlPoints.Length * MathHelper.TwoPi + Time / 12f);
+                offset *= MathF.Sin(i / (float)ControlPoints.Length * MathHelper.TwoPi + Time / 12f);
 
                 // Incorporate more sway the faster the tentacle is moving.
                 offset *= Projectile.velocity.Length() * 0.05f;
@@ -75,15 +78,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
             Color endColors = new(158, 48, 83);
             Color middleColor = new(184, 78, 113);
             Color witherColor = new(61, 28, 32);
-            Color baseColor = Color.Lerp(endColors, middleColor, (float)Math.Abs(Math.Sin(completionRatio * MathHelper.Pi * 0.7f)));
+            Color baseColor = Color.Lerp(endColors, middleColor, Math.Abs(MathF.Sin(completionRatio * MathHelper.Pi * 0.7f)));
             return Color.Lerp(baseColor, witherColor, Utils.GetLerpValue(60f, 0f, Projectile.timeLeft, true)) * Projectile.Opacity;
         }
 
         internal float WidthFunction(float completionRatio)
         {
             float widthCompletion = 1f;
-            widthCompletion *= 1f - (float)Math.Pow(1f - Utils.GetLerpValue(0.04f, 0.3f, 1f - completionRatio, true), 2D);
-            widthCompletion *= 1f - (float)Math.Pow(1f - Utils.GetLerpValue(0.96f, 0.9f, 1f - completionRatio, true), 2D);
+            widthCompletion *= 1f - MathF.Pow(1f - Utils.GetLerpValue(0.04f, 0.3f, 1f - completionRatio, true), 2f);
+            widthCompletion *= 1f - MathF.Pow(1f - Utils.GetLerpValue(0.96f, 0.9f, 1f - completionRatio, true), 2f);
             return MathHelper.Lerp(0f, 9f, widthCompletion) * Utils.GetLerpValue(0f, 60f, Projectile.timeLeft, true);
         }
 

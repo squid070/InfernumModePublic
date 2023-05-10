@@ -1,7 +1,13 @@
 using CalamityMod;
+using CalamityMod.Tiles.Abyss;
+using InfernumMode.Content.Achievements;
 using InfernumMode.Content.Subworlds;
 using InfernumMode.Content.Tiles;
+using InfernumMode.Content.Tiles.Abyss;
+using InfernumMode.Core.GlobalInstances.Players;
 using InfernumMode.Core.GlobalInstances.Systems;
+using InfernumMode.Core.TileData;
+using Microsoft.Xna.Framework.Graphics;
 using SubworldLibrary;
 using System.Linq;
 using Terraria;
@@ -12,13 +18,28 @@ namespace InfernumMode.Core.GlobalInstances
 {
     public class InfernumGlobalTile : GlobalTile
     {
+        public static int LumenylCrystalID
+        {
+            get;
+            private set;
+        }
+
+        public override void Load()
+        {
+            LumenylCrystalID = ModContent.TileType<LumenylCrystals>();
+        }
+
         public static bool ShouldNotBreakDueToAboveTile(int x, int y)
         {
             int[] invincibleTiles = new int[]
             {
+                ModContent.TileType<BrimstoneRose>(),
                 ModContent.TileType<ColosseumPortal>(),
+                ModContent.TileType<EggSwordShrine>(),
+                ModContent.TileType<IronBootsSkeleton>(),
                 ModContent.TileType<ProvidenceSummoner>(),
                 ModContent.TileType<ProvidenceRoomDoorPedestal>(),
+                ModContent.TileType<StrangeOrbTile>(),
             };
 
             Tile checkTile = CalamityUtils.ParanoidTileRetrieval(x, y);
@@ -47,7 +68,28 @@ namespace InfernumMode.Core.GlobalInstances
             if (WorldSaveSystem.ProvidenceArena.Intersects(new(i, j, 1, 1)) || SubworldSystem.IsActive<LostColosseum>())
                 return false;
 
+            if (CalamityUtils.ParanoidTileRetrieval(i, j - 1).TileType == ModContent.TileType<AbyssalKelp>())
+                WorldGen.KillTile(i, j - 1);
+
             return base.CanKillTile(i, j, type, ref blockDamaged);
+        }
+
+        public override void KillTile(int i, int j, int type, ref bool fail, ref bool effectOnly, ref bool noItem)
+        {
+            // Trigger achievement checks.
+            if (Main.netMode != NetmodeID.Server)
+                AchievementPlayer.ExtraUpdateHandler(Main.LocalPlayer, AchievementUpdateCheck.TileBreak, type);
+
+            if (type == TileID.VanityTreeSakura && SakuraTreeSystem.HasSakura(new(i, j)))
+                AchievementPlayer.ExtraUpdateHandler(Main.LocalPlayer, AchievementUpdateCheck.Sakura);
+        }
+
+        public override bool PreDraw(int i, int j, int type, SpriteBatch spriteBatch)
+        {
+            if (type == LumenylCrystalID)
+                return false;
+
+            return base.PreDraw(i, j, type, spriteBatch);
         }
 
         public override void NearbyEffects(int i, int j, int type, bool closer)
@@ -55,6 +97,12 @@ namespace InfernumMode.Core.GlobalInstances
             bool tombstonesShouldSpontaneouslyCombust = WorldSaveSystem.ProvidenceArena.Intersects(new(i, j, 16, 16)) || SubworldSystem.IsActive<LostColosseum>();
             if (tombstonesShouldSpontaneouslyCombust && type is TileID.Tombstones)
                 WorldGen.KillTile(i, j);
+        }
+
+        public override void RandomUpdate(int i, int j, int type)
+        {
+            if (type == TileID.VanityTreeSakura && Main.rand.NextBool(500))
+                Main.tile[i, j].Get<SakuraTreeSystem.BlossomData>().HasBlossom = true;
         }
     }
 }

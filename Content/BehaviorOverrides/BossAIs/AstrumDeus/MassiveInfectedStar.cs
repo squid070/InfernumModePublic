@@ -6,10 +6,9 @@ using CalamityMod.NPCs.AstrumDeus;
 using CalamityMod.Projectiles.Boss;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
@@ -42,6 +41,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             Projectile.timeLeft = 9000;
             Projectile.scale = 0.2f;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -64,7 +64,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                     if (BossRushEvent.BossRushActive)
                         sparkVelocity *= 1.6f;
 
-                    Utilities.NewProjectileBetter(Projectile.Center + sparkVelocity * 3f, sparkVelocity, ModContent.ProjectileType<AstralPlasmaSpark>(), 200, 0f);
+                    Utilities.NewProjectileBetter(Projectile.Center + sparkVelocity * 3f, sparkVelocity, ModContent.ProjectileType<AstralPlasmaSpark>(), AstrumDeusHeadBehaviorOverride.AstralPlasmaSparkDamage, 0f);
                 }
             }
             else
@@ -145,7 +145,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             for (int i = 0; i < 45; i++)
             {
                 Vector2 sparkVelocity = Main.rand.NextVector2Unit() * Main.rand.NextFloat(4f, 14f);
-                Utilities.NewProjectileBetter(Projectile.Center + sparkVelocity * 3f, sparkVelocity, ModContent.ProjectileType<AstralShot2>(), 200, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center + sparkVelocity * 3f, sparkVelocity, ModContent.ProjectileType<AstralShot2>(), AstrumDeusHeadBehaviorOverride.AstralLaserDamage, 0f);
             }
         }
 

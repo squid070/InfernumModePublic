@@ -2,7 +2,7 @@ using CalamityMod;
 using CalamityMod.Events;
 using CalamityMod.Items.SummonItems;
 using CalamityMod.NPCs.Providence;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Content.Projectiles.Generic;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
@@ -25,6 +25,9 @@ namespace InfernumMode.Content.Tiles
             Main.tileFrameImportant[Type] = true;
             Main.tileNoAttach[Type] = true;
             Main.tileSpelunker[Type] = true;
+
+            // Apparently this is necessary in multiplayer for some reason???
+            MinPick = int.MaxValue;
 
             TileObjectData.newTile.CopyFrom(TileObjectData.Style5x4);
             TileObjectData.newTile.Width = Width;

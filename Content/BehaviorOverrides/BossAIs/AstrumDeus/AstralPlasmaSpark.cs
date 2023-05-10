@@ -1,5 +1,6 @@
 using CalamityMod.Events;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -8,7 +9,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
 {
     public class AstralPlasmaSpark : ModProjectile
     {
-        public ref float Time => ref Projectile.ai[0];
+        public bool Cyan => Projectile.ai[0] == 1f;
+
+        public ref float Time => ref Projectile.ai[1];
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Astral Plasma Spark");
@@ -27,6 +31,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             Projectile.Opacity = 0f;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 300;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -53,9 +58,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             Time++;
         }
 
+        public override bool? CanDamage() => Projectile.Opacity > 0.8f;
+
         public override bool PreDraw(ref Color lightColor)
         {
-            Utilities.DrawAfterimagesCentered(Projectile, lightColor, ProjectileID.Sets.TrailingMode[Projectile.type], 1);
+            Texture2D texture = ModContent.Request<Texture2D>(Texture).Value;
+            if (Cyan)
+                texture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/AstrumDeus/AstralPlasmaSparkCyan").Value;
+
+            Utilities.DrawAfterimagesCentered(Projectile, lightColor, ProjectileID.Sets.TrailingMode[Projectile.type], 1, texture);
             return false;
         }
 

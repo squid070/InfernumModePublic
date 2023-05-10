@@ -1,6 +1,6 @@
 using CalamityMod;
 using CalamityMod.NPCs;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
@@ -44,7 +44,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             Projectile.timeLeft = 960;
             Projectile.hide = true;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)

@@ -2,10 +2,12 @@
 using CalamityMod.Projectiles.BaseProjectiles;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
+using Terraria.ID;
 
 namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.CloudElemental
 {
@@ -17,7 +19,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.CloudElemental
 
         public const int TelegraphTotalTime = 30;
 
-        public const int LightningTime = 60;
+        public const int LightningTime = 45;
 
         public override string Texture => InfernumTextureRegistry.InvisPath;
 
@@ -41,6 +43,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.CloudElemental
             Projectile.tileCollide = false;
             Projectile.Calamity().DealsDefenseDamage = true;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override bool? CanDamage() => Time > TelegraphTotalTime;

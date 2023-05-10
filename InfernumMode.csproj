@@ -6,8 +6,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>latest</LangVersion>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="tModLoader.CodeAssist" Version="0.1.*" />
@@ -15,6 +14,9 @@
   <ItemGroup>
     <Reference Include="CalamityMod">
       <HintPath>..\..\ModReader\CalamityMod\CalamityMod.dll</HintPath>
+    </Reference>
+    <Reference Include="Gif.Components">
+      <HintPath>lib\Gif.dll</HintPath>
     </Reference>
     <Reference Include="SubworldLibrary">
       <HintPath>..\..\ModReader\SubworldLibrary\SubworldLibrary.dll</HintPath>

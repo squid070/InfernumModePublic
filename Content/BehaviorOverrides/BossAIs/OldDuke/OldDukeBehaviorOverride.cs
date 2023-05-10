@@ -26,9 +26,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
         {
             SpawnAnimation,
             AttackSelectionWait,
+            ChargeIndicatorSound,
             Charge,
             AcidBelch,
-            AcidBubbleFountain,
             SharkronSpinSummon,
             ToothBallVomit,
             GoreAndAcidSpit,
@@ -45,9 +45,22 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
 
         public override int NPCOverrideType => ModContent.NPCType<OldDukeBoss>();
 
+        public static int HomingAcidDamage => 300;
+
+        public static int HomingToothDamage => 300;
+
+        public static int GoreDamage => 335;
+
+        public static int SulphuricBlobDamage => 335;
+
+        public static int VortexDamage => 500;
+
         public const float Phase2LifeRatio = 0.75f;
+
         public const float Phase3LifeRatio = 0.375f;
+
         public const float Phase4LifeRatio = 0.2f;
+
         public const float PhaseTransitionTime = 150f;
 
         public const float TeleportPauseTime = 30f;
@@ -61,24 +74,28 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.AcidBelch,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.ToothBallVomit,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.SharkronSpinSummon,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.ToothBallVomit,
+            OldDukeAttackState.ChargeIndicatorSound,
         };
 
         public static readonly List<OldDukeAttackState> Phase2AttackPattern = new()
@@ -90,23 +107,27 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.ToothBallVomit,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.SharkronSpinSummon,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.GoreAndAcidSpit,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.AcidBelch,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
@@ -114,23 +135,27 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.ToothBallVomit,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.GoreAndAcidSpit,
+            OldDukeAttackState.ChargeIndicatorSound,
         };
 
         public static readonly List<OldDukeAttackState> Phase3AttackPattern = new()
         {
             OldDukeAttackState.TeleportPause,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.ToothBallVomit,
             OldDukeAttackState.TeleportPause,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
@@ -138,12 +163,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.GoreAndAcidSpit,
             OldDukeAttackState.TeleportPause,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.TeleportPause,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
@@ -151,12 +178,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.ToothBallVomit,
             OldDukeAttackState.TeleportPause,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.FastRegularCharge,
             OldDukeAttackState.TeleportPause,
+            OldDukeAttackState.ChargeIndicatorSound,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
             OldDukeAttackState.Charge,
@@ -340,7 +369,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
                 npc.Opacity = 1f;
 
             // Define a general-purpose mouth position vector.
-            Vector2 mouthPosition = npc.Center + new Vector2((float)Math.Cos(npc.rotation) * (npc.width + 28f) * -npc.spriteDirection * 0.5f, 50f);
+            Vector2 mouthPosition = npc.Center + new Vector2(MathF.Cos(npc.rotation) * (npc.width + 28f) * -npc.spriteDirection * 0.5f, 50f);
 
             switch ((OldDukeAttackState)(int)attackState)
             {
@@ -350,6 +379,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
                 case OldDukeAttackState.AttackSelectionWait:
                     DoBehavior_AttackSelectionWait(npc, target, inPhase4, attackTimer, ref frameType);
                     break;
+                case OldDukeAttackState.ChargeIndicatorSound:
+                    DoBehavior_ChargeIndicatorSound(npc, target, attackTimer);
+                    break;
                 case OldDukeAttackState.Charge:
                     DoBehavior_Charge(npc, target, inPhase2, inPhase3, inPhase4, attackTimer, ref frameType);
                     break;
@@ -358,9 +390,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
                     break;
                 case OldDukeAttackState.AcidBelch:
                     DoBehavior_AcidBelch(npc, target, inPhase2, mouthPosition, attackTimer, ref frameType);
-                    break;
-                case OldDukeAttackState.AcidBubbleFountain:
-                    DoBehavior_AcidBubbleFountain(npc, target, inPhase2, attackTimer, ref frameType);
                     break;
                 case OldDukeAttackState.SharkronSpinSummon:
                     DoBehavior_SharkronSpinSummon(npc, target, attackTimer, ref frameType);
@@ -487,9 +516,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
 
             // Hover near the target.
             if (horizontalHoverOffset == 0f)
-                horizontalHoverOffset = Math.Sign(target.Center.X - npc.Center.X) * 500f;
+            {
+                horizontalHoverOffset = Math.Sign(target.Center.X - npc.Center.X) * -500f;
+                npc.netUpdate = true;
+            }
             Vector2 hoverDestination = target.Center + new Vector2(horizontalHoverOffset, -350f) - npc.velocity;
-            npc.SimpleFlyMovement(npc.SafeDirectionTo(hoverDestination) * 22f, 1.05f);
+            npc.SimpleFlyMovement(npc.SafeDirectionTo(hoverDestination) * 12f, 0.7f);
 
             // Look at the target.
             npc.spriteDirection = (target.Center.X < npc.Center.X).ToDirectionInt();
@@ -505,11 +537,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             npc.frameCounter++;
 
             if (attackTimer >= waitDelay)
-            {
-                if (upcomingAttack is OldDukeAttackState.FastRegularCharge)
-                    SoundEngine.PlaySound(OldDukeBoss.VomitSound with { Volume = 1.5f, Pitch = -0.225f }, target.Center);
                 SelectNextAttack(npc);
-            }
+        }
+
+        public static void DoBehavior_ChargeIndicatorSound(NPC npc, Player target, float attackTimer)
+        {
+            if (attackTimer == 1f)
+                SoundEngine.PlaySound(OldDukeBoss.VomitSound with { Volume = 1.5f, Pitch = -0.225f }, target.Center);
+
+            npc.velocity *= 0.87f;
+            if (attackTimer >= 20f)
+                SelectNextAttack(npc);
         }
 
         public static void DoBehavior_Charge(NPC npc, Player target, bool inPhase2, bool inPhase3, bool inPhase4, float attackTimer, ref float frameType)
@@ -632,6 +670,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
 
         public static void DoBehavior_AcidBelch(NPC npc, Player target, bool inPhase2, Vector2 mouthPosition, float attackTimer, ref float frameType)
         {
+            // Disable contact damage.
             npc.damage = 0;
 
             int shootDelay = inPhase2 ? 40 : 50;
@@ -669,56 +708,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer > shootDelay && (attackTimer - shootDelay) % belchRate == belchRate - 1f)
             {
                 Vector2 shootVelocity = (mouthPosition - npc.Center).SafeNormalize(Vector2.UnitX * npc.spriteDirection) * 19f;
-                Utilities.NewProjectileBetter(mouthPosition, shootVelocity, ModContent.ProjectileType<SulphuricBlob>(), 320, 0f);
+                Utilities.NewProjectileBetter(mouthPosition, shootVelocity, ModContent.ProjectileType<SulphuricBlob>(), SulphuricBlobDamage, 0f);
             }
 
             if (attackTimer >= shootDelay + belchRate * (belchCount + 0.7f))
                 SelectNextAttack(npc);
         }
 
-        public static void DoBehavior_AcidBubbleFountain(NPC npc, Player target, bool inPhase2, float attackTimer, ref float frameType)
-        {
-            npc.damage = 0;
-
-            int shootDelay = inPhase2 ? 40 : 55;
-            int bubbleCount = inPhase2 ? 12 : 15;
-            int bubbleSummonRate = inPhase2 ? 9 : 15;
-            if (BossRushEvent.BossRushActive)
-                bubbleSummonRate -= 2;
-
-            // Hover near the target.
-            Vector2 hoverDestination = target.Center + new Vector2(Math.Sign(npc.Center.X - target.Center.X) * 500f, -300f) - npc.velocity;
-            if (!npc.WithinRange(hoverDestination, 45f))
-                npc.SimpleFlyMovement(npc.SafeDirectionTo(hoverDestination) * 14.5f, 0.75f);
-
-            // Look at the target.
-            npc.spriteDirection = (target.Center.X < npc.Center.X).ToDirectionInt();
-            npc.rotation = npc.AngleTo(target.Center);
-            if (npc.spriteDirection == 1)
-                npc.rotation += MathHelper.Pi;
-
-            // Handle frames.
-            npc.frameCounter += 1.5f;
-            frameType = (int)OldDukeFrameType.FlapWings;
-
-            if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer > shootDelay && (attackTimer - shootDelay) % bubbleSummonRate == bubbleSummonRate - 1f)
-            {
-                Vector2 bubbleSpawnPosition = target.Center + new Vector2(Main.rand.NextFloatDirection() * 1000f + target.velocity.X * 60f, 800f);
-                Vector2 bubbleVelocity = -Vector2.UnitY * Main.rand.NextFloat(10.5f, 13.5f);
-                if (inPhase2)
-                    bubbleVelocity *= 1.15f;
-                if (BossRushEvent.BossRushActive)
-                    bubbleVelocity *= 1.6f;
-
-                Utilities.NewProjectileBetter(bubbleSpawnPosition, bubbleVelocity, ModContent.ProjectileType<AcidFountainBubble>(), 320, 0f);
-            }
-
-            if (attackTimer >= shootDelay + bubbleSummonRate * (bubbleCount + 0.5f))
-                SelectNextAttack(npc);
-        }
-
         public static void DoBehavior_SharkronSpinSummon(NPC npc, Player target, float attackTimer, ref float frameType)
         {
+            // Disable contact damage.
             npc.damage = 0;
 
             int spinTime = 72;
@@ -743,7 +742,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
                 Vector2 vortexSpawnPosition = npc.Center + npc.velocity.RotatedBy(npc.spriteDirection * MathHelper.PiOver2) * spinTime / totalRotations / MathHelper.TwoPi;
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
-                    Utilities.NewProjectileBetter(vortexSpawnPosition, Vector2.Zero, ModContent.ProjectileType<SharkSummonVortex>(), 480, 0f);
+                    Utilities.NewProjectileBetter(vortexSpawnPosition, Vector2.Zero, ModContent.ProjectileType<SharkSummonVortex>(), VortexDamage, 0f);
 
                     // Release sharks from above.
                     for (int i = 0; i < 4; i++)
@@ -774,6 +773,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
 
         public static void DoBehavior_ToothBallVomit(NPC npc, Player target, bool inPhase3, Vector2 mouthPosition, float attackTimer, ref float frameType)
         {
+            // Disable contact damage.
             npc.damage = 0;
 
             int shootDelay = inPhase3 ? 42 : 55;
@@ -822,6 +822,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
 
         public static void DoBehavior_GoreAndAcidSpit(NPC npc, Player target, bool inPhase3, Vector2 mouthPosition, float attackTimer, ref float frameType)
         {
+            // Disable contact damage.
             npc.damage = 0;
 
             int goreShootDelay = 92;
@@ -858,7 +859,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
                     for (int i = 0; i < goreCount; i++)
                     {
                         Vector2 goreVelocity = idealRotation.ToRotationVector2().RotatedByRandom(0.43f) * -npc.spriteDirection * Main.rand.NextFloat(10f, 15.6f);
-                        Utilities.NewProjectileBetter(mouthPosition, goreVelocity, ModContent.ProjectileType<OldDukeGore>(), 345, 0f);
+                        Utilities.NewProjectileBetter(mouthPosition, goreVelocity, ModContent.ProjectileType<OldDukeGore>(), GoreDamage, 0f);
                     }
                 }
             }
@@ -866,7 +867,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer > goreShootDelay && attackTimer < goreShootDelay + 30f)
             {
                 Vector2 acidVelocity = idealRotation.ToRotationVector2().RotatedByRandom(0.43f) * -npc.spriteDirection * Main.rand.NextFloat(13f, 18f);
-                Utilities.NewProjectileBetter(mouthPosition, acidVelocity, ModContent.ProjectileType<HomingAcid>(), 325, 0f);
+                Utilities.NewProjectileBetter(mouthPosition, acidVelocity, ModContent.ProjectileType<HomingAcid>(), HomingAcidDamage, 0f);
             }
 
             if (attackTimer >= goreShootDelay + 30f)
@@ -878,11 +879,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             npc.damage = 0;
             npc.dontTakeDamage = true;
 
-            int fadeTime = 22;
+            int fadeTime = 47;
             if (attackTimer <= fadeTime)
                 npc.Opacity = Utils.GetLerpValue(fadeTime * 0.8f, 0f, attackTimer, true);
             else if (attackTimer <= fadeTime * 2f)
-                npc.Opacity = Utils.GetLerpValue(fadeTime * 0.8f, fadeTime * 1.6f, attackTimer, true);
+                npc.Opacity = Utils.GetLerpValue(fadeTime, fadeTime * 1.6f, attackTimer, true);
 
             // Decide frames.
             if (attackTimer > fadeTime - 4f && attackTimer < fadeTime + 4f)
@@ -899,6 +900,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             if (attackTimer == fadeTime)
             {
                 SoundEngine.PlaySound(OldDukeBoss.RoarSound, target.Center);
+                npc.oldPos = new Vector2[npc.oldPos.Length];
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     npc.Center = target.Center + new Vector2(Math.Sign(npc.Center.X - target.Center.X) * -620f, -250f);
@@ -948,6 +950,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
                 npc.TargetClosest();
                 npc.ai[0] = (int)OldDukeAttackState.AttackSelectionWait;
                 npc.ai[2] = (int)newAttackState;
+                if (oldAttackState is OldDukeAttackState.TeleportPause or OldDukeAttackState.ChargeIndicatorSound)
+                    npc.ai[0] = npc.ai[2];
+
                 npc.ai[3]++;
             }
             npc.netUpdate = true;
@@ -1037,7 +1042,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             if (currentAttack == OldDukeAttackState.AttackSelectionWait)
                 afterimageCount = 7;
 
-            if (currentAttack is OldDukeAttackState.AcidBubbleFountain or OldDukeAttackState.AcidBelch)
+            if (currentAttack is OldDukeAttackState.AcidBelch)
                 afterimageCount = 4;
 
             if (currentAttack == OldDukeAttackState.Charge || inPhase3)
@@ -1084,14 +1089,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
             if (inTheMiddleOfPhaseTransition && phaseTransitionTimer > 60f)
             {
                 rotationalOffsetImageCount = 6;
-                rotationalOffsetFade = (float)Math.Sin(MathHelper.Pi * Utils.GetLerpValue(60f, PhaseTransitionTime, phaseTransitionTimer, true)) / 3f;
+                rotationalOffsetFade = MathF.Sin(MathHelper.Pi * Utils.GetLerpValue(60f, PhaseTransitionTime, phaseTransitionTimer, true)) / 3f;
                 rotationalOffsetOutwardness = 60f;
             }
 
             if (currentAttack == OldDukeAttackState.TeleportPause)
             {
                 rotationalOffsetImageCount = 6;
-                rotationalOffsetFade = (float)Math.Sin(MathHelper.Pi * attackTimer / TeleportPauseTime) / 3f;
+                rotationalOffsetFade = MathF.Sin(MathHelper.Pi * attackTimer / TeleportPauseTime) / 3f;
                 rotationalOffsetOutwardness = 20f;
             }
 
@@ -1132,6 +1137,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
         {
             yield return n => "Be sure to remember if any sharkrons or tooth balls appear, so that their remains don't surprise you later!";
             yield return n => "Movement speed is gonna matter a lot against that fish!";
+
             yield return n =>
             {
                 if (n.life < n.lifeMax * Phase4LifeRatio)

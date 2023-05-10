@@ -1,11 +1,12 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
@@ -35,6 +36,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
             Projectile.MaxUpdates = 2;
             Projectile.scale = 1f;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -58,22 +60,23 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
             Time++;
         }
 
-        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox) => Utilities.CircularCollision(targetHitbox.Center.ToVector2(), projHitbox, Radius * 0.725f);
+        public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox) => Utilities.CircularCollision(targetHitbox.Center.ToVector2(), projHitbox, Radius * 0.725f) && Time <= 30f;
 
-        public float SunWidthFunction(float completionRatio) => Radius * (float)Math.Sin(MathHelper.Pi * completionRatio);
+        public override bool? CanDamage() => Projectile.Opacity >= 0.37f;
+
+        public float SunWidthFunction(float completionRatio) => Radius * MathF.Sin(MathHelper.Pi * completionRatio);
 
         public Color SunColorFunction(float completionRatio)
         {
             if (ProvidenceBehaviorOverride.IsEnraged)
                 return Color.Lerp(Color.Cyan, Color.Lime, 0.33f) with { A = 92 } * Projectile.Opacity;
 
-            return Color.Lerp(Color.Yellow, Color.White, (float)Math.Sin(MathHelper.Pi * completionRatio) * 0.5f + 0.3f) * Projectile.Opacity;
+            return Color.Lerp(Color.Yellow, Color.White, MathF.Sin(MathHelper.Pi * completionRatio) * 0.5f + 0.3f) * Projectile.Opacity;
         }
 
         public override bool PreDraw(ref Color lightColor)
         {
-            if (FireDrawer is null)
-                FireDrawer = new PrimitiveTrailCopy(SunWidthFunction, SunColorFunction, null, true, InfernumEffectsRegistry.FireVertexShader);
+            FireDrawer ??= new PrimitiveTrailCopy(SunWidthFunction, SunColorFunction, null, true, InfernumEffectsRegistry.FireVertexShader);
 
             InfernumEffectsRegistry.FireVertexShader.UseSaturation(0.45f);
             InfernumEffectsRegistry.FireVertexShader.UseImage1("Images/Misc/Perlin");

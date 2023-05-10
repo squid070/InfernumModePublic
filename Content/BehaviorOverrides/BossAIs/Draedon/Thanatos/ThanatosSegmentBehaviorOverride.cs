@@ -2,13 +2,12 @@ using CalamityMod;
 using CalamityMod.NPCs;
 using CalamityMod.NPCs.ExoMechs.Thanatos;
 using CalamityMod.Sounds;
-using InfernumMode.BehaviorOverrides.BossAIs.Draedon.ComboAttacks;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.DoG;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ComboAttacks;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Reflection;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
@@ -90,8 +89,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             }
 
             // Keep a handful of segments open if the head is open, for the sake of making it easier to damage Thanatos.
+            // This does not happen if he's doing his desperation phase attack.
             int openSegmentPeriodWhenHeadIsOpen = 12;
-            if (head.localAI[0] == (int)ThanatosFrameType.Open && segmentAttackIndex % openSegmentPeriodWhenHeadIsOpen == openSegmentPeriodWhenHeadIsOpen - 1f)
+            bool busyObliteratingTarget = head.ai[0] == (int)ThanatosHeadAttackType.MaximumOverdrive && head.Infernum().ExtraAI[0] == 0f;
+            if (head.localAI[0] == (int)ThanatosFrameType.Open && segmentAttackIndex % openSegmentPeriodWhenHeadIsOpen == openSegmentPeriodWhenHeadIsOpen - 1f && !busyObliteratingTarget)
             {
                 thanatosIsFiring = false;
                 canBeOpen = true;
@@ -112,7 +113,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
 
                 if (segmentFireCountdown == (int)(segmentFireTime / 2) + fireDelay)
                 {
-                    bool willShootProjectile = (int)headAttackType != (int)ExoMechComboAttackContent.ExoMechComboAttackType.ThanatosAres_ElectricCage;
+                    bool willShootProjectile = (int)headAttackType != (int)ExoMechComboAttackContent.ExoMechComboAttackType.ThanatosAres_EnergySlashesAndCharges;
 
                     // Decide what sound to play.
                     if (willShootProjectile)
@@ -174,7 +175,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             npc.Calamity().unbreakableDR = true;
             npc.chaseable = false;
             npc.defense = 0;
-            npc.takenDamageMultiplier = 5.6f;
+            npc.takenDamageMultiplier = 3.2f;
 
             if (frameType == (int)ThanatosFrameType.Open)
             {
@@ -201,9 +202,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
 
             if (head.Infernum().ExtraAI[17] >= 1f)
                 npc.takenDamageMultiplier *= 0.5f;
-
-            // Become vulnerable on the map.
-            npc.ModNPC.GetType().GetField("vulnerable", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(npc.ModNPC, frameType == (int)ThanatosFrameType.Open);
         }
 
         public override void FindFrame(NPC npc, int frameHeight)
@@ -222,7 +220,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
 
             Vector2 center = npc.Center - Main.screenPosition;
 
-            ExoMechAIUtilities.DrawFinalPhaseGlow(spriteBatch, npc, texture, center, npc.frame, origin);
+            ExoMechAIUtilities.DrawFinalPhaseGlow(npc, texture, center, npc.frame, origin);
             Main.spriteBatch.Draw(texture, center, npc.frame, npc.GetAlpha(lightColor), npc.rotation, origin, npc.scale, spriteEffects, 0f);
 
             texture = ModContent.Request<Texture2D>("CalamityMod/NPCs/ExoMechs/Thanatos/ThanatosBody1Glow").Value;
@@ -259,7 +257,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
 
             Vector2 center = npc.Center - Main.screenPosition;
 
-            ExoMechAIUtilities.DrawFinalPhaseGlow(spriteBatch, npc, texture, center, npc.frame, origin);
+            ExoMechAIUtilities.DrawFinalPhaseGlow(npc, texture, center, npc.frame, origin);
             Main.spriteBatch.Draw(texture, center, npc.frame, npc.GetAlpha(lightColor), npc.rotation, origin, npc.scale, spriteEffects, 0f);
 
             texture = ModContent.Request<Texture2D>("CalamityMod/NPCs/ExoMechs/Thanatos/ThanatosBody2Glow").Value;
@@ -297,7 +295,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
 
             Vector2 center = npc.Center - Main.screenPosition;
 
-            ExoMechAIUtilities.DrawFinalPhaseGlow(spriteBatch, npc, texture, center, npc.frame, origin);
+            ExoMechAIUtilities.DrawFinalPhaseGlow(npc, texture, center, npc.frame, origin);
             Main.spriteBatch.Draw(texture, center, npc.frame, npc.GetAlpha(lightColor), npc.rotation, origin, npc.scale, spriteEffects, 0f);
 
             texture = ModContent.Request<Texture2D>("CalamityMod/NPCs/ExoMechs/Thanatos/ThanatosTailGlow").Value;

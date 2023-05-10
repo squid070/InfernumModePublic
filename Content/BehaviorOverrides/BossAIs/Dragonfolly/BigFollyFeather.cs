@@ -22,9 +22,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dragonfolly
             Projectile.height = 36;
             Projectile.hostile = false;
             Projectile.friendly = false;
-            Projectile.tileCollide = true;
+            Projectile.tileCollide = false;
             Projectile.scale = 0.96f;
             Projectile.timeLeft = 105;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -36,7 +37,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dragonfolly
             }
 
             Projectile.velocity.Y += MathHelper.ToRadians(2.4f);
-            Vector2 movementDirection = new(-(float)Math.Sin(Projectile.velocity.Y * 2f) * 4f, Math.Abs((float)Math.Cos(Projectile.velocity.Y * 2f)) * 6f);
+            Vector2 movementDirection = new(-MathF.Sin(Projectile.velocity.Y * 2f) * 4f, Math.Abs(MathF.Cos(Projectile.velocity.Y * 2f)) * 6f);
             Vector2 collisionDirection = Collision.TileCollision(Projectile.position, movementDirection, (int)(Projectile.width * Projectile.scale), (int)(Projectile.height * Projectile.scale));
             if (movementDirection != collisionDirection)
                 Projectile.velocity.Y = -1f;

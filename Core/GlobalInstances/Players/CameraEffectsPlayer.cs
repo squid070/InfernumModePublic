@@ -41,7 +41,7 @@ namespace InfernumMode.Core.GlobalInstances.Players
             }
 
             // Naturally pan back to the player if the camera should not be held in place.
-            ScreenFocusInterpolant = MathHelper.Clamp(ScreenFocusInterpolant - 0.2f, 0f, 1f);
+            ScreenFocusInterpolant = MathHelper.Clamp(ScreenFocusInterpolant - 0.1f, 0f, 1f);
         }
 
         public override void ModifyScreenPosition()
@@ -58,12 +58,15 @@ namespace InfernumMode.Core.GlobalInstances.Players
 
             // Handle screen-shake effects. This can be disabled with one of Calamity's configuration options.
             if (CurrentScreenShakePower > 0f)
-                CurrentScreenShakePower = Utils.Clamp(CurrentScreenShakePower - 0.2f, 0f, 15f);
+                CurrentScreenShakePower = Utils.Clamp(CurrentScreenShakePower - 0.2f, 0f, 28f);
             else
                 return;
 
             if (!CalamityConfig.Instance.Screenshake)
+            {
+                CurrentScreenShakePower = 0f;
                 return;
+            }
 
             Main.screenPosition += Main.rand.NextVector2CircularEdge(CurrentScreenShakePower, CurrentScreenShakePower);
         }

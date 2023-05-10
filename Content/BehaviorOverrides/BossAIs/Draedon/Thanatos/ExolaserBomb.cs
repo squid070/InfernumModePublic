@@ -5,7 +5,7 @@ using CalamityMod.NPCs;
 using CalamityMod.NPCs.ExoMechs.Thanatos;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -42,6 +42,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             Projectile.timeLeft = 9000;
             Projectile.scale = 0.2f;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer) => writer.Write(GrowTime);
@@ -88,9 +89,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             Time++;
         }
 
-        public float SunWidthFunction(float completionRatio) => Radius * (float)Math.Sin(MathHelper.Pi * completionRatio);
+        public float SunWidthFunction(float completionRatio) => Radius * MathF.Sin(MathHelper.Pi * completionRatio);
 
-        public Color SunColorFunction(float completionRatio) => Color.Lerp(Color.Red, Color.Red, (float)Math.Sin(MathHelper.Pi * completionRatio) * 0.4f + 0.3f) * Projectile.Opacity;
+        public Color SunColorFunction(float completionRatio) => Color.Lerp(Color.Red, Color.Red, MathF.Sin(MathHelper.Pi * completionRatio) * 0.4f + 0.3f) * Projectile.Opacity;
 
         public override bool PreDraw(ref Color lightColor)
         {
@@ -147,6 +148,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
                 Utilities.NewProjectileBetter(Projectile.Center + sparkVelocity * 3f, sparkVelocity, ModContent.ProjectileType<ExolaserSpark>(), DraedonBehaviorOverride.NormalShotDamage, 0f);
             }
         }
+
+        public override bool? CanDamage() => Projectile.velocity != Vector2.Zero ? null : false;
 
         public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox) => Utilities.CircularCollision(Projectile.Center, targetHitbox, Radius * 0.85f);
     }

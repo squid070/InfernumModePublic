@@ -1,6 +1,7 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -47,6 +48,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BoC
             Projectile.hostile = true;
             Projectile.extraUpdates = 4;
             Projectile.timeLeft = Projectile.MaxUpdates * Lifetime;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)

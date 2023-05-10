@@ -2,12 +2,14 @@ using CalamityMod;
 using CalamityMod.CalPlayer;
 using CalamityMod.Events;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
@@ -33,7 +35,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
             Projectile.alpha = 255;
             Projectile.timeLeft = 480;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -52,14 +54,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
                 return;
             }
 
-            Projectile.Opacity = (float)Math.Sin(Projectile.timeLeft / 480f) * 10f;
+            Projectile.Opacity = MathF.Sin(Projectile.timeLeft / 480f) * 10f;
             if (Projectile.Opacity > 1f)
                 Projectile.Opacity = 1f;
         }
 
         internal Color ColorFunction(float completionRatio)
         {
-            Color c = Color.Lerp(Color.DeepSkyBlue, Color.Turquoise, (float)Math.Abs(Math.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly)) * 0.5f);
+            Color c = Color.Lerp(Color.DeepSkyBlue, Color.Turquoise, Math.Abs(MathF.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly)) * 0.5f);
             if (Main.dayTime)
                 c = Color.Lerp(c, Color.Navy, 0.4f);
 

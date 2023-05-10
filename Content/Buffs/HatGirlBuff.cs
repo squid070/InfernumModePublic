@@ -1,4 +1,4 @@
-﻿using InfernumMode.Content.Projectiles;
+﻿using InfernumMode.Content.Projectiles.Pets;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
@@ -18,7 +18,7 @@ namespace InfernumMode.Content.Buffs
         public override void Update(Player player, ref int buffIndex)
         {
             player.buffTime[buffIndex] = 18000;
-            player.Infernum_HatGirl().HatGirl = true;
+            player.Infernum_Tips().HatGirl = true;
             bool petProjectileNotSpawned = player.ownedProjectileCounts[ModContent.ProjectileType<HatGirl>()] <= 0;
             if (petProjectileNotSpawned && player.whoAmI == Main.myPlayer)
                 Projectile.NewProjectile(player.GetSource_Buff(buffIndex), player.Center, Vector2.Zero, ModContent.ProjectileType<HatGirl>(), 0, 0f, player.whoAmI);

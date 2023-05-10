@@ -1,8 +1,9 @@
 using CalamityMod;
+using CalamityMod.Buffs.DamageOverTime;
 using CalamityMod.Events;
 using CalamityMod.Items.Weapons.Ranged;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Content.Projectiles.Pets;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
@@ -22,6 +23,20 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
     public class PlaguebringerGoliathBehaviorOverride : NPCBehaviorOverride
     {
         public override int NPCOverrideType => ModContent.NPCType<PlaguebringerBoss>();
+
+        public static int PlagueSeekerDamage => 180;
+
+        public static int ExplosionDamage => 190;
+
+        public static int PlagueCloudDamage => 190;
+
+        public static int PlagueVomitDamage => 190;
+
+        public static int PlagueMissileDamage => 195;
+
+        public static int DroneDeathrayDamage => 250;
+
+        public static int NuclearExplosionDamage => 600;
 
         public const float Phase2LifeRatio = 0.75f;
 
@@ -55,6 +70,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
         #endregion Enumerations
 
         #region AI
+
         public override bool PreAI(NPC npc)
         {
             npc.damage = npc.defDamage;
@@ -64,6 +80,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
             // Select a new target if an old one was lost.
             npc.TargetClosestIfTargetIsInvalid();
             Player target = Main.player[npc.target];
+
+            // Main this mod removes a lot of debuffs, huh?
+            if (target.HasBuff(ModContent.BuffType<Plague>()))
+                target.ClearBuff(ModContent.BuffType<Plague>());
 
             // Fly away if the target is gone.
             if (!target.active || target.dead)
@@ -213,7 +233,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                     npc.velocity *= 0.97f;
 
                 if (Main.netMode != NetmodeID.MultiplayerClient && chargeTimer % 6f == 5f)
-                    Utilities.NewProjectileBetter(npc.Center, Main.rand.NextVector2Circular(5f, 5f), ModContent.ProjectileType<PlagueCloud>(), 170, 0f);
+                    Utilities.NewProjectileBetter(npc.Center, Main.rand.NextVector2Circular(5f, 5f), ModContent.ProjectileType<PlagueCloud>(), PlagueCloudDamage, 0f);
 
                 if (chargeTimer >= chargeTime)
                 {
@@ -231,7 +251,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
 
         public static void DoBehavior_MissileLaunch(NPC npc, Player target, ref float attackTimer, float enrageFactor, ref float frameType)
         {
-            int attackCycleCount = enrageFactor > 1f - Phase3LifeRatio ? 1 : 2;
+            int attackCycleCount = 1;
             int missileShootRate = (int)(14f - enrageFactor * 6f);
             float missileShootSpeed = enrageFactor * 5f + 16f;
             ref float attackState = ref npc.Infernum().ExtraAI[0];
@@ -281,7 +301,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                             Vector2 shootDirection = (abdomenPosition - npc.Center).SafeNormalize(Vector2.UnitY);
                             shootDirection = shootDirection.RotateTowards(npc.SafeDirectionTo(target.Center).ToRotation(), Main.rand.NextFloat(0.74f, 1.04f));
                             Vector2 shootVelocity = shootDirection.RotatedByRandom(0.31f) * missileShootSpeed;
-                            Utilities.NewProjectileBetter(abdomenPosition, shootVelocity, ModContent.ProjectileType<RedirectingPlagueMissile>(), 175, 0f);
+                            Utilities.NewProjectileBetter(abdomenPosition, shootVelocity, ModContent.ProjectileType<RedirectingPlagueMissile>(), PlagueMissileDamage, 0f);
                         }
                         missileShootTimer = 0f;
                         npc.netUpdate = true;
@@ -308,7 +328,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
 
         public static void DoBehavior_PlagueVomit(NPC npc, Player target, ref float attackTimer, float enrageFactor, ref float frameType)
         {
-            int attackCycleCount = enrageFactor > 1f - Phase3LifeRatio ? 1 : 2;
+            int attackCycleCount = 1;
             int vomitShootRate = (int)(55f - enrageFactor * 29f);
             float vomitShootSpeed = 14f;
             ref float attackState = ref npc.Infernum().ExtraAI[0];
@@ -349,7 +369,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                     npc.velocity = npc.velocity.MoveTowards(Vector2.Zero, 0.5f) * 0.95f;
 
                     vomitShootTimer++;
-                    if (vomitShootTimer >= vomitShootRate)
+                    if (vomitShootTimer >= vomitShootRate && attackTimer <= 136f)
                     {
                         SoundEngine.PlaySound(SoundID.Item11, npc.Center);
 
@@ -360,13 +380,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                             mouthPosition += Vector2.UnitY.RotatedBy(npc.rotation) * 18f;
                             mouthPosition -= Vector2.UnitX.RotatedBy(npc.rotation) * npc.spriteDirection * -68f;
                             Vector2 shootVelocity = (target.Center - mouthPosition).SafeNormalize(Vector2.UnitY) * vomitShootSpeed;
-                            Utilities.NewProjectileBetter(mouthPosition, shootVelocity, ModContent.ProjectileType<PlagueVomit>(), 180, 0f);
+                            Utilities.NewProjectileBetter(mouthPosition, shootVelocity, ModContent.ProjectileType<PlagueVomit>(), PlagueVomitDamage, 0f);
                         }
                         vomitShootTimer = 0f;
                         npc.netUpdate = true;
                     }
 
-                    if (attackTimer >= 180f)
+                    if (attackTimer >= 210f)
                     {
                         attackCycleCounter++;
                         if (attackCycleCounter >= attackCycleCount)
@@ -463,7 +483,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                 {
                     Vector2 missileShootVelocity = new(npc.velocity.X * 0.6f, 15f);
                     missileShootVelocity += Main.rand.NextVector2Circular(1.25f, 1.25f);
-                    Utilities.NewProjectileBetter(npc.Center + missileShootVelocity * 2f, missileShootVelocity, ModContent.ProjectileType<PlagueMissile>(), 180, 0f);
+                    Utilities.NewProjectileBetter(npc.Center + missileShootVelocity * 2f, missileShootVelocity, ModContent.ProjectileType<PlagueMissile>(), PlagueMissileDamage, 0f);
                 }
 
                 if (chargeTimer >= chargeTime)
@@ -516,7 +536,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                     npc.velocity *= 0.935f;
 
                     // Do the charge.
-                    if (npc.WithinRange(hoverDestination, 175f) && hoverTimer > 18f || fuckingChargeAnyway)
+                    if (npc.WithinRange(hoverDestination, 175f) && hoverTimer > 32f || fuckingChargeAnyway)
                     {
                         hoverTimer = 0f;
                         chargeState = 2f;
@@ -656,6 +676,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                 hoverOffsetY = 400f * (chargeCount % 2f == 0f).ToDirectionInt();
                 chargeState = 1f;
                 bombingTimer = 0f;
+                Utilities.DeleteAllProjectiles(false, ModContent.ProjectileType<RedirectingPlagueMissile>());
                 npc.netUpdate = true;
             }
 
@@ -713,7 +734,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                     chargeState++;
                     npc.netUpdate = true;
 
-                    if (chargeCount > attackCycleCount)
+                    if (chargeCount >= attackCycleCount)
                         SelectNextAttack(npc);
                 }
             }
@@ -731,13 +752,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                     float bombRotation = Main.rand.NextBool(2).ToInt() * Main.rand.NextFloatDirection() * 0.16f;
                     for (float horizontalOffset = -1900f; horizontalOffset < 1900f; horizontalOffset += 90f)
                     {
-                        ProjectileSpawnManagementSystem.PrepareProjectileForSpawning(telegraph => telegraph.rotation = bombRotation);
+                        ProjectileSpawnManagementSystem.PrepareProjectileForSpawning(telegraph => telegraph.rotation = bombRotation + Main.rand.NextFloatDirection() * 0.022f);
                         Utilities.NewProjectileBetter(target.Center + Vector2.UnitX * horizontalOffset, Vector2.Zero, ModContent.ProjectileType<BombingTelegraph>(), 0, 0f, target.whoAmI, bombingDelay);
                     }
                 }
 
                 if (bombingTimer == bombingDelay)
-                    SoundEngine.PlaySound(HandheldTank.UseSound, target.Center);
+                    SoundEngine.PlaySound(InfernumSoundRegistry.PBGMissileLaunchSound, target.Center);
 
                 if (bombingTimer > bombingDelay + 90f)
                 {

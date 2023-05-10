@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
@@ -8,6 +8,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
 {
     public class FallingGel : ModProjectile
     {
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.QueenSlimeGelAttack}";
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Falling Gel");
@@ -23,6 +25,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 300;
+            Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

@@ -1,6 +1,7 @@
 using CalamityMod;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -36,7 +37,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.DarkMage
             Projectile.alpha = 255;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 210;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -72,7 +73,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.DarkMage
                     acceleration *= 1.3f;
                 }
 
-                float angularOffset = (float)Math.Cos((Projectile.Center * new Vector2(1.4f, 1f)).Length() / 275f + Projectile.identity * 0.89f) * 0.01f;
+                float angularOffset = MathF.Cos((Projectile.Center * new Vector2(1.4f, 1f)).Length() / 275f + Projectile.identity * 0.89f) * 0.01f;
                 Projectile.velocity = Projectile.velocity.RotatedBy(angularOffset);
                 Projectile.velocity = Projectile.velocity.SafeNormalize(Vector2.UnitY) * MathHelper.Clamp(Projectile.velocity.Length() * acceleration, minSpeed, maxSpeed);
             }

@@ -1,4 +1,5 @@
 using CalamityMod;
+using CalamityMod.Buffs.DamageOverTime;
 using CalamityMod.Events;
 using CalamityMod.Items.Weapons.DraedonsArsenal;
 using CalamityMod.Items.Weapons.Ranged;
@@ -7,7 +8,7 @@ using CalamityMod.Projectiles.Boss;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.Sounds;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Content.Projectiles.Pets;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
@@ -44,6 +45,27 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
         #endregion Enumerations
 
         #region AI
+
+        public static int AstralPlasmaSparkDamage => 180;
+
+        public static int AstralFlameDamage => 200;
+
+        public static int AstralLaserDamage => 200;
+
+        public static int AstralPlasmaFireballDamage => 200;
+
+        public static int AstralRubbleDamage => 200;
+
+        public static int DarkBoltDamage => 200;
+
+        public static int InfectionGlobDamage => 200;
+
+        public static int AstralVortexDamage => 250;
+
+        public static int BlackHoleDamage => 300;
+
+        public static int BlackHoleLaserDamage => 300;
+
         public const float Phase2LifeRatio = 0.6f;
 
         public const float Phase3LifeRatio = 0.33333f;
@@ -77,6 +99,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
 
             Player target = Main.player[npc.target];
 
+            // Lol. Lmao.
+            if (target.HasBuff(ModContent.BuffType<AstralInfectionDebuff>()))
+                target.ClearBuff(ModContent.BuffType<AstralInfectionDebuff>());
+
             // Create a beacon if none exists.
             List<Projectile> beacons = Utilities.AllProjectilesByID(ModContent.ProjectileType<DeusRitualDrama>()).ToList();
             if (beacons.Count == 0)
@@ -95,6 +121,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             ref float hasCreatedSegments = ref npc.localAI[0];
             ref float releasingParticlesFlag = ref npc.localAI[1];
             ref float inFinalPhase = ref npc.Infernum().ExtraAI[7];
+            ref float dontTakeDamage = ref npc.Infernum().ExtraAI[9];
 
             bool phase2 = lifeRatio < Phase2LifeRatio;
             bool phase3 = inFinalPhase == 1f;
@@ -109,6 +136,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                 CreateSegments(npc, 65, ModContent.NPCType<AstrumDeusBody>(), ModContent.NPCType<AstrumDeusTail>());
                 attackType = (int)DeusAttackType.AstralMeteorShower;
                 hasCreatedSegments = 1f;
+                dontTakeDamage = 1f;
                 npc.netUpdate = true;
             }
 
@@ -119,6 +147,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
 
             // Clamp position into the world.
             npc.position.X = MathHelper.Clamp(npc.position.X, 1300f, Main.maxTilesX * 16f - 1300f);
+
+            // Don't take damage if requested.
+            if (dontTakeDamage == 1f)
+                npc.dontTakeDamage = true;
+            else
+                npc.dontTakeDamage = false;
 
             // Have Deus fly high into the sky and shed its shell before flying back down in the final phase.
             if (enteringLastPhase)
@@ -285,7 +319,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                             if (BossRushEvent.BossRushActive)
                                 fireVelocity *= 2.3f;
 
-                            Utilities.NewProjectileBetter(npc.Center, fireVelocity, ModContent.ProjectileType<AstralFlame2>(), 200, 0f);
+                            Utilities.NewProjectileBetter(npc.Center, fireVelocity, ModContent.ProjectileType<AstralFlame2>(), AstralFlameDamage, 0f);
                         }
 
                         BringAllSegmentsToNPCPosition(npc);
@@ -417,7 +451,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                 Vector2 shootVelocity = shootDirection * meteorSpeed;
 
                 int cometType = ModContent.ProjectileType<AstralBlueComet>();
-                Utilities.NewProjectileBetter(cometSpawnPosition, shootVelocity, cometType, 200, 0f);
+                Utilities.NewProjectileBetter(cometSpawnPosition, shootVelocity, cometType, AstralFlameDamage, 0f);
             }
 
             if (withinShootInterval && !npc.WithinRange(target.Center, 600f))
@@ -512,7 +546,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                             float shootOffsetAngle = MathHelper.Lerp(-1.24f, 1.24f, i / (float)(rubbleCount - 1f)) + Main.rand.NextFloatDirection() * 0.032f;
                             Vector2 rubbleVelocity = Vector2.Lerp(-Vector2.UnitY, (npc.rotation + MathHelper.PiOver2).ToRotationVector2(), 0.32f);
                             rubbleVelocity = rubbleVelocity.SafeNormalize(Vector2.UnitY).RotatedBy(shootOffsetAngle) * Main.rand.NextFloat(17.5f, 25f) * rubbleFlySpeedFactor * j;
-                            Utilities.NewProjectileBetter(npc.Center + rubbleVelocity * 2f, rubbleVelocity, ModContent.ProjectileType<AstralRubble>(), 200, 0f);
+                            Utilities.NewProjectileBetter(npc.Center + rubbleVelocity * 2f, rubbleVelocity, ModContent.ProjectileType<AstralRubble>(), AstralRubbleDamage, 0f);
                         }
                     }
                 }
@@ -521,7 +555,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
 
         public static void DoBehavior_VortexLemniscate(NPC npc, Player target, bool phase2, bool phase3, ref float attackTimer)
         {
-            int flameSpawnRate = 50;
+            int flameSpawnRate = 60;
             int vortexCreationDelay = 60;
             int chargeAtPlayerDelay = AstralVortex.ScaleFadeinTime + 30;
 
@@ -575,13 +609,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             if (hasCharged == 0f)
             {
                 float t = MathHelper.TwoPi * attackTimer / 150f;
-                float sinT = (float)Math.Sin(t);
-                float sin2T = (float)Math.Sin(2D * t);
-                float cosT = (float)Math.Cos(t);
-                float denominator = (float)(1f + 2D * Math.Pow(Math.Sin(t), 2D) + Math.Pow(sinT, 4D));
+                float sinT = MathF.Sin(t);
+                float sin2T = MathF.Sin(t * 2f);
+                float cosT = MathF.Cos(t);
+                float denominator = 1f + 1f * MathF.Pow(MathF.Sin(t), 2f) + MathF.Pow(sinT, 4f);
 
-                float speedX = flySpeed * (float)(-sinT - Math.Pow(sinT, 3D) - cosT * sin2T) / denominator;
-                float speedY = flySpeed * (float)(Math.Pow(cosT, 2D) - 2D * Math.Pow(sinT, 4D) - sinT * cosT * sin2T) / denominator;
+                float speedX = flySpeed * (-sinT - MathF.Pow(sinT, 3f) - cosT * sin2T) / denominator;
+                float speedY = flySpeed * (MathF.Pow(cosT, 2f) - MathF.Pow(sinT, 4f) * 2f - sinT * cosT * sin2T) / denominator;
                 npc.velocity = new(speedX, speedY);
             }
 
@@ -612,8 +646,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         ProjectileSpawnManagementSystem.PrepareProjectileForSpawning(vortex => vortex.localAI[0] = cyan.ToInt());
-                        
-                        int vortex = Utilities.NewProjectileBetter(focus, Vector2.Zero, ModContent.ProjectileType<AstralVortex>(), 300, 0f);
+
+                        int vortex = Utilities.NewProjectileBetter(focus, Vector2.Zero, ModContent.ProjectileType<AstralVortex>(), AstralVortexDamage, 0f);
                         if (Main.projectile.IndexInRange(vortex))
                         {
                             vortices.Add(vortex);
@@ -655,13 +689,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                 Vector2 spinDestination = target.Center + (attackTimer * MathHelper.TwoPi / 150f).ToRotationVector2() * 1080f;
 
                 // Periodically release plasma fireballs at the target.
-                if (attackTimer % 36f == 35f)
+                if (attackTimer % 50f == 49f)
                 {
                     SoundEngine.PlaySound(PlasmaCaster.FireSound, npc.Center);
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         Vector2 plasmaShootVelocity = npc.SafeDirectionTo(target.Center) * (BossRushEvent.BossRushActive ? 20.5f : 13f);
-                        Utilities.NewProjectileBetter(npc.Center + plasmaShootVelocity * 3f, plasmaShootVelocity, ModContent.ProjectileType<AstralPlasmaFireball>(), 200, 0f);
+                        Utilities.NewProjectileBetter(npc.Center + plasmaShootVelocity * 3f, plasmaShootVelocity, ModContent.ProjectileType<AstralPlasmaFireball>(), AstralPlasmaFireballDamage, 0f);
                         npc.netUpdate = true;
                     }
                 }
@@ -680,8 +714,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             int plasmaShootRate = (int)MathHelper.Lerp(54f, 28f, beaconAngerFactor);
             int crystalShootRate = 45;
             bool closeEnoughToSnap = npc.WithinRange(target.Center, 375f);
-            float flySpeed = 16.5f;
-            float flyTurnSpeed = 0.035f;
+            float flySpeed = 18.5f;
+            float flyTurnSpeed = 0.039f;
             float plasmaShootSpeed = 12.5f;
             ref float plasmaShootTimer = ref npc.Infernum().ExtraAI[0];
 
@@ -724,7 +758,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         Vector2 plasmaShootVelocity = npc.velocity.SafeNormalize(Vector2.UnitY) * plasmaShootSpeed;
-                        Utilities.NewProjectileBetter(npc.Center + plasmaShootVelocity * 3f, plasmaShootVelocity, ModContent.ProjectileType<AstralPlasmaFireball>(), 200, 0f);
+                        Utilities.NewProjectileBetter(npc.Center + plasmaShootVelocity * 3f, plasmaShootVelocity, ModContent.ProjectileType<AstralPlasmaFireball>(), AstralPlasmaFireballDamage, 0f);
 
                         plasmaShootTimer = 0f;
                         npc.netUpdate = true;
@@ -749,7 +783,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                     {
                         Vector2 shootPosition = bodyToShootFrom.Center;
                         Vector2 shootVelocity = (target.Center - shootPosition).SafeNormalize(Vector2.UnitY) * 8f;
-                        Utilities.NewProjectileBetter(shootPosition, shootVelocity, ModContent.ProjectileType<AstralCrystal>(), 200, 0f);
+                        Utilities.NewProjectileBetter(shootPosition, shootVelocity, ModContent.ProjectileType<AstralCrystal>(), AstralFlameDamage, 0f);
                     }
                 }
             }
@@ -804,7 +838,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         Vector2 plasmaShootVelocity = npc.velocity.SafeNormalize(Vector2.UnitY) * plasmaShootSpeed;
-                        Utilities.NewProjectileBetter(npc.Center + plasmaShootVelocity * 3f, plasmaShootVelocity, ModContent.ProjectileType<AstralPlasmaFireball>(), 200, 0f);
+                        Utilities.NewProjectileBetter(npc.Center + plasmaShootVelocity * 3f, plasmaShootVelocity, ModContent.ProjectileType<AstralPlasmaFireball>(), AstralPlasmaFireballDamage, 0f);
 
                         plasmaShootTimer = 0f;
                         npc.netUpdate = true;
@@ -929,7 +963,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                 {
                     star.ModProjectile<MassiveInfectedStar>().GrowTime = starGrowTime;
                 });
-                Utilities.NewProjectileBetter(new(starSpawnCenterX, starSpawnCenterY), Vector2.Zero, ModContent.ProjectileType<MassiveInfectedStar>(), 300, 0f);
+                Utilities.NewProjectileBetter(new(starSpawnCenterX, starSpawnCenterY), Vector2.Zero, ModContent.ProjectileType<MassiveInfectedStar>(), BlackHoleDamage, 0f);
             }
 
             // Send energy bolts towards the star.
@@ -966,7 +1000,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 laserShootVelocity = bodyToShoot.SafeDirectionTo(target.Center) * 16f;
-                    Utilities.NewProjectileBetter(bodyToShoot.Center, laserShootVelocity, ModContent.ProjectileType<AstralShot2>(), 200, 0f);
+                    Utilities.NewProjectileBetter(bodyToShoot.Center, laserShootVelocity, ModContent.ProjectileType<AstralShot2>(), AstralLaserDamage, 0f);
                 }
             }
 
@@ -1018,8 +1052,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                         });
                         Utilities.NewProjectileBetter(starPosition, Vector2.Zero, ModContent.ProjectileType<DarkStar>(), 0, 0f, -1, i, (i + 1f) % starsInConstellation);
                     }
-                    Utilities.NewProjectileBetter(new(blackHoleCenterX, blackHoleCenterY), Vector2.Zero, ModContent.ProjectileType<AstralBlackHole>(), 300, 0f);
-                    
+                    Utilities.NewProjectileBetter(new(blackHoleCenterX, blackHoleCenterY), Vector2.Zero, ModContent.ProjectileType<AstralBlackHole>(), BlackHoleDamage, 0f);
+
                     npc.netUpdate = true;
                 }
 
@@ -1074,7 +1108,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                     for (int i = 0; i < chargeBlobCount; i++)
                     {
                         Vector2 blobVelocity = shootDirection * 24f + Main.rand.NextVector2Circular(4f, 4f);
-                        Utilities.NewProjectileBetter(npc.Center + blobVelocity, blobVelocity, ModContent.ProjectileType<InfectionGlob>(), 200, 0f, -1, 0f, target.Center.Y);
+                        Utilities.NewProjectileBetter(npc.Center + blobVelocity, blobVelocity, ModContent.ProjectileType<InfectionGlob>(), InfectionGlobDamage, 0f, -1, 0f, target.Center.Y);
                     }
                     blobShootTimer = 0f;
                     npc.netUpdate = true;
@@ -1139,7 +1173,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                     case 2:
                     default:
                         float horizontalOffset = MathHelper.Lerp(-775f, 775f, patternCompletion);
-                        float verticalOffset = (float)Math.Cos(patternCompletion * MathHelper.Pi + constellationSeed * MathHelper.TwoPi) * 420f;
+                        float verticalOffset = MathF.Cos(patternCompletion * MathHelper.Pi + constellationSeed * MathHelper.TwoPi) * 420f;
                         currentPoint = target.Center + new Vector2(horizontalOffset, verticalOffset);
                         break;
                 }
@@ -1158,7 +1192,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 plasmaShootVelocity = npc.velocity.SafeNormalize(Vector2.UnitY) * plasmaShootSpeed;
-                    Utilities.NewProjectileBetter(npc.Center + plasmaShootVelocity * 3f, plasmaShootVelocity, ModContent.ProjectileType<AstralPlasmaFireball>(), 200, 0f);
+                    Utilities.NewProjectileBetter(npc.Center + plasmaShootVelocity * 3f, plasmaShootVelocity, ModContent.ProjectileType<AstralPlasmaFireball>(), AstralPlasmaFireballDamage, 0f);
                     npc.netUpdate = true;
                 }
             }
@@ -1217,6 +1251,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             npc.ai[3] = (int)oldAttackState;
             for (int i = 0; i < 5; i++)
                 npc.Infernum().ExtraAI[i] = 0f;
+
+            // Reset the don't take damage flag.
+            if (npc.Infernum().ExtraAI[9] == 1f)
+                npc.Infernum().ExtraAI[9] = 0f;
             npc.netUpdate = true;
         }
 
@@ -1281,7 +1319,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             return false;
         }
         #endregion Drawing
-
+        
         #region Tips
         public override IEnumerable<Func<NPC, string>> GetTips()
         {

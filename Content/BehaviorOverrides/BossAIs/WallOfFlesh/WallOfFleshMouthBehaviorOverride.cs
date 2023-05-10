@@ -1,5 +1,7 @@
 using CalamityMod;
 using CalamityMod.Events;
+using InfernumMode.Common.Graphics.AttemptRecording;
+using InfernumMode.Content.Credits;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
@@ -17,6 +19,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
         public override int NPCOverrideType => NPCID.WallofFlesh;
 
         public const float Phase2LifeRatio = 0.45f;
+
+        public static int EyeLaserDamage => 100;
+
+        public static int FleshTentacleDamage => 105;
+
+        public static int FireBeamDamage => 185;
 
         public override float[] PhaseLifeRatioThresholds => new float[]
         {
@@ -40,6 +48,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
 
             ref float initialized01Flag = ref npc.localAI[0];
             ref float attackTimer = ref npc.ai[3];
+
+            // Eye of Night debuffs.
+            npc.buffImmune[BuffID.CursedInferno] = true;
 
             // Select a new target if an old one was lost.
             npc.TargetClosestIfTargetIsInvalid();
@@ -130,6 +141,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
                     Main.npc[leech].velocity = npc.velocity * 1.25f;
             }
 
+            // Start recording for the credits.
+            if (lifeRatio <= Phase2LifeRatio && npc.Infernum().ExtraAI[0] == 0f)
+            {
+                CreditManager.StartRecordingFootageForCredits(ScreenCapturer.RecordingBoss.WoF);
+                npc.Infernum().ExtraAI[0] = 1f;
+            }
+
+            // Roar before beginning the eye laser bursts.
+            if (attackTimer % 1200f == 600f && lifeRatio < Phase2LifeRatio)
+                SoundEngine.PlaySound(SoundID.NPCDeath10, npc.position);
+
             return false;
         }
 
@@ -210,7 +232,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
         internal static void PerformMouthMotion(NPC npc, float lifeRatio)
         {
             float verticalDestination = (Main.wofDrawAreaBottom + Main.wofDrawAreaTop) / 2 - npc.height / 2;
-            float horizontalSpeed = MathHelper.Lerp(4.35f, 7.4f, 1f - lifeRatio);
+            float horizontalSpeed = MathHelper.Lerp(4.1f, 7.2f, 1f - lifeRatio);
             if (verticalDestination < (Main.maxTilesY - 180) * 16f)
                 verticalDestination = (Main.maxTilesY - 180) * 16f;
 
@@ -302,7 +324,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
 
                     spawnPosition = spawnPosition.ToTileCoordinates().ToWorldCoordinates();
                     Vector2 tentacleDirection = target.DirectionFrom(spawnPosition);
-                    Utilities.NewProjectileBetter(spawnPosition, tentacleDirection, ModContent.ProjectileType<TileTentacle>(), 105, 0f);
+                    Utilities.NewProjectileBetter(spawnPosition, tentacleDirection, ModContent.ProjectileType<TileTentacle>(), FleshTentacleDamage, 0f);
                 }
                 enrageAttackCountdown--;
             }
@@ -362,7 +384,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
         {
             yield return n =>
             {
-                if (HatGirlTipsManager.ShouldUseJokeText)
+                if (TipsManager.ShouldUseJokeText)
                     return "Be sure to run the opposite direction!";
                 return string.Empty;
             };

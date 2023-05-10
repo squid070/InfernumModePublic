@@ -3,8 +3,9 @@ using CalamityMod.Events;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Common;
-using InfernumMode.Common.Graphics;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Common.Graphics.Primitives;
+using InfernumMode.Content.Projectiles.Pets;
+using InfernumMode.Core.GlobalInstances.Players;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -155,6 +156,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
         #endregion
 
         #region AI
+
+        public static int ChargeTyphoonDamage => 190;
+
+        public static int SmallWaveDamage => 190;
+
+        public static int TornadoDamage => 250;
+
+        public static int TidalWaveDamage => 275;
+
         public override bool PreAI(NPC npc)
         {
             npc.TargetClosestIfTargetIsInvalid();
@@ -333,7 +343,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
 
             DukeAttackType[] patternToUse = SubphaseTable.First(table => table.Value(npc)).Key;
             DukeAttackType nextAttackType = patternToUse[(int)(npc.ai[1] % patternToUse.Length)];
-            
+
             // Go to the next attack state.
             npc.Infernum().ExtraAI[5] = (int)nextAttackType;
 
@@ -421,7 +431,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         Vector2 typhoonSpeed = -npc.velocity * 0.2f;
-                        Utilities.NewProjectileBetter(npc.Center, typhoonSpeed, ModContent.ProjectileType<ChargeTyphoon>(), 150, 0f);
+                        Utilities.NewProjectileBetter(npc.Center, typhoonSpeed, ModContent.ProjectileType<ChargeTyphoon>(), ChargeTyphoonDamage, 0f);
                     }
                 }
             }
@@ -728,7 +738,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
                         WorldUtils.Find(new Point(x, y), Searches.Chain(new Searches.Down(Main.maxTilesY - 10), new CustomTileConditions.IsWaterOrSolid()), out Point result);
                         Vector2 spawnPosition = result.ToWorldCoordinates();
                         Vector2 tornadoVelocity = Vector2.UnitX * (target.Center.X > spawnPosition.X).ToDirectionInt() * 4f;
-                        int tornado = Utilities.NewProjectileBetter(spawnPosition, tornadoVelocity, ModContent.ProjectileType<Tornado>(), 200, 0f);
+                        int tornado = Utilities.NewProjectileBetter(spawnPosition, tornadoVelocity, ModContent.ProjectileType<Tornado>(), TornadoDamage, 0f);
                         Main.projectile[tornado].Bottom = spawnPosition;
                     }
                 }
@@ -812,7 +822,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
                     {
                         for (int i = -1; i <= 1; i += 2)
                         {
-                            int wave = Utilities.NewProjectileBetter(npc.Center, Vector2.UnitX * waveSpeed * i, ModContent.ProjectileType<TidalWave>(), 230, 0f);
+                            int wave = Utilities.NewProjectileBetter(npc.Center, Vector2.UnitX * waveSpeed * i, ModContent.ProjectileType<TidalWave>(), TidalWaveDamage, 0f);
                             Main.projectile[wave].Bottom = npc.Center + Vector2.UnitY * 700f;
                         }
                     }
@@ -821,7 +831,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
                     if (Main.netMode != NetmodeID.Server)
                     {
                         WaterShaderData ripple = (WaterShaderData)Filters.Scene["WaterDistortion"].GetShader();
-                        float waveSine = 0.1f * (float)Math.Sin(Main.GlobalTimeWrappedHourly * 20f);
+                        float waveSine = 0.1f * MathF.Sin(Main.GlobalTimeWrappedHourly * 20f);
                         Vector2 ripplePos = npc.Center + npc.velocity * 7f;
                         Color waveData = new Color(0.5f, 0.1f * Math.Sign(waveSine) + 0.5f, 0f, 1f) * Math.Abs(waveSine);
                         ripple.QueueRipple(ripplePos, waveData, Vector2.One * 860f, RippleShape.Circle, npc.rotation);
@@ -900,7 +910,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
                     foreach (int x in horizontalSpawnPositions)
                     {
                         Vector2 spawnPosition = new Point(x, y).ToWorldCoordinates();
-                        int tornado = Utilities.NewProjectileBetter(spawnPosition, Vector2.Zero, ModContent.ProjectileType<Tornado>(), 300, 0f);
+                        int tornado = Utilities.NewProjectileBetter(spawnPosition, Vector2.Zero, ModContent.ProjectileType<Tornado>(), TornadoDamage, 0f);
                         Main.projectile[tornado].ai[1] = 1f;
                         Main.projectile[tornado].Bottom = spawnPosition;
                     }
@@ -932,7 +942,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
                         {
                             float offsetAngle = MathHelper.TwoPi * i / typhoonCount;
                             Vector2 shootVelocity = npc.SafeDirectionTo(target.Center).RotatedBy(offsetAngle) * typhoonBurstSpeed;
-                            Utilities.NewProjectileBetter(npc.Center + shootVelocity * 2f, shootVelocity, ModContent.ProjectileType<TyphoonBlade>(), 185, 0f);
+                            Utilities.NewProjectileBetter(npc.Center + shootVelocity * 2f, shootVelocity, ModContent.ProjectileType<TyphoonBlade>(), ChargeTyphoonDamage, 0f);
                         }
                     }
                 }
@@ -1016,7 +1026,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
             {
                 Vector2 spawnPosition = (Vector2.Normalize(npc.velocity) * new Vector2((npc.width + 50) / 2f, npc.height) * 0.75f).RotatedBy(i * MathHelper.Pi / 7f) + npc.Center;
                 Vector2 dustVelocity = (Main.rand.NextFloat(MathHelper.Pi) - MathHelper.PiOver2).ToRotationVector2() * Main.rand.Next(3, 8);
-                int water = Dust.NewDust(spawnPosition + dustVelocity, 0, 0, 172, dustVelocity.X * 2f, dustVelocity.Y * 2f, 100, default, 1.4f);
+                int water = Dust.NewDust(spawnPosition + dustVelocity, 0, 0, DustID.DungeonWater, dustVelocity.X * 2f, dustVelocity.Y * 2f, 100, default, 1.4f);
                 Main.dust[water].noGravity = true;
                 Main.dust[water].noLight = true;
                 Main.dust[water].velocity *= 0.25f;
@@ -1024,6 +1034,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
             }
         }
         #endregion
+
+        #region Death Effects
+        public override bool CheckDead(NPC npc)
+        {
+            AchievementPlayer.DukeFishronDefeated = true;
+            return true;
+        }
+        #endregion Death Effects
 
         #region Frames and Drawcode
 
@@ -1057,7 +1075,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
 
         public static Color ColorFunction(float completionRatio)
         {
-            return Color.Lerp(Color.DeepSkyBlue, Color.Turquoise, (float)Math.Abs(Math.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly))) * (1f - completionRatio) * 1.6f;
+            return Color.Lerp(Color.DeepSkyBlue, Color.Turquoise, Math.Abs(MathF.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly))) * (1f - completionRatio) * 1.6f;
         }
 
         public static float WidthFunction(float completionRatio) => MathHelper.SmoothStep(50f, 35f, completionRatio);
@@ -1101,7 +1119,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
                 if (hasEyes)
                 {
                     Color eyeColor = Color.Lerp(Color.White, Color.Yellow, 0.5f) * npc.Infernum().ExtraAI[11];
-                    eyeColor *= (float)Math.Pow(color.ToVector3().Length() / 1.414f, 0.6);
+                    eyeColor *= MathF.Pow(color.ToVector3().Length() / 1.414f, 0.6f);
                     Main.spriteBatch.Draw(eyeTexture, drawPosition - Main.screenPosition, npc.frame, eyeColor, npc.rotation, origin, npc.scale, spriteEffects, 0f);
                 }
             }
@@ -1128,7 +1146,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
 
                 for (int i = (int)afterimageCount; i >= 1; i--)
                 {
-                    Color afterimageColor = lightColor.MultiplyRGB(Color.White) * (float)Math.Pow(1f - i / (float)afterimageCount, 3D);
+                    Color afterimageColor = lightColor.MultiplyRGB(Color.White) * MathF.Pow(1f - i / (float)afterimageCount, 3f);
                     DrawOldDukeInstance(afterimageColor, npc.oldPos[i] + npc.Size * 0.5f, npc.spriteDirection);
                 }
             }

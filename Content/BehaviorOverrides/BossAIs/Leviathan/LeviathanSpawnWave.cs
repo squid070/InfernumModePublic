@@ -1,5 +1,6 @@
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -32,6 +33,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             Projectile.penetrate = -1;
             Projectile.alpha = 255;
             Projectile.timeLeft = 360;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -41,20 +43,20 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             if (WaveHeight < 60f)
                 WaveHeight = 60f;
             WaveHeight = MathHelper.Lerp(WaveHeight, 300f, 0.04f);
-            Projectile.Opacity = (float)Math.Sin(Projectile.timeLeft / 360f * MathHelper.Pi) * 3f;
+            Projectile.Opacity = MathF.Sin(Projectile.timeLeft / 360f * MathHelper.Pi) * 3f;
             if (Projectile.Opacity > 1f)
                 Projectile.Opacity = 1f;
         }
 
         internal Color ColorFunction(float completionRatio)
         {
-            float opacity = (float)Math.Sin(completionRatio * MathHelper.Pi) * Projectile.Opacity;
-            return Color.Lerp(Color.DeepSkyBlue, Color.Blue, (float)Math.Abs(Math.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly)) * 0.5f) * opacity;
+            float opacity = MathF.Sin(completionRatio * MathHelper.Pi) * Projectile.Opacity;
+            return Color.Lerp(Color.DeepSkyBlue, Color.Blue, Math.Abs(MathF.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly)) * 0.5f) * opacity;
         }
 
-        internal float WidthFunction(float completionRatio) => WaveHeight * (float)Math.Sin(completionRatio * MathHelper.Pi);
+        internal float WidthFunction(float completionRatio) => WaveHeight * MathF.Sin(completionRatio * MathHelper.Pi);
 
-        internal Vector2 OffsetFunction(float completionRatio) => Vector2.UnitY * (float)Math.Sin(completionRatio * MathHelper.Pi * 3f + Time / 13f) * 30f;
+        internal Vector2 OffsetFunction(float completionRatio) => Vector2.UnitY * MathF.Sin(completionRatio * MathHelper.Pi * 3f + Time / 13f) * 30f;
 
         public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
         {
@@ -80,11 +82,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
 
             for (int i = 0; i < 3; i++)
                 TornadoDrawer.DrawPixelated(Projectile.oldPos, Vector2.UnitY * WaveHeight * 0.5f - Main.screenPosition, 35, 0f);
-        }
-
-        public override void ModifyHitPlayer(Player target, ref int damage, ref bool crit)
-        {
-
         }
     }
 }

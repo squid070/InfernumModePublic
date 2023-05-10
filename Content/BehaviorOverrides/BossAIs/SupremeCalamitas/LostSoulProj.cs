@@ -26,6 +26,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.penetrate = -1;
             Projectile.Opacity = 0f;
             Projectile.timeLeft = 300;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -51,7 +52,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             float telegraphInterpolant = Utils.GetLerpValue(300f, 265f, Projectile.timeLeft, true);
             if (telegraphInterpolant < 1f)
             {
-                Color telegraphColor = Color.Red * (float)Math.Sqrt(telegraphInterpolant);
+                Color telegraphColor = Color.Red * MathF.Sqrt(telegraphInterpolant);
                 float telegraphWidth = CalamityUtils.Convert01To010(telegraphInterpolant) * 3f;
                 Main.spriteBatch.DrawLineBetter(Projectile.Center, Projectile.Center + Projectile.velocity.SafeNormalize(Vector2.UnitY) * 3600f, telegraphColor, telegraphWidth);
             }

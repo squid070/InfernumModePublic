@@ -2,22 +2,23 @@ using CalamityMod;
 using CalamityMod.Events;
 using CalamityMod.NPCs.Crabulon;
 using CalamityMod.Projectiles.Boss;
+using InfernumMode.Assets.Effects;
+using InfernumMode.Common;
+using InfernumMode.Common.Graphics.Primitives;
+using InfernumMode.Core.GlobalInstances.Systems;
+using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
+using Terraria.DataStructures;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.WorldBuilding;
-using System.Collections.Generic;
 using CrabulonNPC = CalamityMod.NPCs.Crabulon.Crabulon;
-using Microsoft.Xna.Framework.Graphics;
-using Terraria.GameContent;
-using InfernumMode.Core.OverridingSystem;
-using InfernumMode.Core.GlobalInstances.Systems;
-using InfernumMode.Common;
-using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
 {
@@ -37,6 +38,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
         #endregion
 
         #region AI
+
+        public static int MushroomBombDamage => 70;
+
+        public static int SporeCloudDamage => 75;
+
+        public static int MushroomPillarDamage => 80;
 
         public const int MushroomStompBarrageInterval = 3;
 
@@ -176,7 +183,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
             npc.damage = 0;
 
             // Idly emit mushroom dust off of Crabulon.
-            Dust spore = Dust.NewDustDirect(npc.position, npc.width, npc.height, 56);
+            Dust spore = Dust.NewDustDirect(npc.position, npc.width, npc.height, DustID.BlueFairy);
             spore.velocity = -Vector2.UnitY * Main.rand.NextFloat(0.4f, 2.7f);
             spore.noGravity = true;
             spore.scale = MathHelper.Lerp(0.75f, 1.45f, Utils.GetLerpValue(npc.Top.Y, npc.Bottom.Y, spore.position.Y));
@@ -224,7 +231,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
                 extraGravity = MathHelper.Clamp(extraGravity - 0.1f, 0f, 10f);
 
                 if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer % pillarMushroomSpawnRate == pillarMushroomSpawnRate - 1f)
-                    Utilities.NewProjectileBetter(target.Center - Vector2.UnitY * 600f, Vector2.UnitY * 6f, ModContent.ProjectileType<MushBomb>(), 70, 0f, -1, 0f, target.Bottom.Y);
+                    Utilities.NewProjectileBetter(target.Center - Vector2.UnitY * 600f, Vector2.UnitY * 6f, ModContent.ProjectileType<MushBomb>(), MushroomBombDamage, 0f, -1, 0f, target.Bottom.Y);
             }
 
             ref float hasJumpedFlag = ref npc.Infernum().ExtraAI[0];
@@ -265,7 +272,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
                         for (int i = 0; i < 36; i++)
                         {
                             Vector2 dustSpawnPosition = Vector2.Lerp(npc.BottomLeft, npc.BottomRight, i / 36f);
-                            Dust stompMushroomDust = Dust.NewDustDirect(dustSpawnPosition, 4, 4, 56);
+                            Dust stompMushroomDust = Dust.NewDustDirect(dustSpawnPosition, 4, 4, DustID.BlueFairy);
                             stompMushroomDust.velocity = Vector2.UnitY * Main.rand.NextFloatDirection() * npc.velocity.Length() * 0.5f;
                             stompMushroomDust.scale = 1.8f;
                             stompMushroomDust.fadeIn = 1.2f;
@@ -274,7 +281,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
 
                         // Optionally, if below a certain life ratio or enraged, release mushrooms into the air.
                         bool tooManyShrooms = NPC.CountNPCS(ModContent.NPCType<CrabShroom>()) > 10;
-                        if (Main.netMode != NetmodeID.MultiplayerClient && (lifeRatio < Phase2LifeRatio || enraged))
+                        if (Main.netMode != NetmodeID.MultiplayerClient && (lifeRatio < Phase2LifeRatio || enraged) && lifeRatio >= Phase3LifeRatio)
                         {
                             for (int i = 0; i < 2; i++)
                             {
@@ -298,9 +305,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
                             {
                                 Vector2 spawnPosition = npc.Center + Main.rand.NextVector2Circular(npc.width, npc.height) * 0.45f;
                                 Vector2 sporeShootVelocity = Main.rand.NextVector2Unit() * sporeCloudSpeed * Main.rand.NextFloat(1f, 2f);
-                                int cloud = Utilities.NewProjectileBetter(spawnPosition, sporeShootVelocity, ModContent.ProjectileType<SporeCloud>(), 75, 0f);
-                                if (Main.projectile.IndexInRange(cloud))
-                                    Main.projectile[cloud].ai[0] = Main.rand.Next(3);
+                                Utilities.NewProjectileBetter(spawnPosition, sporeShootVelocity, ModContent.ProjectileType<SporeCloud>(), SporeCloudDamage, 0f, -1, Main.rand.Next(3));
                             }
                         }
 
@@ -347,7 +352,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
                     Vector2 shootVelocity = npc.SafeDirectionTo(target.Center) * shootPower;
                     shootVelocity.X += npc.SafeDirectionTo(target.Center).X * shootPower * 0.4f;
                     shootVelocity.Y -= shootPower * 0.6f;
-                    Utilities.NewProjectileBetter(npc.Center, shootVelocity, ModContent.ProjectileType<MushBomb>(), 70, 0f);
+                    Utilities.NewProjectileBetter(npc.Center, shootVelocity, ModContent.ProjectileType<MushBomb>(), MushroomBombDamage, 0f);
                 }
             }
 
@@ -366,7 +371,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
             // Check if tile collision ignoral is necessary.
             PerformGravityCheck(npc, target);
 
-            if (attackTimer >= 180f || npc.collideX || target.Center.Y < npc.Top.Y - 200f || target.Center.Y > npc.Bottom.Y + 80f)
+            if (attackTimer >= 132f || npc.collideX || target.Center.Y < npc.Top.Y - 200f || target.Center.Y > npc.Bottom.Y + 80f)
             {
                 SelectNextAttack(npc);
                 if (target.Center.Y > npc.Bottom.Y + 80f)
@@ -394,7 +399,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
                         new CustomTileConditions.ActiveAndNotActuated(),
                         new CustomTileConditions.NotPlatform()
                     }), out Point newBottom);
-                    Utilities.NewProjectileBetter(newBottom.ToWorldCoordinates(8, 0), Vector2.Zero, ModContent.ProjectileType<MushroomPillar>(), 80, 0f);
+                    Utilities.NewProjectileBetter(newBottom.ToWorldCoordinates(8, 0), Vector2.Zero, ModContent.ProjectileType<MushroomPillar>(), MushroomPillarDamage, 0f);
                 }
 
                 // Release spores into the air.
@@ -429,7 +434,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
             // Extend the claws outward.
             if (attackTimer <= clawMoveTime)
             {
-                float moveInterpolant = (float)Math.Pow(attackTimer / clawMoveTime, 4.81);
+                float moveInterpolant = MathF.Pow(attackTimer / clawMoveTime, 4.81f);
                 Vector2 idealClawOffset = new(MathHelper.Lerp(0f, 168f, moveInterpolant), MathHelper.Lerp(0f, -92f, moveInterpolant));
                 clawOffset = Vector2.Lerp(clawOffset, idealClawOffset, 0.16f);
 
@@ -450,7 +455,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
             // Press the claws together.
             else if (attackTimer <= clawMoveTime + clawPressTime)
             {
-                float moveInterpolant = (float)Math.Pow(Utils.GetLerpValue(clawMoveTime, clawMoveTime + clawPressTime, attackTimer, true), 2.9);
+                float moveInterpolant = MathF.Pow(Utils.GetLerpValue(clawMoveTime, clawMoveTime + clawPressTime, attackTimer, true), 2.9f);
                 clawOffset.X = MathHelper.Lerp(168f, 30f, moveInterpolant);
                 clawOffset.Y = MathHelper.Lerp(-92f, -138f, moveInterpolant);
 
@@ -461,7 +466,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
             // Make the claws slam into the ground.
             else
             {
-                float moveInterpolant = (float)Math.Pow(Utils.GetLerpValue(clawMoveTime + clawPressTime, clawMoveTime + clawPressTime + clawSlamTime, attackTimer, true), 8.3);
+                float moveInterpolant = MathF.Pow(Utils.GetLerpValue(clawMoveTime + clawPressTime, clawMoveTime + clawPressTime + clawSlamTime, attackTimer, true), 8.3f);
                 clawOffset.X = MathHelper.Lerp(30f, 42f, moveInterpolant);
                 clawOffset.Y = MathHelper.Lerp(-138f, 56f, moveInterpolant);
 
@@ -478,13 +483,23 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
                         if (Main.netMode != NetmodeID.MultiplayerClient)
                             Utilities.NewProjectileBetter(clawCenter, Vector2.UnitX * i * -6f, ProjectileID.DD2OgreSmash, 0, 0f);
 
+                        if (target.WithinRange(clawCenter, 100f))
+                            target.Hurt(PlayerDeathReason.ByNPC(npc.whoAmI), npc.damage, i);
+
                         // Release a bunch of falling crab shrooms into the air from both arms.
                         if (Main.netMode != NetmodeID.MultiplayerClient)
                         {
-                            for (int j = 0; j < (enraged ? 25 : 12); j++)
+                            for (int j = 0; j < (enraged ? 28 : 16); j++)
                             {
-                                Vector2 shroomVelocity = new Vector2(-i * (j * 0.85f + 1f), -8f - (float)Math.Sqrt(j) * 0.5f) + Main.rand.NextVector2Circular(0.2f, 0.2f);
-                                Utilities.NewProjectileBetter(clawCenter, shroomVelocity, ModContent.ProjectileType<MushBomb>(), 70, 0f, -1, 0f, target.Bottom.Y);
+                                float pointToCrabulonInterpolant = Utils.GetLerpValue(5f, 0f, j, true);
+                                Vector2 shroomVelocity = new Vector2(-i * (j * 0.85f + 1f), -8f - MathF.Sqrt(j) * 0.5f) + Main.rand.NextVector2Circular(0.2f, 0.2f);
+                                shroomVelocity.X = MathHelper.Lerp(shroomVelocity.X, (npc.Center - clawCenter).SafeNormalize(Vector2.Zero).X * 4f, pointToCrabulonInterpolant);
+
+                                // Make mushrooms go higher up if the target is quite a bit above Crabulon.
+                                if (target.Center.Y < npc.Center.Y - 400f)
+                                    shroomVelocity.Y *= 1.5f;
+
+                                Utilities.NewProjectileBetter(clawCenter, shroomVelocity, ModContent.ProjectileType<MushBomb>(), MushroomBombDamage, 0f, -1, 0f, npc.Bottom.Y);
                             }
                         }
                     }
@@ -637,7 +652,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
         {
             Color endColors = new(116, 108, 166);
             Color middleColor = new(90, 167, 209);
-            Color baseColor = Color.Lerp(endColors, middleColor, (float)Math.Abs(Math.Sin(completionRatio * MathHelper.Pi * 0.7f)));
+            Color baseColor = Color.Lerp(endColors, middleColor, Math.Abs(MathF.Sin(completionRatio * MathHelper.Pi * 0.7f)));
             return baseColor * Utils.GetLerpValue(0f, 0.07f, completionRatio, true) * npc.Opacity;
         }
 
@@ -767,9 +782,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
         {
             yield return n => $"Crabulon will only launch spores every {Utilities.AddOrdinalSuffix(MushroomStompBarrageInterval)} jump, better keep count!";
             yield return n => "Try focusing on those Crab Shrooms. They'll overwhelm you if you leave them alone!";
+
             yield return n =>
             {
-                if (HatGirlTipsManager.ShouldUseJokeText)
+                if (TipsManager.ShouldUseJokeText)
                     return "There isnt Mushroom for the three of us, and I can tell who won the roullete.";
                 return string.Empty;
             };

@@ -12,12 +12,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
     public class YharonFlamethrower : ModProjectile
     {
         public NPC Owner => Main.npc[(int)Projectile.ai[1]];
+
         public ref float Time => ref Projectile.ai[0];
+
         public const float FlameRotation = MathHelper.Pi / 16f;
-        public const float FadeinTime = 40f;
-        public const float FadeoutTime = 35f;
+
+        public const float FadeinTime = 18f;
+
+        public const float FadeoutTime = 16f;
+
         public const float Lifetime = FadeinTime + FadeoutTime;
-        public const float FireMaxLength = 1950f;
+
+        public const float FireMaxLength = 1450f;
 
         public override void SetStaticDefaults() => DisplayName.SetDefault("Draconic Flame Breath");
 
@@ -29,6 +35,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             Projectile.penetrate = -1;
             Projectile.friendly = false;
             Projectile.hostile = true;
+            Projectile.tileCollide = false;
             Projectile.Calamity().DealsDefenseDamage = true;
             CooldownSlot = ImmunityCooldownID.Bosses;
         }
@@ -54,7 +61,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             if (Main.netMode != NetmodeID.MultiplayerClient && Time % 2f == 1f)
             {
                 Vector2 meteorShootVelocity = new Vector2(Owner.direction * -0.3f, -1f).RotatedByRandom(0.27f) * Main.rand.NextFloat(34f, 44f);
-                Utilities.NewProjectileBetter(Projectile.Center, meteorShootVelocity, ModContent.ProjectileType<RedirectingYharonMeteor>(), 450, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center, meteorShootVelocity, ModContent.ProjectileType<RedirectingYharonMeteor>(), YharonBehaviorOverride.RegularFireballDamage, 0f);
             }
 
             // Cast lights.
@@ -67,7 +74,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    Dust fire = Dust.NewDustDirect(Projectile.position, Projectile.width, Projectile.height, 6, 0f, 0f, 0, default, 1f);
+                    Dust fire = Dust.NewDustDirect(Projectile.position, Projectile.width, Projectile.height, DustID.Torch, 0f, 0f, 0, default, 1f);
                     fire.fadeIn = 1.5f;
                     fire.velocity = flameDirection.RotatedBy(Main.rand.NextFloatDirection() * FlameRotation * 2f) * Main.rand.NextFloat(0.5f, 3f) * FireMaxLength / 27f;
                     fire.velocity += Owner.velocity * 2f;
@@ -84,7 +91,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
                 smoke.velocity += flameDirection * 4f;
             }
 
-            Dust smokeDust = Dust.NewDustDirect(Projectile.position, Projectile.width, Projectile.height, 31, 0f, 0f, 0, default, 1f);
+            Dust smokeDust = Dust.NewDustDirect(Projectile.position, Projectile.width, Projectile.height, DustID.Smoke, 0f, 0f, 0, default, 1f);
             smokeDust.fadeIn = 1.5f;
             smokeDust.scale = 0.4f;
             smokeDust.velocity = flameDirection.RotatedBy(Main.rand.NextFloatDirection() * MathHelper.Pi / 8f) * (0.5f + Main.rand.NextFloat() * 2.5f) * 15f;
@@ -102,7 +109,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             Projectile.frameCounter++;
 
             // Die after enough time has passed.
-            if (Time >= Lifetime)
+            if (Time >= Lifetime - 1f)
                 Projectile.Kill();
         }
 
@@ -149,7 +156,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
                     else
                         flameDrawColor = Color.Transparent;
 
-                    float flameScale = (float)Math.Pow(MathHelper.Lerp(0.9f, 1.7f, flameDrawInterpolant), 2D) * 0.8f;
+                    float flameScale = MathF.Pow(MathHelper.Lerp(0.9f, 1.7f, flameDrawInterpolant), 2f) * 0.8f;
 
                     Vector2 currentFlameDrawPosition = Vector2.SmoothStep(startOfFlame, endOfFlame, flameDrawInterpolant);
                     Rectangle frame = texture2D5.Frame(1, 7, 0, (int)(flameDrawInterpolant * 7f));
@@ -161,11 +168,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
 
         public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
         {
-            if (Time < 32f)
+            if (Time < 25f)
                 return false;
 
             float completelyUselessFuckYouLmao = 0f;
-            float fadeIn = Projectile.ai[0] / 25f;
+            float fadeIn = Projectile.ai[0] / FadeinTime;
             if (fadeIn > 1f)
                 fadeIn = 1f;
 

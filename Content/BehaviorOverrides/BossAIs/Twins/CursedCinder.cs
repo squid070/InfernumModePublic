@@ -19,21 +19,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
             Projectile.penetrate = -1;
             Projectile.timeLeft = 240;
             Projectile.Opacity = 0f;
-            CooldownSlot = 1;
         }
+
         public override void AI()
         {
             Projectile.Opacity = MathHelper.Clamp(Projectile.Opacity + 0.1f, 0f, 1f);
 
-            if (Projectile.velocity.Length() < 26f)
-                Projectile.velocity *= 1.02f;
+            if (Projectile.velocity.Length() < 21f)
+                Projectile.velocity *= 1.01f;
             Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.PiOver2;
         }
 
-        public override Color? GetAlpha(Color lightColor)
-        {
-            return new Color(255, 255, 255, 56) * Projectile.Opacity;
-        }
+        public override Color? GetAlpha(Color lightColor) => new Color(255, 255, 255, 56) * Projectile.Opacity;
 
         public override bool PreDraw(ref Color lightColor)
         {

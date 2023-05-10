@@ -2,6 +2,7 @@ using CalamityMod;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.Ogre
@@ -20,13 +21,14 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.Ogre
             Projectile.timeLeft = 300;
             Projectile.penetrate = -1;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
             Lighting.AddLight(Projectile.Center, Color.Blue.ToVector3() * 0.84f);
 
-            Projectile.Opacity = (float)Math.Sin(MathHelper.Pi * Projectile.timeLeft / 300f) * 10f;
+            Projectile.Opacity = MathF.Sin(MathHelper.Pi * Projectile.timeLeft / 300f) * 10f;
             if (Projectile.Opacity > 1f)
                 Projectile.Opacity = 1f;
 

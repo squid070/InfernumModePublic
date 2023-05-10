@@ -2,7 +2,7 @@ using CalamityMod;
 using CalamityMod.Events;
 using CalamityMod.NPCs.SlimeGod;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -89,7 +89,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
                 HasCreatedSlimeExplosion = true;
             }
 
-            NPC.damage = KatanaUseTimer > 0 ? 115 : 0;
+            NPC.damage = 0;
             NPC.noTileCollide = NPC.Bottom.Y < Target.Top.Y;
             AttackDelayFuckYou++;
 
@@ -129,7 +129,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
                         for (int i = 0; i < shurikenCount; i++)
                         {
                             Vector2 shurikenVelocity = NPC.SafeDirectionTo(Target.Center).RotatedBy(MathHelper.Lerp(-0.36f, 0.36f, i / (float)(shurikenCount - 1f))) * shurikenSpeed;
-                            Utilities.NewProjectileBetter(NPC.Center + shurikenVelocity, shurikenVelocity, ModContent.ProjectileType<Shuriken>(), 72, 0f);
+                            Utilities.NewProjectileBetter(NPC.Center + shurikenVelocity, shurikenVelocity, ModContent.ProjectileType<Shuriken>(), KingSlimeBehaviorOverride.ShurikenDamage, 0f);
                         }
                     }
 
@@ -195,19 +195,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
             if (onSolidGround)
                 KatanaUseTimer = 0f;
 
-            if (NPC.WithinRange(Target.Center, 260f) && KatanaUseTimer <= 0f && AttackDelayFuckYou > 150f && onSolidGround)
-            {
-                NPC.spriteDirection = (Target.Center.X > NPC.Center.X).ToDirectionInt();
-                NPC.velocity = NPC.SafeDirectionTo(Target.Center) * 8f;
-                NPC.velocity.Y -= 4f;
-                KatanaRotation = 0f;
-                KatanaUseTimer = KatanaUseLength = 54f;
-                ShurikenShootCountdown = 0f;
-                NPC.netUpdate = true;
-
-                SoundEngine.PlaySound(SoundID.Item1, NPC.Center);
-            }
-
             if (Main.netMode != NetmodeID.MultiplayerClient && canDashTeleport)
             {
                 StuckTimer = 0f;
@@ -218,7 +205,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
 
             if (Main.netMode != NetmodeID.MultiplayerClient && horizontalDistanceFromTarget > 320f && Time % 60f == 59f && onSolidGround)
             {
-                float jumpSpeed = (float)Math.Sqrt(horizontalDistanceFromTarget) * 0.5f;
+                float jumpSpeed = MathF.Sqrt(horizontalDistanceFromTarget) * 0.5f;
                 if (jumpSpeed >= 11f)
                     jumpSpeed = 11f;
                 jumpSpeed *= Main.rand.NextFloat(1.15f, 1.4f);
@@ -241,11 +228,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
             float extraEndSlashDelay = 20;
             Vector2 kingSlimeCenter = new(kingSlimeCenterX, kingSlimeCenterY);
             Vector2 teleportOffset = new(375, -100);
+
             // Calclate the length of the Vector, using pythagarus theorum.
             float teleportOffsetDifference = teleportOffset.Length();
+
             // Then the length in time it will take to move two of them at the charge speed.
             int dashLength = (int)(teleportOffsetDifference / chargeSpeed * 2);
-
 
             // If king slime has set us a landing position.
             if (kingSlimeCenterX > 0 && localDeathTimer == 0)
@@ -263,7 +251,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
                 // Create dust
                 for (int i = 0; i < 6; i++)
                 {
-                    Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, 31, 0f, 0f, 100, default, 2f);
+                    Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, DustID.Smoke, 0f, 0f, 100, default, 2f);
                     ninjaDodgeDust.position += Main.rand.NextVector2Square(-20f, 20f);
                     ninjaDodgeDust.velocity *= 0.4f;
                     ninjaDodgeDust.scale *= Main.rand.NextFloat(1f, 1.4f);
@@ -286,7 +274,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
                     // Spawn dust
                     for (int i = 0; i < 6; i++)
                     {
-                        Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, 31, 0f, 0f, 100, default, 2f);
+                        Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, DustID.Smoke, 0f, 0f, 100, default, 2f);
                         ninjaDodgeDust.position += Main.rand.NextVector2Square(-20f, 20f);
                         ninjaDodgeDust.velocity *= 0.4f;
                         ninjaDodgeDust.scale *= Main.rand.NextFloat(1f, 1.4f);
@@ -332,7 +320,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
                     if (NPC.Opacity > 0)
                         for (int i = 0; i < 6; i++)
                         {
-                            Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, 31, 0f, 0f, 100, default, 2f);
+                            Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, DustID.Smoke, 0f, 0f, 100, default, 2f);
                             ninjaDodgeDust.position += Main.rand.NextVector2Square(-20f, 20f);
                             ninjaDodgeDust.velocity *= 0.4f;
                             ninjaDodgeDust.scale *= Main.rand.NextFloat(1f, 1.4f);
@@ -356,7 +344,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
                 if (NPC.Opacity > 0)
                     for (int i = 0; i < 6; i++)
                     {
-                        Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, 31, 0f, 0f, 100, default, 2f);
+                        Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, DustID.Smoke, 0f, 0f, 100, default, 2f);
                         ninjaDodgeDust.position += Main.rand.NextVector2Square(-20f, 20f);
                         ninjaDodgeDust.velocity *= 0.4f;
                         ninjaDodgeDust.scale *= Main.rand.NextFloat(1f, 1.4f);
@@ -373,8 +361,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
 
         public void DoJump(float jumpSpeed, Vector2? destination = null)
         {
-            if (destination is null)
-                destination = Target.Center;
+            destination ??= Target.Center;
 
             float gravity = 0.3f;
             NPC.velocity = Utilities.GetProjectilePhysicsFiringVelocity(NPC.Center, destination.Value, gravity, jumpSpeed, out _);
@@ -525,7 +512,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
             {
                 for (int i = 0; i < 6; i++)
                 {
-                    Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, 31, 0f, 0f, 100, default, 2f);
+                    Dust ninjaDodgeDust = Dust.NewDustDirect(NPC.position, NPC.width, NPC.height, DustID.Smoke, 0f, 0f, 100, default, 2f);
                     ninjaDodgeDust.position += Main.rand.NextVector2Square(-20f, 20f);
                     ninjaDodgeDust.velocity *= 0.4f;
                     ninjaDodgeDust.scale *= Main.rand.NextFloat(1f, 1.4f);
@@ -547,7 +534,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
 
             if (KatanaUseTimer > 0f)
             {
-                Texture2D katanaTexture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/KingSlime/Katana").Value;
+                Texture2D katanaTexture = TextureAssets.Item[ItemID.Katana].Value;
                 Vector2 drawPosition = NPC.Center - Main.screenPosition - Vector2.UnitY.RotatedBy(NPC.rotation) * 5f;
                 drawPosition -= NPC.rotation.ToRotationVector2() * NPC.spriteDirection * 22f;
                 float rotation = MathHelper.PiOver4 + NPC.rotation;

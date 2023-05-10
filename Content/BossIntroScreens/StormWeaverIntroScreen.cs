@@ -11,7 +11,7 @@ namespace InfernumMode.Content.BossIntroScreens
     {
         public override TextColorData TextColor => new(completionRatio =>
         {
-            float lightningInterpolant = Utils.GetLerpValue(0.77f, 1f, (float)Math.Sin(AnimationCompletion * -MathHelper.Pi * 4f + completionRatio * MathHelper.Pi * 4f) * 0.5f + 0.5f);
+            float lightningInterpolant = Utils.GetLerpValue(0.77f, 1f, MathF.Sin(AnimationCompletion * -MathHelper.Pi * 4f + completionRatio * MathHelper.Pi * 4f) * 0.5f + 0.5f);
             Color skinColor = new(219, 103, 151);
             Color lightningColor = new(190, 233, 215);
             return Color.Lerp(skinColor, lightningColor, lightningInterpolant);
@@ -23,7 +23,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override string TextToDisplay => "Atmospheric Predator\nThe Storm Weaver";
 
-        public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<StormWeaverHead>());
+        public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<StormWeaverHead>()) && Main.npc[NPC.FindFirstNPC(ModContent.NPCType<StormWeaverHead>())].ai[1] != 0f;
 
         public override SoundStyle? SoundToPlayWithTextCreation => null;
     }

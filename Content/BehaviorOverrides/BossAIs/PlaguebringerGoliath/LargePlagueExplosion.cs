@@ -1,4 +1,5 @@
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
@@ -18,6 +19,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
             Projectile.ignoreWater = true;
             Projectile.tileCollide = false;
             Projectile.timeLeft = 420;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -26,7 +28,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
             {
                 Dust dust = Dust.NewDustPerfect(Projectile.Center + Main.rand.NextVector2Circular(35f, 35f), 89);
                 dust.velocity = Main.rand.NextVector2Circular(6f, 6f);
-                dust.scale = Main.rand.NextFloat(1.1f, 1.35f);
+                dust.scale = Main.rand.NextFloat(0.5f, 0.7f);
                 dust.noGravity = true;
             }
             Projectile.frameCounter++;

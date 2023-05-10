@@ -30,18 +30,23 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Ravager
             Projectile.timeLeft = 360;
             Projectile.scale = 1.6f;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
             Lighting.AddLight(Projectile.Center, Color.Blue.ToVector3() * 0.64f);
 
-            Projectile.Opacity = (float)Math.Sin(MathHelper.Pi * Projectile.timeLeft / 360f) * 5f;
+            Projectile.Opacity = MathF.Sin(MathHelper.Pi * Projectile.timeLeft / 360f) * 5f;
             if (Projectile.Opacity > 1f)
                 Projectile.Opacity = 1f;
 
             if (Projectile.frameCounter++ % 5 == 4)
                 Projectile.frame = (Projectile.frame + 1) % Main.projFrames[Projectile.type];
+
+            // Accelerate.
+            if (Projectile.velocity.Length() < 27f)
+                Projectile.velocity *= 1.015f;
 
             Projectile.rotation = Projectile.velocity.ToRotation() - MathHelper.PiOver2;
         }

@@ -10,6 +10,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Golem
 {
     public class GolemFistLeft : ModNPC
     {
+        public override string Texture => $"Terraria/Images/NPC_{NPCID.GolemFistRight}";
+
         public override void SetStaticDefaults()
         {
             this.HideFromBestiary();
@@ -19,7 +21,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Golem
         public override void SetDefaults()
         {
             NPC.lifeMax = 1;
-            NPC.defDamage = NPC.damage = 75;
+            NPC.defDamage = NPC.damage = 125;
             NPC.dontTakeDamage = true;
             NPC.width = 40;
             NPC.height = 40;
@@ -31,6 +33,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Golem
         public override bool PreAI() => DoFistAI(NPC, true);
 
         public override bool PreDraw(SpriteBatch spriteBatch, Vector2 screenPos, Color drawColor) => DrawFist(NPC, Main.spriteBatch, drawColor, true);
+
+        public override bool CanHitPlayer(Player target, ref int cooldownSlot)
+        {
+            cooldownSlot = ImmunityCooldownID.Bosses;
+            return base.CanHitPlayer(target, ref cooldownSlot);
+        }
 
         public static bool DoFistAI(NPC npc, bool leftFist)
         {
@@ -74,8 +82,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Golem
 
             Main.instance.LoadNPC(NPCID.GolemFistRight);
             Texture2D texture = TextureAssets.Npc[NPCID.GolemFistRight].Value;
-            Rectangle rect = new(0, 0, texture.Width, texture.Height);
-            Main.spriteBatch.Draw(texture, npc.Center - Main.screenPosition, rect, lightColor * npc.Opacity, npc.rotation, rect.Size() * 0.5f, 1f, effect, 0f);
+            Main.spriteBatch.Draw(texture, npc.Center - Main.screenPosition, npc.frame, lightColor * npc.Opacity, npc.rotation, npc.frame.Size() * 0.5f, 1f, effect, 0f);
             return false;
         }
     }

@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApollo
@@ -24,9 +25,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
 
         public static int TrueLifetime => RawLifetime / TotalUpdates;
 
-        public const int TotalUpdates = 5;
+        public const int TotalUpdates = 4;
 
-        public const int RawLifetime = 180;
+        public const int RawLifetime = 210;
 
         public const float TelegraphWidth = 3600f;
 
@@ -43,6 +44,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.penetrate = -1;
             Projectile.MaxUpdates = TotalUpdates;
             Projectile.timeLeft = RawLifetime;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)

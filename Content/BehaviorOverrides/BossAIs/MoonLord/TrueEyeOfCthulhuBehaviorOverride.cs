@@ -10,6 +10,7 @@ using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord.MoonLordCoreBehaviorOverride;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 {
@@ -43,6 +44,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             ref float pupilScale = ref npc.localAI[2];
             ref float enrageTimer = ref npc.Infernum().ExtraAI[5];
 
+            // Disable natural despawning.
+            npc.Infernum().DisableNaturalDespawning = true;
+
             // Define an initial group index.
             if (groupIndex == 0f)
             {
@@ -51,7 +55,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             }
 
             // Kill the player if they leave the arena.
-            if (MoonLordCoreBehaviorOverride.IsEnraged)
+            if (IsEnraged)
             {
                 int enrageBoltCount = 7;
                 float enrageBoltSpread = 0.71f;
@@ -73,7 +77,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     {
                         Vector2 boltShootVelocity = (target.Center - boltSpawnPosition).SafeNormalize(Vector2.UnitY) * enrageBoltShootSpeed;
                         boltShootVelocity = boltShootVelocity.RotatedBy(MathHelper.Lerp(-enrageBoltSpread, enrageBoltSpread, i / (float)(enrageBoltCount - 1f)));
-                        Utilities.NewProjectileBetter(boltSpawnPosition, boltShootVelocity, ProjectileID.PhantasmalBolt, 360, 0f);
+                        Utilities.NewProjectileBetter(boltSpawnPosition, boltShootVelocity, ProjectileID.PhantasmalBolt, PhantasmalBoltEnragedDamage, 0f);
                     }
                 }
 
@@ -99,26 +103,26 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             }
             enrageTimer = 0f;
 
-            switch ((MoonLordCoreBehaviorOverride.MoonLordAttackState)(int)core.ai[0])
+            switch ((MoonLordAttackState)(int)core.ai[0])
             {
-                case MoonLordCoreBehaviorOverride.MoonLordAttackState.DeathEffects:
+                case MoonLordAttackState.DeathEffects:
                     npc.life = 0;
                     npc.StrikeNPCNoInteraction(9999, 0f, 0);
                     npc.checkDead();
                     break;
-                case MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalSpin:
+                case MoonLordAttackState.PhantasmalSpin:
                     DoBehavior_PhantasmalSpin(npc, target, core, attackTimer, groupIndex, ref pupilRotation, ref pupilOutwardness, ref pupilScale);
                     break;
-                case MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalRush:
+                case MoonLordAttackState.PhantasmalRush:
                     DoBehavior_PhantasmalRush(npc, target, core, attackTimer, groupIndex, ref pupilRotation, ref pupilOutwardness, ref pupilScale);
                     break;
-                case MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalDance:
+                case MoonLordAttackState.PhantasmalDance:
                     DoBehavior_PhantasmalDance(npc, target, core, attackTimer, groupIndex, ref pupilRotation, ref pupilOutwardness, ref pupilScale);
                     break;
-                case MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalBarrage:
+                case MoonLordAttackState.PhantasmalBarrage:
                     DoBehavior_PhantasmalBarrage(npc, target, core, attackTimer, groupIndex, ref pupilRotation, ref pupilOutwardness, ref pupilScale);
                     break;
-                case MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalWrath:
+                case MoonLordAttackState.PhantasmalWrath:
                     DoBehavior_PhantasmalWrath(npc, target, core, attackTimer, groupIndex, ref pupilRotation, ref pupilOutwardness, ref pupilScale);
                     break;
                 default:
@@ -205,7 +209,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                         for (int i = 0; i < boltSpreadCount; i++)
                         {
                             Vector2 eyeVelocity = -Vector2.UnitY.RotatedBy(MathHelper.TwoPi * i / boltSpreadCount + temporalOffsetAngle) * 8f;
-                            Utilities.NewProjectileBetter(eyeSpawnPosition, eyeVelocity, ModContent.ProjectileType<NonHomingPhantasmalEye>(), 215, 0f, -1, 0f, eyeAngularVelocity);
+                            Utilities.NewProjectileBetter(eyeSpawnPosition, eyeVelocity, ModContent.ProjectileType<NonHomingPhantasmalEye>(), PhantasmalEyeDamage, 0f, -1, 0f, eyeAngularVelocity);
                         }
                     }
                 }
@@ -214,12 +218,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 {
                     Vector2 asteroidSpawnPosition = target.Center + Main.rand.NextVector2CircularEdge(780f, 780f);
                     Vector2 asteroidShootVelocity = (core.Center - asteroidSpawnPosition).SafeNormalize(Vector2.UnitY) * 6f;
-                    Utilities.NewProjectileBetter(asteroidSpawnPosition, asteroidShootVelocity, ModContent.ProjectileType<LunarAsteroid>(), 220, 0f, -1, core.whoAmI);
+                    Utilities.NewProjectileBetter(asteroidSpawnPosition, asteroidShootVelocity, ModContent.ProjectileType<LunarAsteroid>(), LunarAsteroidDamage, 0f, -1, core.whoAmI);
                 }
             }
 
             // Terminate the attack early if the target leaves the arena, as this attack is arena-focused.
-            if (MoonLordCoreBehaviorOverride.IsEnraged || attackTimer >= fireDelay + shootTime + attackTransitionDelay)
+            if (IsEnraged || attackTimer >= fireDelay + shootTime + attackTransitionDelay)
             {
                 Utilities.DeleteAllProjectiles(true, ModContent.ProjectileType<NonHomingPhantasmalEye>(), ModContent.ProjectileType<LunarAsteroid>());
                 core.Infernum().ExtraAI[5] = 1f;
@@ -237,13 +241,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             float chargeVerticalOffset = 330f;
             float boltShootSpeed = 2f;
 
-            if (MoonLordCoreBehaviorOverride.InFinalPhase)
+            if (InFinalPhase)
             {
                 boltCount += 2;
                 chargeVerticalOffset += 15f;
             }
 
-            if (MoonLordCoreBehaviorOverride.IsEnraged)
+            if (IsEnraged)
             {
                 boltCount = 13;
                 boltShootSpeed = 10f;
@@ -272,6 +276,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     pupilScale = MathHelper.Lerp(pupilScale, 0.7f, 0.15f);
                     lineTelegraphInterpolant = attackTimer / fireDelay;
                     telegraphAngularOffset = MathHelper.Lerp(1.5f, 1f, lineTelegraphInterpolant) * pressureLaserStartingAngularOffset;
+
+                    // Delete leftover phantasmal spheres.
+                    Utilities.DeleteAllProjectiles(true, ProjectileID.PhantasmalSphere);
                 }
                 else
                 {
@@ -354,7 +361,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                             for (int i = 0; i < boltCount; i++)
                             {
                                 Vector2 boltShootVelocity = (MathHelper.TwoPi * i / boltCount + circularSpreadOffsetAngle).ToRotationVector2() * boltShootSpeed;
-                                Utilities.NewProjectileBetter(npc.Center, boltShootVelocity, ProjectileID.PhantasmalBolt, 200, 0f);
+                                Utilities.NewProjectileBetter(npc.Center, boltShootVelocity, ProjectileID.PhantasmalBolt, PhantasmalBoltDamage, 0f);
                             }
                         }
 
@@ -373,7 +380,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
         public static void DoBehavior_PhantasmalDance(NPC npc, Player target, NPC core, float attackTimer, float groupIndex, ref float pupilRotation, ref float pupilOutwardness, ref float pupilScale)
         {
             int spinTime = 60;
-            int chargeTelegraphTime = 52;
+            int chargeTelegraphTime = 56;
             int chargeTime = 36;
             int chargeCount = 4;
             int orbReleaseRate = 5;
@@ -381,14 +388,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             float chargeSpeed = 37f;
             float chargePredictiveness = 20f;
 
-            if (MoonLordCoreBehaviorOverride.InFinalPhase)
+            if (InFinalPhase)
             {
                 orbReleaseRate--;
                 spinOffset -= 20f;
                 chargeSpeed += 3f;
             }
 
-            if (MoonLordCoreBehaviorOverride.IsEnraged)
+            if (IsEnraged)
             {
                 chargeTelegraphTime = 34;
                 spinOffset = 375f;
@@ -429,8 +436,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 telegraphInterpolant = Utils.GetLerpValue(0f, 0.65f, telegraphCompletion, true) * Utils.GetLerpValue(1f, 0.75f, telegraphCompletion, true);
 
                 // Define the telegraph direction.
-                if (telegraphCompletion < 0.9f)
-                    telegraphDirection = telegraphDirection.AngleLerp(npc.AngleTo(target.Center + target.velocity * chargePredictiveness), 0.18f);
+                if (telegraphCompletion < 0.8f)
+                    telegraphDirection = telegraphDirection.AngleLerp(npc.AngleTo(target.Center + target.velocity * chargePredictiveness), 0.25f);
 
                 // Scream before charging.
                 if (wrappedAttackTimer == spinTime + 8f)
@@ -501,7 +508,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             float boltShootSpeed = 6.1f;
             float boltSpread = 0.21f;
 
-            if (MoonLordCoreBehaviorOverride.InFinalPhase)
+            if (InFinalPhase)
             {
                 sphereCastCount++;
                 boltCount += 2;
@@ -580,7 +587,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         Vector2 sphereVelocity = sphereOffset.SafeNormalize(Vector2.Zero) * 6f;
-                        int sphere = Utilities.NewProjectileBetter(npc.Center + sphereOffset, sphereVelocity, ProjectileID.PhantasmalSphere, 215, 0f, -1, -1f, npc.whoAmI);
+                        int sphere = Utilities.NewProjectileBetter(npc.Center + sphereOffset, sphereVelocity, ProjectileID.PhantasmalSphere, PhantasmalSphereDamage, 0f, -1, -1f, npc.whoAmI);
                         if (Main.projectile.IndexInRange(sphere))
                         {
                             Main.projectile[sphere].Opacity = sphereCastCompletion;
@@ -629,7 +636,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                         Vector2 boltVelocity = (target.Center - boltSpawnPosition).SafeNormalize(Vector2.UnitY) * boltShootSpeed;
                         if (boltCount > 1)
                             boltVelocity = boltVelocity.RotatedBy(MathHelper.Lerp(-boltSpread, boltSpread, i / (float)(boltCount - 1f)));
-                        Utilities.NewProjectileBetter(boltSpawnPosition, boltVelocity, ProjectileID.PhantasmalBolt, 210, 0f);
+                        Utilities.NewProjectileBetter(boltSpawnPosition, boltVelocity, ProjectileID.PhantasmalBolt, PhantasmalBoltDamage, 0f);
                     }
                 }
             }
@@ -657,19 +664,19 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
         public static void DoBehavior_PhantasmalWrath(NPC npc, Player target, NPC core, float attackTimer, float groupIndex, ref float pupilRotation, ref float pupilOutwardness, ref float pupilScale)
         {
             int attckDelay = 60;
-            int slowdownTime = 16;
+            int slowdownTime = 28;
             int boltCount = 12;
             int chargeTime = 36;
             int chargeCount = 4;
             float spinOffset = 400f;
-            float boltShootSpeed = 6.25f;
+            float boltShootSpeed = 5f;
             float chargeSpeed = 38.5f;
 
-            if (MoonLordCoreBehaviorOverride.InFinalPhase)
+            if (InFinalPhase)
             {
                 chargeTime -= 3;
                 boltCount += 6;
-                boltShootSpeed -= 0.5f;
+                boltShootSpeed -= 1f;
                 chargeSpeed += 3f;
             }
 
@@ -731,7 +738,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     for (int i = 0; i < boltCount; i++)
                     {
                         Vector2 boltShootVelocity = (MathHelper.TwoPi * i / boltCount).ToRotationVector2() * boltShootSpeed;
-                        Utilities.NewProjectileBetter(boltSpawnPosition, boltShootVelocity, ProjectileID.PhantasmalBolt, 215, 0f);
+                        Utilities.NewProjectileBetter(boltSpawnPosition, boltShootVelocity, ProjectileID.PhantasmalBolt, PhantasmalBoltDamage, 0f);
                     }
                 }
             }
@@ -755,7 +762,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer % 8f == 7f && !npc.WithinRange(target.Center, 300f))
                 {
                     Vector2 eyeVelocity = -Vector2.UnitY * Main.rand.NextFloat(8f, 11f);
-                    Utilities.NewProjectileBetter(npc.Center, eyeVelocity, ProjectileID.PhantasmalEye, 215, 0f);
+                    Utilities.NewProjectileBetter(npc.Center, eyeVelocity, ProjectileID.PhantasmalEye, PhantasmalEyeDamage, 0f);
                 }
             }
 
@@ -783,7 +790,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
             // Draw line telegraphs as necessary.
             NPC core = Main.npc[(int)npc.ai[3]];
-            if (core.ai[0] == (int)MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalRush)
+            if (core.ai[0] == (int)MoonLordAttackState.PhantasmalRush)
             {
                 float lineTelegraphInterpolant = npc.Infernum().ExtraAI[1];
                 if (lineTelegraphInterpolant > 0f)
@@ -799,7 +806,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     Vector2 drawPosition = baseDrawPosition + pupilOffset;
 
                     // Create bloom on the pupil.
-                    Vector2 bloomSize = new Vector2(30f) / bloomCircle.Size() * (float)Math.Pow(lineTelegraphInterpolant, 2D);
+                    Vector2 bloomSize = new Vector2(30f) / bloomCircle.Size() * MathF.Pow(lineTelegraphInterpolant, 2f);
                     Main.spriteBatch.Draw(bloomCircle, drawPosition, null, Color.Turquoise, 0f, bloomCircle.Size() * 0.5f, bloomSize, 0, 0f);
 
                     if (npc.Infernum().ExtraAI[0] >= -100f)
@@ -815,7 +822,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     Main.spriteBatch.ResetBlendState();
                 }
             }
-            if (core.ai[0] == (int)MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalDance)
+            if (core.ai[0] == (int)MoonLordAttackState.PhantasmalDance)
             {
                 float lineTelegraphInterpolant = npc.Infernum().ExtraAI[0];
                 if (lineTelegraphInterpolant > 0f)
@@ -831,7 +838,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     Vector2 drawPosition = baseDrawPosition + pupilOffset;
 
                     // Create bloom on the pupil.
-                    Vector2 bloomSize = new Vector2(30f) / bloomCircle.Size() * (float)Math.Pow(lineTelegraphInterpolant, 2D);
+                    Vector2 bloomSize = new Vector2(30f) / bloomCircle.Size() * MathF.Pow(lineTelegraphInterpolant, 2f);
                     Main.spriteBatch.Draw(bloomCircle, drawPosition, null, Color.Turquoise, 0f, bloomCircle.Size() * 0.5f, bloomSize, 0, 0f);
 
                     Vector2 beamDirection = -npc.Infernum().ExtraAI[1].ToRotationVector2();
@@ -841,9 +848,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     Main.spriteBatch.ResetBlendState();
                 }
             }
-            if (core.ai[0] is
-                ((int)MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalBarrage) or
-                ((int)MoonLordCoreBehaviorOverride.MoonLordAttackState.PhantasmalWrath))
+            if (core.ai[0] is ((int)MoonLordAttackState.PhantasmalBarrage) or ((int)MoonLordAttackState.PhantasmalWrath))
             {
                 float lineTelegraphInterpolant = npc.Infernum().ExtraAI[1];
                 if (lineTelegraphInterpolant > 0f)

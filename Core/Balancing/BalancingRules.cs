@@ -9,7 +9,7 @@ namespace InfernumMode.Core.Balancing
         public float DamageMultiplier;
         public PierceResistBalancingRule(float damageMultiplier) => DamageMultiplier = damageMultiplier;
 
-        public bool AppliesTo(NPC npc, NPCHitContext hitContext) => hitContext.Pierce > 1 || hitContext.Pierce == -1;
+        public bool AppliesTo(NPC npc, NPCHitContext hitContext) => hitContext.Pierce is > 1 or (-1);
 
         public void ApplyBalancingChange(NPC npc, ref int damage) => damage = (int)(damage * DamageMultiplier);
     }
@@ -73,6 +73,25 @@ namespace InfernumMode.Core.Balancing
                 return false;
 
             return hitContext.IsStealthStrike;
+        }
+
+        public void ApplyBalancingChange(NPC npc, ref int damage) => damage = (int)(damage * DamageMultiplier);
+    }
+
+    public class TrueMeleeBalancingRule : IBalancingRule
+    {
+        public float DamageMultiplier;
+        public TrueMeleeBalancingRule(float damageMultiplier)
+        {
+            DamageMultiplier = damageMultiplier;
+        }
+
+        public bool AppliesTo(NPC npc, NPCHitContext hitContext)
+        {
+            if (hitContext.DamageSource == DamageSourceType.FriendlyProjectile)
+                return Main.projectile[hitContext.ProjectileIndex.Value].IsTrueMelee();
+
+            return hitContext.DamageSource == DamageSourceType.TrueMeleeSwing;
         }
 
         public void ApplyBalancingChange(NPC npc, ref int damage) => damage = (int)(damage * DamageMultiplier);

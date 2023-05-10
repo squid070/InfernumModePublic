@@ -1,5 +1,6 @@
 using CalamityMod;
-using InfernumMode.Common.Graphics;
+using CalamityMod.Sounds;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
@@ -30,7 +31,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             Projectile.penetrate = -1;
             Projectile.timeLeft = 300;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -53,7 +54,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
 
         public override void Kill(int timeLeft)
         {
-            SoundEngine.PlaySound(SoundID.Item93, Projectile.Center);
+            SoundEngine.PlaySound(CommonCalamitySounds.ExoPlasmaExplosionSound, Projectile.Center);
 
             if (Main.netMode == NetmodeID.MultiplayerClient)
                 return;

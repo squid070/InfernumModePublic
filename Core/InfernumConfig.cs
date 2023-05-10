@@ -35,7 +35,7 @@ namespace InfernumMode.Core
         [SliderColor(224, 165, 56, 128)]
         [Range(0f, 1f)]
         [DefaultValue(0f)]
-        [Tooltip("How intense color saturation bloom effects should be. Such effects are disabled when this value is zero.")]
+        [Tooltip("How intense color saturation bloom effects should be. Such effects are disabled when this value is zero. Be warned that high values may be overwhelming.")]
         public float SaturationBloomIntensity { get; set; }
 
         [Label("Screen Overlays")]
@@ -43,6 +43,12 @@ namespace InfernumMode.Core
         [DefaultValue(true)]
         [Tooltip("Enables screen overlay 'flashbang' effects. This will not directly affect gameplay mechanics.")]
         public bool FlashbangOverlays { get; set; }
+
+        [Label("Boss Footage Credits Recording")]
+        [BackgroundColor(224, 127, 180, 192)]
+        [DefaultValue(false)]
+        [Tooltip("Enables boss footage recordings for the playback during the credits.")]
+        public bool CreditsRecordings { get; set; }
 
         public override bool AcceptClientChanges(ModConfig pendingConfig, int whoAmI, ref string message) => false;
     }

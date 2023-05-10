@@ -1,6 +1,7 @@
 using CalamityMod;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
@@ -10,8 +11,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
         public ref float Time => ref Projectile.ai[0];
 
         public ref float Lifetime => ref Projectile.ai[1];
-
-        public ref float BombRadius => ref Projectile.localAI[0];
 
         public override string Texture => "CalamityMod/Projectiles/InvisibleProj";
 
@@ -24,6 +23,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 900;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

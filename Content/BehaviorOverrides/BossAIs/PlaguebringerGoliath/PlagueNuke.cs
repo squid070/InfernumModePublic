@@ -1,5 +1,6 @@
 using CalamityMod;
-using CalamityMod.Items.Weapons.DraedonsArsenal;
+using InfernumMode.Assets.Sounds;
+using InfernumMode.Common.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
@@ -89,9 +90,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
                 // Explode and die after the explosion delay is passed.
                 if (ExistTimer > BuildTime + ExplodeDelay)
                 {
-                    SoundEngine.PlaySound(GaussRifle.FireSound, NPC.Center);
+                    Target.Infernum_Camera().CurrentScreenShakePower = 12f;
+                    ScreenEffectSystem.SetBlurEffect(NPC.Center, 0.4f, 32);
+
+                    SoundEngine.PlaySound(InfernumSoundRegistry.PBGNukeExplosionSound with { Volume = 2f }, NPC.Center);
                     if (Main.netMode != NetmodeID.MultiplayerClient)
-                        Utilities.NewProjectileBetter(NPC.Center, Vector2.Zero, ModContent.ProjectileType<PlagueNuclearExplosion>(), 750, 0f);
+                        Utilities.NewProjectileBetter(NPC.Center, Vector2.Zero, ModContent.ProjectileType<PlagueNuclearExplosion>(), PlaguebringerGoliathBehaviorOverride.NuclearExplosionDamage, 0f);
 
                     NPC.life = 0;
                     NPC.checkDead();

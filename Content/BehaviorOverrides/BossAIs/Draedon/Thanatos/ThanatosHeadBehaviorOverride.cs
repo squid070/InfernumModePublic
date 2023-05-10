@@ -7,15 +7,19 @@ using CalamityMod.Particles;
 using CalamityMod.Skies;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.BehaviorOverrides.BossAIs.Draedon.ComboAttacks;
+using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Particles;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.DoG;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ComboAttacks;
+using InfernumMode.Content.Projectiles.Pets;
+using InfernumMode.Core.GlobalInstances;
+using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
-using InfernumMode.Common.Graphics.Particles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Utilities;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Terraria;
@@ -24,8 +28,6 @@ using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.DraedonBehaviorOverride;
-using InfernumMode.Core.GlobalInstances.Systems;
-using System.IO;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
 {
@@ -64,6 +66,45 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
         {
             ExoMechManagement.Phase4LifeRatio
         };
+
+        #region Loading
+        public override void Load()
+        {
+            GlobalNPCOverrides.StrikeNPCEvent += AddDamageMultiplier;
+        }
+
+        private bool AddDamageMultiplier(NPC npc, ref double damage, int realDamage, int defense, ref float knockback, int hitDirection, ref bool crit)
+        {
+            // Make Thanatos' head take a flat multiplier in terms of final damage, as a means of allowing direct hits to be effective.
+            if (npc.type == ModContent.NPCType<ThanatosHead>())
+            {
+                damage = (int)(damage * FlatDamageBoostFactor);
+                if (npc.Calamity().DR > 0.999f)
+                {
+                    damage = 0D;
+                    return false;
+                }
+            }
+
+            bool isThanatos = npc.type == ModContent.NPCType<ThanatosHead>() || npc.type == ModContent.NPCType<ThanatosBody1>() || npc.type == ModContent.NPCType<ThanatosBody2>() || npc.type == ModContent.NPCType<ThanatosTail>();
+            if (isThanatos)
+            {
+                NPC head = npc.realLife >= 0 ? Main.npc[npc.realLife] : npc;
+
+                // Disable damage and start the death animation if the hit would kill Thanatos.
+                if (head.life - realDamage <= 1)
+                {
+                    head.life = 0;
+                    head.checkDead();
+                    damage = 0;
+                    npc.dontTakeDamage = true;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        #endregion Loading
 
         #region Netcode Syncs
 
@@ -216,13 +257,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             }
 
             // Have a brief period of immortality before attacking to allow for time to uncoil.
-            if (attackDelay < 240f && !performingDeathAnimation)
+            if (attackDelay < 270f && !performingDeathAnimation)
             {
-                npc.dontTakeDamage = true;
-                npc.damage = 0;
+                if (attackDelay < 240f)
+                {
+                    npc.dontTakeDamage = true;
+                    npc.damage = 0;
+                }
                 npc.rotation = npc.velocity.ToRotation() + MathHelper.PiOver2;
                 attackDelay++;
-                DoProjectileShootInterceptionMovement(npc, target, Utils.GetLerpValue(270f, 100f, attackDelay, true) * 2.5f);
+                DoProjectileShootInterceptionMovement(npc, target, Utils.GetLerpValue(330f, 100f, attackDelay, true) * 1.8f);
                 return false;
             }
 
@@ -615,7 +659,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
 
             // Play a telegraph sound to alert the player of the impending charge.
             if (attackTimer == slowdownTime + chargePreparationTime / 2)
+            {
                 SoundEngine.PlaySound(ScorchedEarth.ShootSound, target.Center);
+                target.Infernum_Camera().CurrentScreenShakePower = 6f;
+            }
 
             // Begin the charge.
             if (attackTimer >= slowdownTime + chargePreparationTime && attackTimer < slowdownTime + chargePreparationTime + redirectTime)
@@ -699,6 +746,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             ref float rayTelegraphSoundSlot = ref npc.Infernum().ExtraAI[1];
             ref float redirectCounter = ref npc.Infernum().ExtraAI[2];
 
+            if (ExoMechManagement.CurrentThanatosPhase >= 6)
+                redirectCount = 2;
+
             // Initialize a hover offset direction.
             if (hoverOffsetDirection == 0f)
             {
@@ -773,6 +823,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
                     Utilities.NewProjectileBetter(npc.Center, Vector2.Zero, ModContent.ProjectileType<OverloadBoom>(), 0, 0f);
                     Utilities.NewProjectileBetter(npc.Center, Vector2.Zero, ModContent.ProjectileType<LightOverloadRay>(), PowerfulShotDamage, 0f, -1, 0f, lightRaySpread * 0.53f);
                 }
+
+                ScreenEffectSystem.SetBlurEffect(npc.Center, 1.7f, 45);
+                target.Infernum_Camera().CurrentScreenShakePower = 7f;
             }
 
             // Create explosions that make sparks after the lasers are fired.
@@ -1033,6 +1086,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             else
                 npc.ai[0] = (int)ThanatosHeadAttackType.AggressiveCharge;
 
+            if (oldAttackType == ThanatosHeadAttackType.RefractionRotorRays)
+                npc.ai[0] = (int)ThanatosHeadAttackType.ExoLightBarrage;
+
             // In the final phase a preset order is established, ending with the ultimate attack.
             if (ExoMechManagement.CurrentThanatosPhase >= 6)
             {
@@ -1098,7 +1154,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
 
             Vector2 center = npc.Center - Main.screenPosition;
 
-            ExoMechAIUtilities.DrawFinalPhaseGlow(spriteBatch, npc, texture, center, npc.frame, origin);
+            ExoMechAIUtilities.DrawFinalPhaseGlow(npc, texture, center, npc.frame, origin);
             Main.spriteBatch.Draw(texture, center, npc.frame, npc.GetAlpha(lightColor), npc.rotation, origin, npc.scale, spriteEffects, 0f);
 
             texture = ModContent.Request<Texture2D>("CalamityMod/NPCs/ExoMechs/Thanatos/ThanatosHeadGlow").Value;

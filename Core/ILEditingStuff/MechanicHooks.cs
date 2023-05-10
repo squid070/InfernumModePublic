@@ -1,19 +1,36 @@
 using CalamityMod;
 using CalamityMod.CalPlayer;
+using CalamityMod.DataStructures;
+using CalamityMod.Events;
+using CalamityMod.Items.SummonItems;
 using CalamityMod.NPCs;
-using CalamityMod.NPCs.ExoMechs;
+using CalamityMod.NPCs.AdultEidolonWyrm;
+using CalamityMod.NPCs.AquaticScourge;
+using CalamityMod.NPCs.CeaselessVoid;
 using CalamityMod.NPCs.GreatSandShark;
-using CalamityMod.UI.DraedonSummoning;
-using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using CalamityMod.NPCs.ProfanedGuardians;
+using CalamityMod.NPCs.Signus;
+using CalamityMod.NPCs.StormWeaver;
+using CalamityMod.Schematics;
+using CalamityMod.Systems;
+using CalamityMod.Tiles.Abyss;
+using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Common.UtilityMethods;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.CeaselessVoid;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Golem;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Providence;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Signus;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.StormWeaver;
+using InfernumMode.Content.Items.Accessories;
+using InfernumMode.Content.Projectiles.Generic;
 using InfernumMode.Content.Subworlds;
 using InfernumMode.Core.Balancing;
+using InfernumMode.Core.GlobalInstances.GlobalItems;
 using InfernumMode.Core.GlobalInstances.Players;
+using InfernumMode.Core.GlobalInstances.Systems;
+using InfernumMode.Core.Netcode;
+using InfernumMode.Core.Netcode.Packets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil.Cil;
@@ -22,12 +39,15 @@ using SubworldLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.GameContent.Events;
+using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static InfernumMode.ILEditingStuff.HookManager;
+using static InfernumMode.Core.ILEditingStuff.HookManager;
 
 namespace InfernumMode.Core.ILEditingStuff
 {
@@ -70,9 +90,7 @@ namespace InfernumMode.Core.ILEditingStuff
     {
         internal static NPC[] GetPlatforms(Projectile projectile)
         {
-            return Main.npc.Take(Main.maxNPCs).Where(n => n.active && (n.type == ModContent.NPCType<GolemArenaPlatform>() ||
-                n.type == ModContent.NPCType<ProvArenaPlatform>())).
-                OrderBy(n => projectile.Distance(n.Center)).ToArray();
+            return Main.npc.Take(Main.maxNPCs).Where(n => n.active && n.type == ModContent.NPCType<GolemArenaPlatform>()).OrderBy(n => projectile.Distance(n.Center)).ToArray();
         }
 
         internal static bool PlatformRequirement(Projectile projectile)
@@ -319,27 +337,448 @@ namespace InfernumMode.Core.ILEditingStuff
 
     public class DrawCherishedSealocketHook : IHookEdit
     {
+        public static RenderTarget2D PlayerForcefieldTarget
+        {
+            get;
+            internal set;
+        }
+
+        public static ArmorShaderData ForcefieldShader
+        {
+            get;
+            internal set;
+        }
+
         private void DrawForcefields(On.Terraria.Main.orig_DrawInfernoRings orig, Main self)
         {
+            Main.LocalPlayer.Infernum_CalShadowHex().DrawAllHexes();
+
+            if (PlayerForcefieldTarget is null)
+            {
+                // Ensure orig is called regardless.
+                orig(self);
+                return;
+            }
+
+            // Draw the render target, optionally with a dye shader.
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+
+            float shieldScale = Main.LocalPlayer.GetModPlayer<SealocketPlayer>().ForcefieldOpacity * 0.3f;
+            Vector2 shieldSize = Vector2.One * shieldScale * 512f;
+            Rectangle shaderArea = Utils.CenteredRectangle(PlayerForcefieldTarget.Size(), shieldSize);
+            SealocketPlayer sealocketPlayer = Main.LocalPlayer.GetModPlayer<SealocketPlayer>();
+
+            if (sealocketPlayer.ForcefieldOpacity >= 0.01f && sealocketPlayer.ForcefieldDissipationInterpolant < 0.99f)
+                ForcefieldShader?.Apply(null, new(PlayerForcefieldTarget, Vector2.Zero, shaderArea, Color.White));
+            Main.spriteBatch.Draw(PlayerForcefieldTarget, Main.LocalPlayer.Center - Main.screenPosition, null, Color.White, 0f, PlayerForcefieldTarget.Size() * 0.5f, 1f, 0, 0f);
+
+            Main.spriteBatch.ExitShaderRegion();
+
+            orig(self);
+        }
+
+        private void PrepareSealocketTarget(On.Terraria.Main.orig_CheckMonoliths orig)
+        {
+            orig();
+            InitializeTargetIfNecessary();
+
+            var device = Main.instance.GraphicsDevice;
+            RenderTargetBinding[] bindings = device.GetRenderTargets();
+            device.SetRenderTarget(PlayerForcefieldTarget);
+            device.Clear(Color.Transparent);
+
+            // Draw forcefields to the render target.
+            Main.spriteBatch.Begin();
             for (int i = 0; i < Main.maxPlayers; i++)
             {
                 if (!Main.player[i].active || Main.player[i].outOfRange || Main.player[i].dead)
                     continue;
 
-                SealocketPlayer modPlayer = Main.player[i].GetModPlayer<SealocketPlayer>();
-                modPlayer.ForcefieldOpacity = 1f;
-                if (modPlayer.ForcefieldOpacity <= 0.01f || modPlayer.ForcefieldDissipationInterpolant >= 0.99f)
-                    continue;
-
-                float forcefieldOpacity = (1f - modPlayer.ForcefieldDissipationInterpolant) * modPlayer.ForcefieldOpacity;
-                Vector2 forcefieldDrawPosition = Main.player[i].Center + Vector2.UnitY * Main.player[i].gfxOffY - Main.screenPosition;
-                BereftVassal.DrawElectricShield(forcefieldOpacity, forcefieldDrawPosition, forcefieldOpacity, modPlayer.ForcefieldDissipationInterpolant * 1.5f + 1.3f);
+                DrawForcefield(Main.player[i]);
             }
-            orig(self);
+            Main.spriteBatch.End();
+            device.SetRenderTargets(bindings);
         }
 
-        public void Load() => On.Terraria.Main.DrawInfernoRings += DrawForcefields;
+        public static void InitializeTargetIfNecessary()
+        {
+            if (PlayerForcefieldTarget is not null || Main.netMode == NetmodeID.Server)
+                return;
 
-        public void Unload() => On.Terraria.Main.DrawInfernoRings -= DrawForcefields;
+            PlayerForcefieldTarget = new(Main.instance.GraphicsDevice, Main.screenWidth, Main.screenHeight);
+        }
+
+        public static void DrawForcefield(Player player)
+        {
+            SealocketPlayer sealocketPlayer = player.GetModPlayer<SealocketPlayer>();
+            BrimstoneCrescentForcefieldPlayer crescentPlayer = player.GetModPlayer<BrimstoneCrescentForcefieldPlayer>();
+
+            sealocketPlayer.ForcefieldOpacity = 1f;
+
+            // Draw the sealocket forcefield.
+            Vector2 forcefieldDrawPosition = new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f + Vector2.UnitY * player.gfxOffY;
+            if (sealocketPlayer.ForcefieldOpacity >= 0.01f && sealocketPlayer.ForcefieldDissipationInterpolant < 0.99f)
+            {
+                float forcefieldOpacity = (1f - sealocketPlayer.ForcefieldDissipationInterpolant) * sealocketPlayer.ForcefieldOpacity;
+                BereftVassal.DrawElectricShield(forcefieldOpacity, forcefieldDrawPosition, forcefieldOpacity, sealocketPlayer.ForcefieldDissipationInterpolant * 1.5f + 1.3f);
+            }
+
+            // Draw the Brimstone Crescent forcefield.
+            if (crescentPlayer.ForcefieldStrengthInterpolant > 0f)
+            {
+                float scale = MathHelper.Lerp(0.55f, 1.5f, 1f - crescentPlayer.ForcefieldStrengthInterpolant);
+                Color forcefieldColor = CalamityUtils.ColorSwap(Color.Lerp(Color.Red, Color.Yellow, 0.06f), Color.OrangeRed, 5f) * crescentPlayer.ForcefieldStrengthInterpolant;
+                CultistBehaviorOverride.DrawForcefield(forcefieldDrawPosition, 1.35f, forcefieldColor, InfernumTextureRegistry.FireNoise.Value, true, scale);
+            }
+        }
+
+        private void FindSealocketItemDyeShader(Item armorItem, Item dyeItem)
+        {
+            if (armorItem.type == ModContent.ItemType<CherishedSealocket>())
+                ForcefieldShader = GameShaders.Armor.GetShaderFromItemId(dyeItem.type);
+        }
+
+        public void Load()
+        {
+            On.Terraria.Main.CheckMonoliths += PrepareSealocketTarget;
+            On.Terraria.Main.DrawInfernoRings += DrawForcefields;
+            DyeFindingSystem.FindDyeEvent += FindSealocketItemDyeShader;
+        }
+
+        public void Unload()
+        {
+            On.Terraria.Main.CheckMonoliths -= PrepareSealocketTarget;
+            On.Terraria.Main.DrawInfernoRings -= DrawForcefields;
+        }
+    }
+
+    public class DisableWaterEffectsInFightsHook : IHookEdit
+    {
+        private void DisableWaterEffects(ILContext il)
+        {
+            ILCursor c = new(il);
+
+            c.GotoNext(MoveType.After, i => i.MatchCall<Collision>("WetCollision"));
+            c.EmitDelegate(() =>
+            {
+                if (!InfernumMode.CanUseCustomAIs)
+                    return true;
+
+                bool specialNPC = NPC.AnyNPCs(ModContent.NPCType<AdultEidolonWyrmHead>()) || NPC.AnyNPCs(ModContent.NPCType<AquaticScourgeHead>());
+                if (!specialNPC)
+                    return true;
+
+                return false;
+            });
+            c.Emit(OpCodes.And);
+        }
+
+        public void Load() => IL.Terraria.Player.Update += DisableWaterEffects;
+
+        public void Unload() => IL.Terraria.Player.Update -= DisableWaterEffects;
+    }
+
+    public class MakeSulphSeaWaterEasierToSeeInHook : IHookEdit
+    {
+        internal static int SulphurWaterIndex
+        {
+            get;
+            set;
+        }
+
+        // WHY IS THIS SO LAGGY WHAT THE ACTUAL FUCK???
+        public static bool CanUseHighQualityWater => false;
+
+        private void MakeWaterEasierToSeeIn(ILContext il)
+        {
+            ILCursor c = new(il);
+            c.EmitDelegate(() =>
+            {
+                if (!CanUseHighQualityWater)
+                    SulphuricWaterSafeZoneSystem.NearbySafeTiles.Clear();
+            });
+
+            for (int i = 0; i < 4; i++)
+            {
+                c.GotoNext(MoveType.After, i => i.MatchLdcR4(0.4f));
+                c.Emit(OpCodes.Pop);
+                c.Emit(OpCodes.Ldc_R4, 0.15f);
+            }
+        }
+
+        private void MakeSulphSeaWaterBrighter(On.Terraria.Graphics.Light.TileLightScanner.orig_GetTileLight orig, Terraria.Graphics.Light.TileLightScanner self, int x, int y, out Vector3 outputColor)
+        {
+            orig(self, x, y, out outputColor);
+
+            Tile tile = CalamityUtils.ParanoidTileRetrieval(x, y);
+            if (tile.LiquidAmount <= 0 || tile.HasTile || Main.waterStyle != SulphurWaterIndex)
+                return;
+
+            if (tile.TileType != (ushort)ModContent.TileType<RustyChestTile>())
+            {
+                Vector3 idealColor = Color.LightSeaGreen.ToVector3();
+
+                if (SulphuricWaterSafeZoneSystem.NearbySafeTiles.Count >= 1)
+                {
+                    Color cleanWaterColor = new(10, 109, 193);
+                    Point closestSafeZone = SulphuricWaterSafeZoneSystem.NearbySafeTiles.Keys.OrderBy(t => t.ToVector2().DistanceSQ(new(x, y))).First();
+                    float distanceToClosest = new Vector2(x, y).Distance(closestSafeZone.ToVector2());
+                    float acidicWaterInterpolant = Utils.GetLerpValue(12f, 20.5f, distanceToClosest + (1f - SulphuricWaterSafeZoneSystem.NearbySafeTiles[closestSafeZone]) * 21f, true);
+                    idealColor = Vector3.Lerp(idealColor, cleanWaterColor.ToVector3(), 1f - acidicWaterInterpolant);
+                }
+
+                outputColor = Vector3.Lerp(outputColor, idealColor, 0.8f);
+            }
+        }
+
+        public void Load()
+        {
+            if (Main.netMode != NetmodeID.Server)
+                SulphurWaterIndex = ModContent.Find<ModWaterStyle>("CalamityMod/SulphuricWater").Slot;
+
+            SelectSulphuricWaterColor += MakeWaterEasierToSeeIn;
+            On.Terraria.Graphics.Light.TileLightScanner.GetTileLight += MakeSulphSeaWaterBrighter;
+        }
+
+        public void Unload()
+        {
+            SelectSulphuricWaterColor -= MakeWaterEasierToSeeIn;
+            On.Terraria.Graphics.Light.TileLightScanner.GetTileLight -= MakeSulphSeaWaterBrighter;
+        }
+    }
+
+    public class ChangeRuneOfKosUsageHook : IHookEdit
+    {
+        private void ChangeUsageCondition(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate((Player player) =>
+            {
+                bool correctBiome = player.ZoneSkyHeight || player.ZoneUnderworldHeight || player.ZoneDungeon;
+                bool bossIsNotPresent = !NPC.AnyNPCs(ModContent.NPCType<StormWeaverHead>()) && !NPC.AnyNPCs(ModContent.NPCType<CeaselessVoid>()) && !NPC.AnyNPCs(ModContent.NPCType<Signus>());
+                return correctBiome && (bossIsNotPresent || InfernumMode.CanUseCustomAIs) && !BossRushEvent.BossRushActive;
+            });
+            cursor.Emit(OpCodes.Ret);
+        }
+
+        private void ChangeItemUsage(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate((Player player) =>
+            {
+                if (player.ZoneDungeon)
+                {
+                    // Anger the Ceaseless Void if it's around but not attacking.
+                    if (CalamityGlobalNPC.voidBoss != -1)
+                    {
+                        NPC ceaselessVoid = Main.npc[CalamityGlobalNPC.voidBoss];
+                        if (ceaselessVoid.ai[0] == (int)CeaselessVoidBehaviorOverride.CeaselessVoidAttackType.ChainedUp)
+                        {
+                            SoundEngine.PlaySound(RuneofKos.CVSound, player.Center);
+                            CeaselessVoidBehaviorOverride.SelectNewAttack(ceaselessVoid);
+                            ceaselessVoid.ai[0] = (int)CeaselessVoidBehaviorOverride.CeaselessVoidAttackType.DarkEnergySwirl;
+
+                            PacketManager.SendPacket<SyncNPCAIClientside>(CalamityGlobalNPC.voidBoss);
+                        }
+                    }
+                    else if (!InfernumMode.CanUseCustomAIs || WorldSaveSystem.ForbiddenArchiveCenter.X == 0)
+                    {
+                        SoundEngine.PlaySound(RuneofKos.CVSound, player.Center);
+                        if (Main.netMode != NetmodeID.MultiplayerClient)
+                            CalamityUtils.SpawnBossBetter(player.Center, ModContent.NPCType<CeaselessVoid>(), new ExactPositionBossSpawnContext(), (int)CeaselessVoidBehaviorOverride.CeaselessVoidAttackType.DarkEnergySwirl, 0f, 0f, 1f);
+                        else
+                            NetMessage.SendData(MessageID.SpawnBoss, -1, -1, null, player.whoAmI, ModContent.NPCType<CeaselessVoid>());
+                    }
+                }
+                else if (player.ZoneUnderworldHeight)
+                {
+                    // Anger Signus if he's around but not attacking.
+                    if (CalamityGlobalNPC.signus != -1)
+                    {
+                        NPC signus = Main.npc[CalamityGlobalNPC.signus];
+                        if (signus.ai[1] == (int)SignusBehaviorOverride.SignusAttackType.Patrol)
+                        {
+                            SoundEngine.PlaySound(RuneofKos.SignutSound, player.Center);
+                            SignusBehaviorOverride.SelectNextAttack(signus);
+                            signus.ai[1] = (int)SignusBehaviorOverride.SignusAttackType.KunaiDashes;
+                            signus.Infernum().ExtraAI[9] = 0f;
+
+                            PacketManager.SendPacket<SyncNPCAIClientside>(CalamityGlobalNPC.signus);
+                        }
+                    }
+                    else
+                    {
+                        SoundEngine.PlaySound(RuneofKos.SignutSound, player.Center);
+                        if (Main.netMode != NetmodeID.MultiplayerClient)
+                            NPC.SpawnOnPlayer(player.whoAmI, ModContent.NPCType<Signus>());
+                        else
+                            NetMessage.SendData(MessageID.SpawnBoss, -1, -1, null, player.whoAmI, ModContent.NPCType<Signus>());
+                    }
+                }
+                else if (player.ZoneSkyHeight)
+                {
+                    int weaverIndex = NPC.FindFirstNPC(ModContent.NPCType<StormWeaverHead>());
+                    if (weaverIndex != -1)
+                    {
+                        NPC weaver = Main.npc[weaverIndex];
+                        if (weaver.ai[1] == (int)StormWeaverHeadBehaviorOverride.StormWeaverAttackType.HuntSkyCreatures)
+                        {
+                            SoundEngine.PlaySound(RuneofKos.StormSound, player.Center);
+                            StormWeaverHeadBehaviorOverride.SelectNewAttack(weaver);
+                            weaver.ai[1] = (int)StormWeaverHeadBehaviorOverride.StormWeaverAttackType.IceStorm;
+
+                            PacketManager.SendPacket<SyncNPCAIClientside>(weaverIndex);
+                        }
+                    }
+                    else
+                    {
+                        SoundEngine.PlaySound(RuneofKos.StormSound, player.Center);
+                        if (Main.netMode != NetmodeID.MultiplayerClient)
+                            NPC.SpawnOnPlayer(player.whoAmI, ModContent.NPCType<StormWeaverHead>());
+                        else
+                            NetMessage.SendData(MessageID.SpawnBoss, -1, -1, null, player.whoAmI, ModContent.NPCType<StormWeaverHead>());
+                    }
+                }
+            });
+            cursor.Emit(OpCodes.Ldc_I4_1);
+            cursor.Emit(OpCodes.Ret);
+        }
+
+        public void Load()
+        {
+            RuneOfKosCanUseItem += ChangeUsageCondition;
+            RuneOfKosUseItem += ChangeItemUsage;
+        }
+
+        public void Unload()
+        {
+            RuneOfKosCanUseItem -= ChangeUsageCondition;
+            RuneOfKosUseItem -= ChangeItemUsage;
+        }
+    }
+
+    public class StoreForbiddenArchivePositionHook : IHookEdit
+    {
+        private void StorePosition(ILContext il)
+        {
+            ILCursor cursor = new(il);
+
+            int xLocalIndex = 0;
+            int yLocalIndex = 0;
+            ConstructorInfo pointConstructor = typeof(Point).GetConstructor(new Type[] { typeof(int), typeof(int) });
+            MethodInfo placementMethod = typeof(SchematicManager).GetMethods().First(m => m.Name == "PlaceSchematic");
+
+            // Find the first instance of the schematic placement call. There are three, but they all take the same information so it doesn't matter which one is used as a reference.
+            cursor.GotoNext(i => i.MatchLdstr(SchematicManager.BlueArchiveKey));
+
+            // Find the part of the method call where the placement Point type is made, and read off the IL indices for the X and Y coordinates with intent to store them elsewhere.
+            cursor.GotoNext(i => i.MatchNewobj(pointConstructor));
+            cursor.GotoPrev(i => i.MatchLdloc(out yLocalIndex));
+            cursor.GotoPrev(i => i.MatchLdloc(out xLocalIndex));
+
+            // Go back to the beginning of the method and store the placement position so that it isn't immediately discarded after world generation- Ceaseless Void's natural spawning needs it.
+            // This needs to be done at each of hte three schematic placement variants since sometimes post-compilation optimizations can scatter about return instructions.
+            cursor.Index = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                cursor.GotoNext(i => i.MatchLdftn(out _));
+                cursor.GotoNext(MoveType.After, i => i.MatchCallOrCallvirt(out _));
+                cursor.Emit(OpCodes.Ldloc, xLocalIndex);
+                cursor.Emit(OpCodes.Ldloc, yLocalIndex);
+                cursor.EmitDelegate((int x, int y) =>
+                {
+                    WorldSaveSystem.ForbiddenArchiveCenter = new(x, y);
+                });
+            }
+        }
+
+        public void Load() => PlaceForbiddenArchive += StorePosition;
+
+        public void Unload() => PlaceForbiddenArchive -= StorePosition;
+    }
+
+    public class ChangeProfanedShardUsageHook : IHookEdit
+    {
+        public void Load() => ProfanedShardUseItem += SummonGuardianSpawnerManager;
+
+        public void Unload() => ProfanedShardUseItem -= SummonGuardianSpawnerManager;
+
+        private void SummonGuardianSpawnerManager(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate((Player player) =>
+            {
+                // Normal spawning stuff
+                if (!WorldSaveSystem.InfernumMode)
+                {
+                    // This runs like 6 times without this check for some fucking reason.
+                    if (!NPC.AnyNPCs(ModContent.NPCType<ProfanedGuardianCommander>()))
+                    {
+                        SoundEngine.PlaySound(in SoundID.Roar, player.Center);
+                        if (Main.netMode != NetmodeID.MultiplayerClient)
+                            NPC.SpawnOnPlayer(player.whoAmI, ModContent.NPCType<ProfanedGuardianCommander>());
+                        else
+                            NetMessage.SendData(MessageID.SpawnBoss, -1, -1, null, player.whoAmI, ModContent.NPCType<ProfanedGuardianCommander>());
+                    }
+                }
+                else if (Main.myPlayer == player.whoAmI && !Main.projectile.Any(p => p.active && p.type == ModContent.ProjectileType<GuardiansSummonerProjectile>()))
+                    Utilities.NewProjectileBetter(player.Center, Vector2.Zero, ModContent.ProjectileType<GuardiansSummonerProjectile>(), 0, 0f);
+            });
+            cursor.Emit(OpCodes.Ldc_I4_1);
+            cursor.Emit(OpCodes.Ret);
+        }
+    }
+
+    public class StopCultistShieldDrawingHook : IHookEdit
+    {
+        public void Load() => CalGlobalNPCPostDraw += StopShieldDrawing;
+        public void Unload() => CalGlobalNPCPostDraw -= StopShieldDrawing;
+
+        private void StopShieldDrawing(ILContext il)
+        {
+            ILCursor cursor = new(il);
+
+            // Make the type checks check a negative number, which they will never match.
+            if (cursor.TryGotoNext(MoveType.After, c => c.MatchLdcI4(439)))
+            {
+                cursor.Emit(OpCodes.Pop);
+                cursor.Emit(OpCodes.Ldc_I4, -1);
+            }
+
+            if (cursor.TryGotoNext(MoveType.After, c => c.MatchLdcI4(440)))
+            {
+                cursor.Emit(OpCodes.Pop);
+                cursor.Emit(OpCodes.Ldc_I4, -1);
+            }
+        }
+    }
+
+    public class MakeAquaticScourgeSpitOutDropsHook : IHookEdit
+    {
+        private void ThrowItemsOut(On.Terraria.GameContent.ItemDropRules.CommonCode.orig_ModifyItemDropFromNPC orig, NPC npc, int itemIndex)
+        {
+            orig(npc, itemIndex);
+            if (npc.type == ModContent.NPCType<AquaticScourgeHead>() && InfernumMode.CanUseCustomAIs)
+            {
+                Item item = Main.item[itemIndex];
+                item.velocity = npc.velocity.SafeNormalize(Vector2.Zero).RotatedByRandom(0.74f) * Main.rand.NextFloat(9f, 25f);
+
+                NetMessage.SendData(MessageID.SyncItem, -1, -1, null, itemIndex, 1f, 0f, 0f, 0, 0, 0);
+            }
+        }
+
+        public void Load()
+        {
+            On.Terraria.GameContent.ItemDropRules.CommonCode.ModifyItemDropFromNPC += ThrowItemsOut;
+        }
+
+        public void Unload()
+        {
+            On.Terraria.GameContent.ItemDropRules.CommonCode.ModifyItemDropFromNPC -= ThrowItemsOut;
+        }
     }
 }

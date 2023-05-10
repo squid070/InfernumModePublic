@@ -1,3 +1,4 @@
+using CalamityMod;
 using InfernumMode.Common.UtilityMethods;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
@@ -44,7 +45,11 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.DarkMage
 
             // Despawn if spawned in an incorrect context.
             if (Main.netMode != NetmodeID.MultiplayerClient && !wasSpawnedInValidContext)
+            {
+                npc.Calamity().ShouldCloseHPBar = true;
                 npc.active = false;
+                return false;
+            }
             else
             {
                 // Clear pickoff enemies.
@@ -216,7 +221,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.DarkMage
             npc.spriteDirection = (target.Center.X > npc.Center.X).ToDirectionInt();
 
             if (attackTimer < castTime)
-                currentFrame = MathHelper.Lerp(29f, 27f, (float)Math.Sin(attackTimer / castTime * MathHelper.TwoPi) * 0.5f + 0.5f);
+                currentFrame = MathHelper.Lerp(29f, 27f, MathF.Sin(attackTimer / castTime * MathHelper.TwoPi) * 0.5f + 0.5f);
             else if (attackTimer < castTime + summonTime)
                 currentFrame = MathHelper.Lerp(30f, 40f, (attackTimer - castTime) / summonTime);
 
@@ -257,7 +262,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.DarkMage
             npc.spriteDirection = (target.Center.X > npc.Center.X).ToDirectionInt();
 
             if (attackTimer < castTime)
-                currentFrame = MathHelper.Lerp(29f, 27f, (float)Math.Sin(attackTimer / castTime * MathHelper.TwoPi) * 0.5f + 0.5f);
+                currentFrame = MathHelper.Lerp(29f, 27f, MathF.Sin(attackTimer / castTime * MathHelper.TwoPi) * 0.5f + 0.5f);
             else if (attackTimer < castTime + shootTime)
                 currentFrame = MathHelper.Lerp(30f, 40f, (attackTimer - castTime) / shootTime);
             else
@@ -308,7 +313,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.DarkMage
                 SoundEngine.PlaySound(SoundID.DD2_DarkMageCastHeal, npc.Center);
 
             if (attackTimer < castTime)
-                currentFrame = MathHelper.Lerp(29f, 27f, (float)Math.Sin(attackTimer / castTime * MathHelper.TwoPi) * 0.5f + 0.5f);
+                currentFrame = MathHelper.Lerp(29f, 27f, MathF.Sin(attackTimer / castTime * MathHelper.TwoPi) * 0.5f + 0.5f);
             else if (attackTimer < castTime + shootTime)
                 currentFrame = MathHelper.Lerp(30f, 40f, (attackTimer - castTime) / (shootTime / 3f) % 1f);
             else

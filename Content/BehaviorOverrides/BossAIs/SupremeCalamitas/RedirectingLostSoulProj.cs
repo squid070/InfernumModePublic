@@ -28,6 +28,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.penetrate = -1;
             Projectile.Opacity = 0f;
             Projectile.timeLeft = 230;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -47,7 +48,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             }
             if (canRotate)
             {
-                float offsetInterpolant = (float)Math.Cos(Projectile.whoAmI % 6f / 6f + Projectile.position.X / 380f + Projectile.position.Y / 160f);
+                float offsetInterpolant = MathF.Cos(Projectile.whoAmI % 6f / 6f + Projectile.position.X / 380f + Projectile.position.Y / 160f);
                 Projectile.velocity = Projectile.velocity.RotatedBy(MathHelper.Pi * offsetInterpolant / 120f) * 0.98f;
             }
 
@@ -79,7 +80,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             float telegraphInterpolant = Utils.GetLerpValue(300f, 275f, Projectile.timeLeft, true);
             if (telegraphInterpolant < 1f)
             {
-                Color telegraphColor = Color.Red * (float)Math.Sqrt(telegraphInterpolant);
+                Color telegraphColor = Color.Red * MathF.Sqrt(telegraphInterpolant);
                 float telegraphWidth = CalamityUtils.Convert01To010(telegraphInterpolant) * 3f;
                 Main.spriteBatch.DrawLineBetter(Projectile.Center, Projectile.Center + Projectile.velocity.SafeNormalize(Vector2.UnitY) * 3600f, telegraphColor, telegraphWidth);
             }

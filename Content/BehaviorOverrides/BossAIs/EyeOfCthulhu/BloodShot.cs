@@ -21,6 +21,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
             Projectile.hostile = true;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 300;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -40,7 +41,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
             if (Time > 55f)
             {
                 Player target = Main.player[Player.FindClosest(Projectile.Center, 1, 1)];
-                float flySpeed = 8.4f;
+                float flySpeed = Projectile.Distance(target.Center) * 0.012f + 8.4f;
                 if (BossRushEvent.BossRushActive)
                     flySpeed *= 2.15f;
                 if (!Projectile.WithinRange(target.Center, 50f))

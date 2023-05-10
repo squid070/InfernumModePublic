@@ -2,7 +2,8 @@ using CalamityMod;
 using CalamityMod.NPCs.ExoMechs.Ares;
 using CalamityMod.Projectiles.BaseProjectiles;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using Terraria;
 using Terraria.Graphics.Shaders;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
@@ -57,7 +59,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             Projectile.tileCollide = false;
             Projectile.timeLeft = 1600;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -142,13 +144,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             Color color = Main.hslToRgb((completionRatio * 2f + Main.GlobalTimeWrappedHourly * 0.4f + Projectile.identity * 0.27f) % 1f, 1f, 0.6f);
             if (SuperLaser)
             {
-                Color laserFireColor = Color.Lerp(Color.Orange, Color.Red, (float)Math.Sin(Main.GlobalTimeWrappedHourly * 1.7f + completionRatio * 2.3f) * 0.5f + 0.5f);
+                Color laserFireColor = Color.Lerp(Color.Orange, Color.Red, MathF.Sin(Main.GlobalTimeWrappedHourly * 1.7f + completionRatio * 2.3f) * 0.5f + 0.5f);
                 color = Color.Lerp(color, laserFireColor, 0.8f);
             }
 
-            color = Color.Lerp(color, Color.White, ((float)Math.Sin(MathHelper.TwoPi * completionRatio - Main.GlobalTimeWrappedHourly * 1.37f) * 0.5f + 0.5f) * 0.15f + 0.15f);
-            color.A = 5; // 50
-            return color * 1.32f;
+            color.A = 5;
+            return color * 2f;
         }
 
         public override bool PreDraw(ref Color lightColor) => false;
@@ -168,7 +169,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             {
                 for (float offset = 0f; offset < 6f; offset += 0.75f)
                 {
-                    BeamDrawer.DrawPixelated(points, -Main.screenPosition, 28);
+                    BeamDrawer.DrawPixelated(points, -Main.screenPosition, 11);
                     BeamDrawer.DrawPixelated(points, (Main.GlobalTimeWrappedHourly * 1.8f).ToRotationVector2() * offset - Main.screenPosition, 9);
                     BeamDrawer.DrawPixelated(points, -(Main.GlobalTimeWrappedHourly * 1.8f).ToRotationVector2() * offset - Main.screenPosition, 9);
                 }

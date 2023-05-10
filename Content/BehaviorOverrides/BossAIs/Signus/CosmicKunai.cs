@@ -1,5 +1,6 @@
 using CalamityMod;
 using CalamityMod.Events;
+using InfernumMode.Assets.Sounds;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -26,7 +27,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Signus
             Projectile.ignoreWater = true;
             Projectile.timeLeft = 240;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -48,7 +50,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Signus
                 Projectile.velocity = Projectile.SafeDirectionTo(closestPlayer.Center) * 18f;
                 if (BossRushEvent.BossRushActive)
                     Projectile.velocity *= 1.75f;
-                SoundEngine.PlaySound(SoundID.Item73, Projectile.Center);
+                SoundEngine.PlaySound(InfernumSoundRegistry.SignusWeaponFireSound with { Volume = 0.45f }, Projectile.Center);
             }
             if (Time > 26f && Projectile.velocity.Length() < (BossRushEvent.BossRushActive ? 50f : 26f))
                 Projectile.velocity *= BossRushEvent.BossRushActive ? 1.03f : 1.021f;
@@ -68,13 +70,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Signus
             Vector2 drawPosition = Projectile.Center - Main.screenPosition;
 
             // Draw afterimages.
-            for (int i = 0; i < 5; i++)
+            if (Projectile.velocity.Length() > 2.5f)
             {
-                Vector2 afterimageOffset = Projectile.velocity.SafeNormalize(Vector2.Zero) * i * -20f;
-                Color afterimageColor = new Color(198, 118, 204, 0) * (1f - i / 5f) * 0.7f;
-                Main.spriteBatch.Draw(texture, drawPosition + afterimageOffset, null, Projectile.GetAlpha(afterimageColor), Projectile.rotation, texture.Size() * 0.5f, Projectile.scale * 0.7f, SpriteEffects.None, 0f);
+                for (int i = 0; i < 5; i++)
+                {
+                    Vector2 afterimageOffset = Projectile.velocity.SafeNormalize(Vector2.Zero) * i * -20f;
+                    Color afterimageColor = new Color(198, 118, 204, 0) * (1f - i / 5f) * 0.7f;
+                    Main.spriteBatch.Draw(texture, drawPosition + afterimageOffset, null, Projectile.GetAlpha(afterimageColor), Projectile.rotation, texture.Size() * 0.5f, Projectile.scale * 0.7f, SpriteEffects.None, 0f);
+                }
             }
-
             // Draw backglow effects.
             for (int i = 0; i < 12; i++)
             {

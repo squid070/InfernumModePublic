@@ -32,10 +32,8 @@ using CalamityMod.NPCs.StormWeaver;
 using CalamityMod.NPCs.SupremeCalamitas;
 using CalamityMod.NPCs.Yharon;
 using CalamityMod.Projectiles.Typeless;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.BoC;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.CalamitasClone;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
@@ -45,9 +43,8 @@ using InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Signus;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Twins;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -120,8 +117,7 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 }, specialSpawnCountdown: 300, permittedNPCs: new int[] { ModContent.NPCType<CrabShroom>() }),
 
                 new Boss(ModContent.NPCType<AquaticScourgeHead>(), permittedNPCs: new int[] { ModContent.NPCType<AquaticScourgeBody>(), ModContent.NPCType<AquaticScourgeBodyAlt>(),
-                    ModContent.NPCType<AquaticScourgeTail>(), ModContent.NPCType<AquaticParasite2>(), ModContent.NPCType<AquaticSeekerHead2>(),
-                    ModContent.NPCType<AquaticSeekerBody2>(), ModContent.NPCType<AquaticSeekerTail2>() }),
+                    ModContent.NPCType<AquaticScourgeTail>() }),
 
                 new Boss(ModContent.NPCType<DesertScourgeHead>(), spawnContext: type =>
                 {
@@ -129,11 +125,9 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 }, permittedNPCs: new int[] { ModContent.NPCType<DesertScourgeBody>(), ModContent.NPCType<DesertScourgeTail>() }),
 
                 new Boss(ModContent.NPCType<ProfanedGuardianCommander>(), TimeChangeContext.Day,
-                    permittedNPCs: new int[] { ModContent.NPCType<ProfanedGuardianDefender>(), ModContent.NPCType<ProfanedGuardianHealer>(), ModContent.NPCType<EtherealHand>() }),
+                    permittedNPCs: new int[] { ModContent.NPCType<ProfanedGuardianDefender>(), ModContent.NPCType<ProfanedGuardianHealer>(), ModContent.NPCType<EtherealHand>(), ModContent.NPCType<HealerShieldCrystal>() }),
                 
                 // Tier 2.
-                new Boss(ModContent.NPCType<CeaselessVoid>(), permittedNPCs: ModContent.NPCType<DarkEnergy>()),
-
                 new Boss(ModContent.NPCType<StormWeaverHead>(), TimeChangeContext.Day, permittedNPCs: new int[] { ModContent.NPCType<StormWeaverBody>(), ModContent.NPCType<StormWeaverTail>(), }),
 
                 new Boss(ModContent.NPCType<BrimstoneElemental>(), permittedNPCs: ModContent.NPCType<Brimling>()),
@@ -170,12 +164,12 @@ namespace InfernumMode.Core.GlobalInstances.Systems
 
                 new Boss(NPCID.Deerclops, permittedNPCs: new int[] { ModContent.NPCType<LightSnuffingHand>() }),
 
-                new Boss(ModContent.NPCType<Signus>(), specialSpawnCountdown: 360, permittedNPCs: new int[] { ModContent.NPCType<UnworldlyEntity>() }),
+                new Boss(ModContent.NPCType<Signus>(), specialSpawnCountdown: 360),
 
                 new Boss(ModContent.NPCType<Bumblefuck>(), TimeChangeContext.Day, permittedNPCs: new int[] { ModContent.NPCType<Bumblefuck2>(), NPCID.Spazmatism, NPCID.Retinazer }),
 
                 new Boss(ModContent.NPCType<SlimeGodCore>(), permittedNPCs: new int[] { ModContent.NPCType<SlimeGodCore>(), ModContent.NPCType<EbonianSlimeGod>(), ModContent.NPCType<CrimulanSlimeGod>(), ModContent.NPCType<SplitCrimulanSlimeGod>(),
-                    ModContent.NPCType<SplitEbonianSlimeGod>() }),
+                    ModContent.NPCType<SplitEbonianSlimeGod>(), ModContent.NPCType<SplitBigSlime>() }),
                 
                 // Tier 3.
                 new Boss(NPCID.SkeletronHead, TimeChangeContext.Night, type =>
@@ -244,7 +238,7 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 {
                     NPC.SpawnOnPlayer(ClosestPlayerToWorldCenter, NPCID.Spazmatism);
                     NPC.SpawnOnPlayer(ClosestPlayerToWorldCenter, NPCID.Retinazer);
-                }, permittedNPCs: new int[] { NPCID.Retinazer, ModContent.NPCType<EnergyOrb>(), ModContent.NPCType<CursedOrb>() }),
+                }, permittedNPCs: new int[] { NPCID.Retinazer }),
 
                 new Boss(ModContent.NPCType<Polterghast>(), TimeChangeContext.Day, permittedNPCs: new int[]
                     { ModContent.NPCType<PhantomFuckYou>(), ModContent.NPCType<PolterghastHook>(), ModContent.NPCType<PolterPhantom>(), ModContent.NPCType<PolterghastLeg>() }),
@@ -255,7 +249,7 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 }, permittedNPCs: new int[] { NPCID.MoonLordLeechBlob, NPCID.MoonLordHand, NPCID.MoonLordHead, NPCID.MoonLordFreeEye }),
 
                 new Boss(ModContent.NPCType<CalamitasClone>(), TimeChangeContext.Night, specialSpawnCountdown: 420, dimnessFactor: 0.6f, permittedNPCs: new int[] { ModContent.NPCType<Cataclysm>(), ModContent.NPCType<Catastrophe>(),
-                         ModContent.NPCType<SoulSeeker>(), ModContent.NPCType<SoulSeeker2>() }),
+                         ModContent.NPCType<SoulSeeker>() }),
                 
                 // Tier 5.
                 new Boss(ModContent.NPCType<DevourerofGodsHead>(), TimeChangeContext.Day, type =>
@@ -295,7 +289,7 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                     Main.npc[apollo].Infernum().ExtraAI[ExoMechManagement.SecondaryMechNPCTypeIndex] = ModContent.NPCType<ThanatosHead>();
 
                 }, permittedNPCs: new int[] { ModContent.NPCType<Artemis>(), ModContent.NPCType<Apollo>(), ModContent.NPCType<AresBody>(),
-                    ModContent.NPCType<AresLaserCannon>(), ModContent.NPCType<AresTeslaCannon>(), ModContent.NPCType<AresPlasmaFlamethrower>(), ModContent.NPCType<AresGaussNuke>(), ModContent.NPCType<AresPulseCannon>(), ModContent.NPCType<PhotonRipperNPC>(),
+                    ModContent.NPCType<AresLaserCannon>(), ModContent.NPCType<AresTeslaCannon>(), ModContent.NPCType<AresPlasmaFlamethrower>(), ModContent.NPCType<AresGaussNuke>(), ModContent.NPCType<AresPulseCannon>(), ModContent.NPCType<AresEnergyKatana>(),
                     ModContent.NPCType<ThanatosHead>(), ModContent.NPCType<ThanatosBody1>(), ModContent.NPCType<ThanatosBody2>(), ModContent.NPCType<ThanatosTail>() }),
 
                 new Boss(ModContent.NPCType<SupremeCalamitas>(), spawnContext: type =>

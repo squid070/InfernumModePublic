@@ -30,13 +30,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 60;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
             Projectile.scale = Utils.GetLerpValue(0f, 25f, Time, true);
-            Projectile.Opacity = (float)Math.Sqrt(Projectile.scale) * Utils.GetLerpValue(0f, 18f, Projectile.timeLeft, true);
+            Projectile.Opacity = MathF.Sqrt(Projectile.scale) * Utils.GetLerpValue(0f, 18f, Projectile.timeLeft, true);
 
             // Initialize rotation.
             if (Projectile.rotation == 0f)
@@ -57,7 +57,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
         public override bool PreDraw(ref Color lightColor)
         {
             lightColor.R = (byte)(255 * Projectile.Opacity);
-            Utilities.DrawAfterimagesCentered(Projectile, lightColor, ProjectileID.Sets.TrailingMode[Projectile.type], 1);
+            Utilities.DrawProjectileWithBackglowTemp(Projectile, Color.White with { A = 0 }, lightColor, 4f);
             return false;
         }
 
@@ -71,23 +71,22 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
             if (Main.netMode != NetmodeID.MultiplayerClient)
             {
                 int petalCount = 2;
-                int petalDamage = 135;
                 float petalShootSpeed = 10f;
                 if (BossRushEvent.BossRushActive)
                 {
                     petalCount = 3;
                     petalShootSpeed = 14f;
                 }
-
                 if (SpawnedWhileAngry)
                 {
                     petalShootSpeed *= 1.6f;
                     petalCount = 5;
                 }
+
                 for (int i = 0; i < petalCount; i++)
                 {
                     Vector2 shootVelocity = Projectile.SafeDirectionTo(target.Center).RotatedBy(MathHelper.Lerp(-0.68f, 0.68f, i / (float)petalCount)) * petalShootSpeed;
-                    Utilities.NewProjectileBetter(Projectile.Center, shootVelocity, ModContent.ProjectileType<BrimstonePetal>(), petalDamage, 0f);
+                    Utilities.NewProjectileBetter(Projectile.Center, shootVelocity, ModContent.ProjectileType<BrimstonePetal>(), BrimstoneElementalBehaviorOverride.BrimstonePetalDamage, 0f);
                 }
             }
         }

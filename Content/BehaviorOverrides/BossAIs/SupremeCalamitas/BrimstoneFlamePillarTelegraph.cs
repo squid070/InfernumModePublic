@@ -1,9 +1,9 @@
-using Microsoft.Xna.Framework;
-using Terraria;
-using Terraria.ModLoader;
-using System.Collections.Generic;
-using Terraria.ID;
 using InfernumMode.Core.GlobalInstances.Systems;
+using Microsoft.Xna.Framework;
+using System.Collections.Generic;
+using Terraria;
+using Terraria.ID;
+using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 {
@@ -24,6 +24,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.hide = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -40,7 +41,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                     {
                         pillar.BottomLeft = Projectile.Center;
                     });
-                    Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<BrimstoneFlamePillar>(), 900, 0f);
+                    Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<BrimstoneFlamePillar>(), SupremeCalamitasBehaviorOverride.FlamePillarDamage, 0f);
                 }
                 Projectile.Kill();
             }

@@ -7,7 +7,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace InfernumMode.GlobalInstances.GlobalItems
+namespace InfernumMode.Core.GlobalInstances.GlobalItems
 {
     public class BagLootYieldIncreaseGlobalItem : GlobalItem
     {
@@ -21,9 +21,12 @@ namespace InfernumMode.GlobalInstances.GlobalItems
                 infLCR.Add(itemID, 1, quantity, quantity + 1);
             }
 
-            // Starter bags provide the Blasted Tophat.
+            // Starter bags provide the Soul-Driven Headphones.
             if (item.type == ModContent.ItemType<StarterBag>())
-                loot.Add(ModContent.ItemType<BlastedTophat>());
+            {
+                if (InfernumMode.MusicModIsActive && InfernumMode.InfernumMusicMod.TryFind("SoulDrivenHeadphones", out ModItem headphonesItem))
+                    loot.Add(headphonesItem.Type);
+            }
 
             // The Eater of Worlds and Brain of Cthulhu both drop 125 extra ore and 50 extra scales/tissue samples.
             if (item.type == ItemID.EaterOfWorldsBossBag)
@@ -51,7 +54,7 @@ namespace InfernumMode.GlobalInstances.GlobalItems
             if (item.type == ItemID.SkeletronPrimeBossBag)
                 addInfernumExclusiveItem(ItemID.SoulofFright, 30);
 
-            // Calamitas Clone drops 25 extra ashes of calamity.
+            // Calamitas' Shadow drops 25 extra ashes of calamity.
             if (item.type == ModContent.ItemType<CalamitasCloneBag>())
                 addInfernumExclusiveItem(ModContent.ItemType<AshesofCalamity>(), 25);
 

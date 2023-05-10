@@ -1,7 +1,8 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -9,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
@@ -39,7 +41,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             Projectile.timeLeft = 9000;
             Projectile.alpha = 255;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -68,7 +70,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             // Fade in.
             Projectile.alpha = Utils.Clamp(Projectile.alpha - 25, 0, 255);
 
-            Projectile.scale = (float)Math.Sin(MathHelper.Pi * Time / Lifetime) * 4f;
+            Projectile.scale = MathF.Sin(MathHelper.Pi * Time / Lifetime) * 4f;
             if (Projectile.scale > 1f)
                 Projectile.scale = 1f;
             if (Time >= Lifetime)
@@ -97,7 +99,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
         public Color ColorFunction(float completionRatio)
         {
-            Color color = Color.Lerp(Color.Turquoise, Color.Cyan, (float)Math.Pow(completionRatio, 2D));
+            Color color = Color.Lerp(Color.Turquoise, Color.Cyan, MathF.Pow(completionRatio, 2f));
             return color * Projectile.Opacity * 1.1f;
         }
 

@@ -4,20 +4,22 @@ using CalamityMod.NPCs.ExoMechs.Ares;
 using CalamityMod.NPCs.ExoMechs.Artemis;
 using CalamityMod.NPCs.ExoMechs.Thanatos;
 using CalamityMod.Projectiles.Boss;
+using InfernumMode.Common.Graphics.AttemptRecording;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApollo;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos;
+using InfernumMode.Content.Credits;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
-using DraedonNPC = CalamityMod.NPCs.ExoMechs.Draedon;
+using static InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApollo.ApolloBehaviorOverride;
 using AresPlasmaFireballInfernum = InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares.AresPlasmaFireball;
 using AresTeslaOrbInfernum = InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares.AresTeslaOrb;
 using ArtemisLaserInfernum = InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApollo.ArtemisLaser;
-using static InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApollo.ApolloBehaviorOverride;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApollo;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos;
+using DraedonNPC = CalamityMod.NPCs.ExoMechs.Draedon;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
 {
@@ -33,6 +35,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
         public const int SecondaryMechNPCTypeIndex = 24;
         public const int StartingFinalPhaseAnimationHPIndex = 27;
         public const int InitialMechNPCTypeIndex = 28;
+        public const int CurrentHueIndex = 29;
+        public const int PreviousHueIndex = 30;
+        public const int HueTimerIndex = 31;
 
         public const int Thanatos_AttackDelayIndex = 13;
         public const int Thanatos_FinalPhaseAttackCounter = 14;
@@ -42,6 +47,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
         public const int Ares_BackArmsAreSwappedIndex = 15;
         public const int Ares_LineTelegraphInterpolantIndex = 17;
         public const int Ares_LineTelegraphRotationIndex = 18;
+        public const int Ares_PreviousSuperAttackIndex = 32;
+        public const int Ares_BlenderSoundTimerIndex = 33;
+        public const int Ares_BlenderSoundIsLoopingIndex = 34;
 
         public const int Twins_ComplementMechEnrageTimerIndex = 26;
         public const int Twins_SideSwitchDelayIndex = 18;
@@ -287,7 +295,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
                 ModContent.ProjectileType<ExolaserBomb>(),
                 ModContent.ProjectileType<ExolaserSpark>(),
                 ModContent.ProjectileType<LightOverloadRay>(),
-                ModContent.ProjectileType<PhotonRipperCrystal>(),
                 ModContent.ProjectileType<PlasmaGas>(),
                 ModContent.ProjectileType<RefractionRotor>(),
                 ModContent.ProjectileType<SmallPlasmaSpark>(),
@@ -315,7 +322,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
             Vector2 mechSpawnPosition = Main.player[npc.target].Center - Vector2.UnitY * 1500f;
             int complementMechIndex = NPC.NewNPC(npc.GetSource_FromAI(), (int)mechSpawnPosition.X, (int)mechSpawnPosition.Y, complementMechType, 1);
             NPC complementMech = Main.npc[complementMechIndex];
-            
+
             // Tell the newly summoned mech that it is not the initial mech and that it cannot summon more mechs on its own.
             complementMech.Infernum().ExtraAI[HasSummonedComplementMechIndex] = 1f;
             complementMech.Infernum().ExtraAI[WasNotInitialSummonIndex] = 1f;
@@ -333,6 +340,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
         public static void SummonFinalMech(NPC npc)
         {
             MakeDraedonSayThings(3);
+
+            // Start recording.
+            CreditManager.StartRecordingFootageForCredits(ScreenCapturer.RecordingBoss.Draedon);
 
             // Don't summon NPCs clientside.
             if (Main.netMode == NetmodeID.MultiplayerClient)

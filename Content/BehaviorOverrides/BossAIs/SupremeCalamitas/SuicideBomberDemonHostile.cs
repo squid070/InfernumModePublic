@@ -1,6 +1,7 @@
 using CalamityMod;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -51,6 +52,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.hostile = true;
             Projectile.Opacity = 0f;
             Projectile.timeLeft = AttackDuration + 45;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

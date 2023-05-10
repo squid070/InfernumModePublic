@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
@@ -43,13 +44,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             Projectile.usesLocalNPCImmunity = true;
             Projectile.localNPCHitCooldown = 10;
             Projectile.scale = 0.001f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
             if (Time == 1f)
             {
-                Projectile.scale = Main.rand.NextFloat(0.8f, 1.5f);
+                Projectile.scale = Main.rand.NextFloat(0.6f, 0.9f);
                 Projectile.ExpandHitboxBy((int)(72 * Projectile.scale));
                 ColorSpectrumHue = Main.rand.NextFloat(0f, 0.9999f);
                 Projectile.netUpdate = true;

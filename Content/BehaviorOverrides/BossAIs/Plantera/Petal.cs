@@ -1,12 +1,19 @@
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Plantera
 {
     public class Petal : ModProjectile
     {
-        public override void SetStaticDefaults() => DisplayName.SetDefault("Petal");
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.SeedPlantera}";
+
+        public override void SetStaticDefaults()
+        {
+            DisplayName.SetDefault("Petal");
+            Main.projFrames[Type] = 2;
+        }
 
         public override void SetDefaults()
         {
@@ -15,6 +22,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Plantera
             Projectile.tileCollide = false;
             Projectile.timeLeft = 300;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

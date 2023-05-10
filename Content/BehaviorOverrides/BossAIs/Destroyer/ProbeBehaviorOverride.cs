@@ -1,8 +1,13 @@
 using CalamityMod.Events;
+using InfernumMode.Assets.Sounds;
+using InfernumMode.Common.Graphics;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
@@ -10,6 +15,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
     public class ProbeBehaviorOverride : NPCBehaviorOverride
     {
         public override int NPCOverrideType => NPCID.Probe;
+
+        public static int ReelBackTime => BossRushEvent.BossRushActive ? 30 : 60;
 
         public override bool PreAI(NPC npc)
         {
@@ -58,11 +65,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
                 npc.velocity *= 0.975f;
                 attackTimer++;
 
-                int reelBackTime = BossRushEvent.BossRushActive ? 30 : 60;
-                if (attackTimer >= reelBackTime)
+                if (attackTimer >= ReelBackTime)
                 {
                     npc.velocity = npc.SafeDirectionTo(target.Center) * hoverSpeed;
-
+                    npc.oldPos = new Vector2[npc.oldPos.Length];
                     npc.ai[0] = 2f;
                     npc.netUpdate = true;
                 }
@@ -73,25 +79,104 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
             if (npc.ai[0] == 2f)
             {
                 npc.knockBackResist = 0f;
-                if (Collision.SolidCollision(npc.position, npc.width, npc.height) && !Main.dedServ)
-                {
-                    SoundEngine.PlaySound(SoundID.DD2_KoboldExplosion, npc.Center);
-                    for (int i = 0; i < 36; i++)
-                    {
-                        Dust energy = Dust.NewDustDirect(npc.position, npc.width, npc.height, 182);
-                        energy.velocity = Main.rand.NextVector2Unit() * Main.rand.NextFloat(3f, 7f);
-                        energy.noGravity = true;
-                    }
+                if (Collision.SolidCollision(npc.position, npc.width, npc.height))
+                    BlowUpEffects(npc);
 
-                    npc.active = false;
-                    npc.netUpdate = true;
-                }
                 npc.rotation = npc.velocity.ToRotation();
                 npc.damage = 95;
             }
 
             npc.rotation += MathHelper.Pi;
             generalTimer++;
+            return false;
+        }
+
+        public static void BlowUpEffects(NPC npc)
+        {
+            SoundEngine.PlaySound(InfernumSoundRegistry.DestroyerBombExplodeSound, npc.Center);
+            for (int i = 0; i < 36; i++)
+            {
+                Dust energy = Dust.NewDustDirect(npc.position, npc.width, npc.height, DustID.TheDestroyer);
+                energy.velocity = Main.rand.NextVector2Unit() * Main.rand.NextFloat(3f, 7f);
+                energy.noGravity = true;
+            }
+
+            npc.active = false;
+            npc.netUpdate = true;
+        }
+
+        public static void KillAllProbes()
+        {
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                NPC npc = Main.npc[i];
+                if (npc.active && npc.type == NPCID.Probe)
+                    BlowUpEffects(npc);
+            }
+        }
+
+        public override bool PreDraw(NPC npc, SpriteBatch spriteBatch, Color lightColor)
+        {
+            // Allow afterimages.
+            NPCID.Sets.TrailingMode[npc.type] = 1;
+            NPCID.Sets.TrailCacheLength[npc.type] = 6;
+
+            Texture2D texture = TextureAssets.Npc[npc.type].Value;
+
+            float telegraphInterpolant = 0f;
+            Vector2 drawPosition = npc.Center - Main.screenPosition;
+            Vector2 origin = texture.Size() * 0.5f;
+            SpriteEffects direction = npc.spriteDirection == -1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+            if (npc.ai[0] == 1f)
+            {
+                float reelBackInterpolant = Utils.GetLerpValue(0f, ReelBackTime, npc.ai[1], true);
+                telegraphInterpolant = Utils.GetLerpValue(0f, 0.3f, reelBackInterpolant, true) * Utils.GetLerpValue(1f, 0.67f, reelBackInterpolant, true);
+            }
+
+            // Draw a backglow and laser telegraph before doing the kamikaze charge.
+            if (telegraphInterpolant > 0f)
+            {
+                // Draw the bloom laser line telegraph.
+                float laserRotation = -npc.rotation;
+                if (npc.spriteDirection == -1)
+                    laserRotation += MathHelper.Pi;
+
+                BloomLineDrawInfo lineInfo = new()
+                {
+                    LineRotation = laserRotation,
+                    WidthFactor = 0.002f + MathF.Pow(telegraphInterpolant, 4f) * (MathF.Sin(Main.GlobalTimeWrappedHourly * 3f) * 0.001f + 0.001f),
+                    BloomIntensity = MathHelper.Lerp(0.3f, 0.4f, telegraphInterpolant),
+                    Scale = Vector2.One * telegraphInterpolant * MathHelper.Clamp(npc.Distance(Main.player[npc.target].Center) * 2.4f, 10f, 1600f),
+                    MainColor = Color.Lerp(Color.Orange, Color.Red, telegraphInterpolant * 0.6f + 0.4f),
+                    DarkerColor = Color.Orange,
+                    Opacity = MathF.Sqrt(telegraphInterpolant),
+                    BloomOpacity = 0.35f,
+                    LightStrength = 5f
+                };
+                Utilities.DrawBloomLineTelegraph(drawPosition, lineInfo);
+
+                // Draw the backglow.
+                Color backglowColor = Color.Red with { A = 0 } * telegraphInterpolant;
+                float backglowOffset = telegraphInterpolant * 4f;
+                for (int i = 0; i < 12; i++)
+                {
+                    Vector2 drawOffset = (MathHelper.TwoPi * i / 12f).ToRotationVector2() * backglowOffset;
+                    Main.spriteBatch.Draw(texture, drawPosition + drawOffset, null, npc.GetAlpha(backglowColor), npc.rotation, origin, npc.scale, direction, 0f);
+                }
+            }
+
+            // Draw afterimages when charging.
+            if (npc.ai[0] == 2f)
+            {
+                for (int i = npc.oldPos.Length - 1; i >= 0; i--)
+                {
+                    Vector2 drawPos = Vector2.Lerp(npc.oldPos[i], npc.position, 0.3f) + npc.Size * 0.5f - Main.screenPosition;
+                    Color color = npc.GetAlpha(Color.Red with { A = 0 }) * ((float)(npc.oldPos.Length - i) / npc.oldPos.Length);
+                    Main.spriteBatch.Draw(texture, drawPos, null, color, npc.rotation, origin, npc.scale, direction, 0f);
+                }
+            }
+
+            Main.spriteBatch.Draw(texture, drawPosition, null, npc.GetAlpha(Color.Lerp(lightColor, Color.White, 0.6f)), npc.rotation, origin, npc.scale, direction, 0f);
             return false;
         }
     }

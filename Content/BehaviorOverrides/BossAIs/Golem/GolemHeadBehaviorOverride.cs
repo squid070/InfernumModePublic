@@ -73,18 +73,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Golem
             if (npc.Opacity == 0f && Main.npc[(int)npc.ai[0]].ai[0] > 242)
                 return false;
 
-            Texture2D texture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Golem/AttachedHead").Value;
-            Texture2D glowMask = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Golem/AttachedHeadGlow").Value;
-            Rectangle rect = new(0, 0, texture.Width, texture.Height);
-            if (InfernumMode.EmodeIsActive)
-            {
-                texture = TextureAssets.Npc[npc.type].Value;
-                glowMask = InfernumTextureRegistry.Invisible.Value;
-                rect = npc.frame;
-            }
-
-            Main.spriteBatch.Draw(texture, npc.Center - Main.screenPosition, rect, lightColor * npc.Opacity, npc.rotation, rect.Size() * 0.5f, 1f, SpriteEffects.None, 0f);
-            Main.spriteBatch.Draw(glowMask, npc.Center - Main.screenPosition, rect, Color.White * npc.Opacity, npc.rotation, rect.Size() * 0.5f, 1f, SpriteEffects.None, 0f);
+            Texture2D texture = TextureAssets.Npc[npc.type].Value;
+            Main.spriteBatch.Draw(texture, npc.Center - Main.screenPosition + Vector2.UnitY * 4f, npc.frame, lightColor * npc.Opacity, npc.rotation, npc.frame.Size() * 0.5f, 0.9f, SpriteEffects.None, 0f);
             DoEyeDrawing(npc);
             return false;
         }
@@ -152,7 +142,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Golem
             float AttackCooldownRatio = GolemBodyBehaviorOverride.ConstAttackCooldown - body.Infernum().ExtraAI[7];
             Color prevColor = AttackEyeColorPairs[(GolemAttackState)body.Infernum().ExtraAI[8]];
             float ratio = MathHelper.Clamp(AttackCooldownRatio / (GolemBodyBehaviorOverride.ConstAttackCooldown * 0.67f), 0f, 1f);
-            Color drawColor = body.Infernum().ExtraAI[5] == 1f || body.Infernum().ExtraAI[6] == 1f ? Color.Red * 0.25f : Color.Lerp(prevColor, nextColor, ratio) * 0.25f;
+            Color drawColor = body.Infernum().ExtraAI[5] == 1f || body.Infernum().ExtraAI[6] == 1f ? Color.Red * 0.25f : Color.Lerp(prevColor, nextColor, ratio) * 0.4f;
 
             for (float i = 4; i > 0; i--)
             {

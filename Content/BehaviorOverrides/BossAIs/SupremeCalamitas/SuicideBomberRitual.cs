@@ -1,8 +1,6 @@
 using CalamityMod.DataStructures;
-using InfernumMode.Core.ILEditingStuff;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -27,6 +25,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.penetrate = -1;
             Projectile.timeLeft = Lifetime;
             Projectile.hide = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -49,7 +48,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
         }
 
         public override bool PreDraw(ref Color lightColor) => false;
-        
+
         public void AdditiveDraw(SpriteBatch spriteBatch)
         {
             Texture2D texture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/SupremeCalamitas/SuicideBomberRitual").Value;

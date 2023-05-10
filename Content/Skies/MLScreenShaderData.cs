@@ -1,5 +1,4 @@
 ﻿using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -22,7 +21,7 @@ namespace InfernumMode.Content.Skies
             UseTargetPosition(Main.LocalPlayer.Center);
             UseColor(new Color(0, 247, 255));
 
-            // Perform various matrix calculations to transform SCal's arena to UV coordinate space.
+            // Perform various matrix calculations to transform Moon Lord's arena to UV coordinate space.
             NPC ml = Main.npc[moonLordIndex];
             Rectangle arena = ml.Infernum().Arena;
             Vector4 uvScaledArena = new(arena.X, arena.Y - 6f, arena.Width + 8f, arena.Height + 14f);

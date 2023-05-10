@@ -30,7 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.penetrate = -1;
             Projectile.timeLeft = 90000;
             Projectile.Opacity = 0f;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         // Projectile spawning code is done in SCal's AI.
@@ -100,7 +100,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Rectangle frame = bookTexture.Frame(1, Main.projFrames[Projectile.type], 0, Projectile.frame);
             Vector2 drawPosition;
             Vector2 origin = frame.Size() * 0.5f;
-            Color glowColor = Color.Lerp(Color.Pink, Color.Red, (float)Math.Cos(Main.GlobalTimeWrappedHourly * 5f) * 0.5f + 0.5f);
+            Color glowColor = Color.Lerp(Color.Pink, Color.Red, MathF.Cos(Main.GlobalTimeWrappedHourly * 5f) * 0.5f + 0.5f);
             glowColor.A = 0;
 
             // Draw an ominous glowing backimage of the book after a bit of time.

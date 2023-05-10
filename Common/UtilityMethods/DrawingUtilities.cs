@@ -6,7 +6,8 @@ using InfernumMode.Assets.Sounds;
 using InfernumMode.Common;
 using InfernumMode.Common.BaseEntities;
 using InfernumMode.Common.Graphics;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Common.Graphics.Primitives;
+using InfernumMode.Content.Projectiles.Generic;
 using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,11 +21,13 @@ using Terraria.Audio;
 using Terraria.Chat;
 using Terraria.DataStructures;
 using Terraria.GameContent;
+using Terraria.Graphics.Effects;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.Map;
 using Terraria.ModLoader;
+using static CalamityMod.Particles.Metaballs.BaseFusableParticleSet;
 
 namespace InfernumMode
 {
@@ -33,6 +36,8 @@ namespace InfernumMode
         private static readonly FieldInfo shaderTextureField = typeof(MiscShaderData).GetField("_uImage1", BindingFlags.NonPublic | BindingFlags.Instance);
 
         private static readonly FieldInfo shaderTextureField2 = typeof(MiscShaderData).GetField("_uImage2", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        private static readonly FieldInfo shaderTextureField3 = typeof(MiscShaderData).GetField("_uImage3", BindingFlags.NonPublic | BindingFlags.Instance);
 
 
         /// <summary>
@@ -48,6 +53,13 @@ namespace InfernumMode
         /// <param name="shader">The shader</param>
         /// <param name="texture">The texture to use</param>
         public static void SetShaderTexture2(this MiscShaderData shader, Asset<Texture2D> texture) => shaderTextureField2.SetValue(shader, texture);
+
+        /// <summary>
+        /// Uses reflection to set the _uImage3. Its underlying data is private and the only way to change it publicly is via a method that only accepts paths to vanilla textures.
+        /// </summary>
+        /// <param name="shader">The shader</param>
+        /// <param name="texture">The texture to use</param>
+        public static void SetShaderTexture3(this MiscShaderData shader, Asset<Texture2D> texture) => shaderTextureField3.SetValue(shader, texture);
 
         /// <summary>
         /// Prepares a <see cref="SpriteBatch"/> for shader-based drawing.
@@ -77,7 +89,7 @@ namespace InfernumMode
         public static void SetBlendState(this SpriteBatch spriteBatch, BlendState blendState)
         {
             spriteBatch.End();
-            spriteBatch.Begin(SpriteSortMode.Deferred, blendState, Main.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.TransformationMatrix);
+            spriteBatch.Begin(SpriteSortMode.Deferred, blendState, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
         }
 
         /// <summary>
@@ -147,6 +159,23 @@ namespace InfernumMode
             spriteBatch.Draw(line, start, null, color, rotation, line.Size() * Vector2.UnitY * 0.5f, scale, SpriteEffects.None, 0f);
         }
 
+        public static void DrawBloomLine(this SpriteBatch spriteBatch, Vector2 start, Vector2 end, Color color, float width)
+        {
+            // Draw nothing if the start and end are equal, to prevent division by 0 problems.
+            if (start == end)
+                return;
+
+            start -= Main.screenPosition;
+            end -= Main.screenPosition;
+
+            Texture2D line = InfernumTextureRegistry.BloomLine.Value;
+            float rotation = (end - start).ToRotation() + MathHelper.PiOver2;
+            Vector2 scale = new Vector2(width, Vector2.Distance(start, end)) / line.Size();
+            Vector2 origin = new(line.Width / 2f, line.Height);
+
+            spriteBatch.Draw(line, start, null, color, rotation, origin, scale, SpriteEffects.None, 0f);
+        }
+
         /// <summary>
         /// Creates a generic dust explosion at a given position.
         /// </summary>
@@ -173,7 +202,7 @@ namespace InfernumMode
                 burstSpeed += 3f;
             }
         }
-        
+
         public static List<Vector2> CorrectBezierPointRetreivalFunction(IEnumerable<Vector2> originalPositions, Vector2 generalOffset, int totalTrailPoints, IEnumerable<float> _ = null)
         {
             List<Vector2> controlPoints = new();
@@ -196,7 +225,7 @@ namespace InfernumMode
             // Instead, an integer-based loop is used to mitigate such problems.
             for (int i = 0; i < totalTrailPoints; i++)
                 points.Add(bezierCurve.Evaluate(i / (float)(totalTrailPoints - 1f)));
-            
+
             return points;
         }
 
@@ -205,7 +234,7 @@ namespace InfernumMode
             // Sparks and such
             for (int i = 0; i < 40; i++)
             {
-                int idx = Dust.NewDust(topLeft, (int)area.X, (int)area.Y, 31, 0f, 0f, 100, default, 2f);
+                int idx = Dust.NewDust(topLeft, (int)area.X, (int)area.Y, DustID.Smoke, 0f, 0f, 100, default, 2f);
                 Main.dust[idx].velocity *= 3f;
                 if (Main.rand.NextBool(2))
                 {
@@ -216,12 +245,12 @@ namespace InfernumMode
             }
             for (int i = 0; i < 70; i++)
             {
-                int idx = Dust.NewDust(topLeft, (int)area.X, (int)area.Y, 6, 0f, 0f, 100, default, 3f);
+                int idx = Dust.NewDust(topLeft, (int)area.X, (int)area.Y, DustID.Torch, 0f, 0f, 100, default, 3f);
                 Main.dust[idx].noGravity = true;
                 Main.dust[idx].velocity *= 5f;
                 Main.dust[idx].velocity += force.RotatedByRandom(0.4f) * Main.rand.NextFloat(0.8f, 1.2f);
 
-                idx = Dust.NewDust(topLeft, (int)area.X, (int)area.Y, 6, 0f, 0f, 100, default, 2f);
+                idx = Dust.NewDust(topLeft, (int)area.X, (int)area.Y, DustID.Torch, 0f, 0f, 100, default, 2f);
                 Main.dust[idx].velocity *= 2f;
                 Main.dust[idx].velocity += force.RotatedByRandom(0.4f) * Main.rand.NextFloat(0.8f, 1.2f);
             }
@@ -316,7 +345,7 @@ namespace InfernumMode
                         {
                             Vector2 drawPos = proj.oldPos[i] + centerOffset - Main.screenPosition + new Vector2(0f, proj.gfxOffY);
                             // DO NOT REMOVE THESE "UNNECESSARY" FLOAT CASTS. THIS WILL BREAK THE AFTERIMAGES.
-                            Color color = proj.GetAlpha(lightColor) * ((float)(proj.oldPos.Length - i) / (float)proj.oldPos.Length);
+                            Color color = proj.GetAlpha(lightColor) * ((float)(proj.oldPos.Length - i) / proj.oldPos.Length);
                             Main.spriteBatch.Draw(texture, drawPos, new Rectangle?(rectangle), color, rotation, origin, scale, spriteEffects, 0f);
                         }
                         break;
@@ -387,7 +416,7 @@ namespace InfernumMode
 
             // Use the law of cosines to determine the side length of the triangles that compose the inscribed shape.
             float sideAngle = MathHelper.TwoPi / sideCount;
-            float sideLength = (float)Math.Sqrt(2D - Math.Cos(sideAngle) * 2D) * radius;
+            float sideLength = MathF.Sqrt(2f - MathF.Cos(sideAngle) * 2f) * radius;
 
             // Calculate vertices by approximating a circle with a bunch of triangles.
             for (int i = 0; i < sideCount; i++)
@@ -415,7 +444,7 @@ namespace InfernumMode
             }
         }
 
-        public static void CreateShockwave(Vector2 shockwavePosition, int rippleCount = 2, int rippleSize = 8, float rippleSpeed = 75f, bool playSound = true)
+        public static void CreateShockwave(Vector2 shockwavePosition, int rippleCount = 2, int rippleSize = 8, float rippleSpeed = 75f, bool playSound = true, bool useSecondaryVariant = false)
         {
             DeleteAllProjectiles(false, ModContent.ProjectileType<ScreenShakeProj>());
 
@@ -424,7 +453,7 @@ namespace InfernumMode
 
             if (Main.netMode != NetmodeID.MultiplayerClient)
             {
-                int shockwaveID = NewProjectileBetter(shockwavePosition, Vector2.Zero, ModContent.ProjectileType<ScreenShakeProj>(), 0, 0f);
+                int shockwaveID = NewProjectileBetter(shockwavePosition, Vector2.Zero, ModContent.ProjectileType<ScreenShakeProj>(), 0, 0f, -1, useSecondaryVariant.ToInt());
                 if (Main.projectile.IndexInRange(shockwaveID))
                 {
                     var shockwave = Main.projectile[shockwaveID].ModProjectile<ScreenShakeProj>();
@@ -481,6 +510,23 @@ namespace InfernumMode
             layers.SetValue(Main.MapIcons, list);
         }
 
+        public static void EmptyDrawCache(this List<DrawData> drawCache)
+        {
+            // WHAT THE FUCK NO ABORT ABORT ABORT
+            if (drawCache.Count >= 10000 || Main.mapFullscreen)
+                drawCache.Clear();
+
+            Vector2 topLeft = Vector2.One * -200f;
+            Vector2 bottomRight = new Vector2(Main.screenWidth, Main.screenHeight) - topLeft;
+            while (drawCache.Count > 0)
+            {
+                if (drawCache[0].position.Length() > 10000f && drawCache[0].position.Between(topLeft, bottomRight))
+                    drawCache[0] = drawCache[0] with { position = drawCache[0].position - Main.screenPosition };
+                drawCache[0].Draw(Main.spriteBatch);
+                drawCache.RemoveAt(0);
+            }
+        }
+
         public static string InfernalRelicText
         {
             get
@@ -489,6 +535,100 @@ namespace InfernumMode
                 Color c = CalamityUtils.MulticolorLerp(colorInterpolant, new Color(170, 0, 0, 255), Color.OrangeRed, new Color(255, 200, 0, 255));
                 return CalamityUtils.ColorMessage("Imbued with the infernal flames of a defeated foe", c);
             }
+        }
+
+        public static void SwapToRenderTarget(this RenderTarget2D renderTarget, Color? flushColor = null)
+        {
+            // Local variables for convinience.
+            GraphicsDevice graphicsDevice = Main.graphics.GraphicsDevice;
+            SpriteBatch spriteBatch = Main.spriteBatch;
+
+            // If we are in the menu, a server, or any of these are null, return.
+            if (Main.gameMenu || Main.dedServ || renderTarget is null || graphicsDevice is null || spriteBatch is null)
+                return;
+
+            // Otherwise set the render target.
+            graphicsDevice.SetRenderTarget(renderTarget);
+
+            // "Flush" the screen, removing any previous things drawn to it.
+            flushColor ??= Color.Transparent;
+            graphicsDevice.Clear(flushColor.Value);
+        }
+
+        public static void CreateMetaballsFromTexture(this Texture2D texture, ref List<FusableParticle> particleList, Vector2 texturePosition, float textureRotation, float textureScale, float metaballSize, int spawnChance = 35)
+        {
+            // Leave if this is null, or this is called on the server.
+            if (particleList is null || Main.netMode == NetmodeID.Server)
+                return;
+
+            // Get the dimensions of the texture.
+            int textureWidth = texture.Width;
+            int textureHeight = texture.Height;
+
+            // Get the data of every color in the texture.
+            Color[] colorData = new Color[textureWidth * textureHeight];
+            texture.GetData(colorData);
+
+            // Loop across the texture lengthways, one row at a time.
+            for (int h = 0; h < textureHeight; h++)
+            {
+                for (int w = 0; w < textureWidth; w++)
+                {
+                    Color color = colorData[w + h * textureWidth];
+
+                    // If the current pixel has any alpha, and the chance is selected (this exists to add variation and prevent having way too many metaballs spawn)
+                    if (color.A > 0 && (color.R > 0 && color.G > 0 && color.B > 0) && Main.rand.NextBool(spawnChance))
+                    {
+                        Vector2 positionOffset = textureScale * new Vector2(textureWidth * 0.5f, textureHeight * 0.5f).RotatedBy(textureRotation);
+                        Vector2 metaballSpawnPosition = texturePosition - positionOffset + new Vector2(w, h).RotatedBy(textureRotation);
+                        FusableParticle particle = new(metaballSpawnPosition, Main.rand.NextFloat(metaballSize * 0.8f, metaballSize * 1.2f) * color.A / 255);
+                        particleList.Add(particle);
+                    }
+                }
+            }
+        }
+
+        public static void DrawBloomLineTelegraph(Vector2 drawPosition, BloomLineDrawInfo drawInfo, bool resetSpritebatch = true, Vector2? resolution = null)
+        {
+            // Claim texture and shader data in easy to use local variables.
+            Texture2D invisible = InfernumTextureRegistry.Invisible.Value;
+            Effect laserScopeEffect = Filters.Scene["CalamityMod:PixelatedSightLine"].GetShader().Shader;
+
+            // Prepare all parameters for the shader in anticipation that they will go the GPU for shader effects.
+            laserScopeEffect.Parameters["sampleTexture2"].SetValue(ModContent.Request<Texture2D>("CalamityMod/ExtraTextures/GreyscaleGradients/CertifiedCrustyNoise").Value);
+            laserScopeEffect.Parameters["noiseOffset"].SetValue(Main.GameUpdateCount * -0.004f);
+            laserScopeEffect.Parameters["mainOpacity"].SetValue(drawInfo.Opacity);
+            laserScopeEffect.Parameters["Resolution"].SetValue(resolution ?? Vector2.One * 425f);
+            laserScopeEffect.Parameters["laserAngle"].SetValue(drawInfo.LineRotation);
+            laserScopeEffect.Parameters["laserWidth"].SetValue(drawInfo.WidthFactor);
+            laserScopeEffect.Parameters["laserLightStrenght"].SetValue(drawInfo.LightStrength);
+            laserScopeEffect.Parameters["color"].SetValue(drawInfo.MainColor.ToVector3());
+            laserScopeEffect.Parameters["darkerColor"].SetValue(drawInfo.DarkerColor.ToVector3());
+            laserScopeEffect.Parameters["bloomSize"].SetValue(drawInfo.BloomIntensity);
+            laserScopeEffect.Parameters["bloomMaxOpacity"].SetValue(drawInfo.BloomOpacity);
+            laserScopeEffect.Parameters["bloomFadeStrenght"].SetValue(3f);
+
+            // Prepare the sprite batch for shader drawing.
+            if (resetSpritebatch)
+                Main.spriteBatch.EnterShaderRegion(BlendState.Additive);
+            laserScopeEffect.CurrentTechnique.Passes[0].Apply();
+
+            // Draw the texture with the shader and flush the results to the GPU, clearing the shader effect for any successive draw calls.
+            Main.spriteBatch.Draw(invisible, drawPosition, null, Color.White, 0f, invisible.Size() * 0.5f, drawInfo.Scale, SpriteEffects.None, 0f);
+            if (resetSpritebatch)
+                Main.spriteBatch.ExitShaderRegion();
+        }
+
+        /// <summary>
+        /// Return a matrix suitable for use when resetting spritebatches in CustomSkys for shader work.
+        /// </summary>
+        /// <returns></returns>
+        public static Matrix GetCustomSkyBackgroundMatrix()
+        {
+            Matrix transformationMatrix = Main.BackgroundViewMatrix.TransformationMatrix;
+            transformationMatrix.Translation -= Main.BackgroundViewMatrix.ZoomMatrix.Translation *
+                new Vector3(1f, Main.BackgroundViewMatrix.Effects.HasFlag(SpriteEffects.FlipVertically) ? (-1f) : 1f, 1f);
+            return transformationMatrix;
         }
     }
 }

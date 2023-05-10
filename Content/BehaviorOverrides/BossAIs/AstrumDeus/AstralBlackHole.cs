@@ -5,8 +5,9 @@ using CalamityMod.NPCs.AstrumDeus;
 using CalamityMod.Particles;
 using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist;
 using InfernumMode.Common.Graphics.Particles;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist;
+using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -15,7 +16,6 @@ using Terraria.GameContent;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
-using InfernumMode.Core;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
 {
@@ -42,6 +42,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             Projectile.penetrate = -1;
             Projectile.timeLeft = 900000;
             Projectile.scale = 1f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -75,7 +76,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                     for (int i = 0; i < LaserCount; i++)
                     {
                         Vector2 laserDirection = -Vector2.UnitY.RotatedBy(MathHelper.TwoPi * i / LaserCount);
-                        Utilities.NewProjectileBetter(Projectile.Center, laserDirection, ModContent.ProjectileType<DarkGodLaser>(), 300, 0f);
+                        Utilities.NewProjectileBetter(Projectile.Center, laserDirection, ModContent.ProjectileType<DarkGodLaser>(), AstrumDeusHeadBehaviorOverride.BlackHoleLaserDamage, 0f);
                     }
                 }
             }
@@ -88,7 +89,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
                 {
                     Player target = Main.player[Player.FindClosest(Projectile.Center, 1, 1)];
                     Vector2 flyVelocity = Projectile.SafeDirectionTo(target.Center) * (BossRushEvent.BossRushActive ? 28f : 19.5f);
-                    Utilities.NewProjectileBetter(Projectile.Center + flyVelocity * 10f, flyVelocity, ModContent.ProjectileType<DarkBoltLarge>(), 200, 0f);
+                    Utilities.NewProjectileBetter(Projectile.Center + flyVelocity * 10f, flyVelocity, ModContent.ProjectileType<DarkBoltLarge>(), AstrumDeusHeadBehaviorOverride.DarkBoltDamage, 0f);
                 }
             }
         }

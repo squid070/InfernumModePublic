@@ -2,7 +2,8 @@ using CalamityMod;
 using CalamityMod.Projectiles.BaseProjectiles;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -10,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
-using Terraria.Graphics.Shaders;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
@@ -45,7 +46,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
             Projectile.tileCollide = false;
             Projectile.timeLeft = (int)Lifetime;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -82,7 +83,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
 
         public Color ColorFunction(float completionRatio)
         {
-            float colorInterpolant = (float)Math.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 23f) * 0.5f + 0.5f;
+            float colorInterpolant = MathF.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 23f) * 0.5f + 0.5f;
             // new(221, 1, 3), new(255, 40, 30)
             Color color = Color.Lerp(new(221, 50, 50), new(255, 5, 1), colorInterpolant * 0.67f);
             return color;
@@ -99,6 +100,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
             InfernumEffectsRegistry.PulsatingLaserVertexShader.UseSaturation(1);
             InfernumEffectsRegistry.PulsatingLaserVertexShader.SetShaderTexture(InfernumTextureRegistry.StreakBigBackground);
             InfernumEffectsRegistry.PulsatingLaserVertexShader.Shader.Parameters["usePulsing"].SetValue(true);
+            InfernumEffectsRegistry.PulsatingLaserVertexShader.Shader.Parameters["reverseDirection"].SetValue(false);
             InfernumEffectsRegistry.PulsatingLaserVertexShader.UseColor(ColorFunction(0.1f));
 
             List<Vector2> points = new();

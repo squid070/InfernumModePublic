@@ -22,6 +22,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 210;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -69,7 +70,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
             if (Main.netMode == NetmodeID.MultiplayerClient)
                 return;
 
-            Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<LargePlagueExplosion>(), 160, 0f);
+            Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<LargePlagueExplosion>(), PlaguebringerGoliathBehaviorOverride.ExplosionDamage, 0f);
         }
 
         public override bool PreDraw(ref Color lightColor)

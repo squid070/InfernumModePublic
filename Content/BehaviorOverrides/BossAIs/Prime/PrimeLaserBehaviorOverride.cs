@@ -34,28 +34,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
             }
         }
 
-        public override void PerformAttackBehaviors(NPC npc, PrimeAttackType attackState, Player target, float attackTimer, bool pissed, Vector2 cannonDirection)
+        public override void PerformAttackBehaviors(NPC npc, PrimeAttackType attackState, Player target, float attackTimer, Vector2 cannonDirection)
         {
             int shootRate = 35;
             int burstCount = 1;
             float laserSpeed = 7f;
             float laserSpread = 0.61f;
 
-            if (npc.life < npc.lifeMax * Phase2LifeRatio && !pissed)
+            if (npc.life < npc.lifeMax * Phase2LifeRatio)
             {
                 shootRate -= 7;
                 laserSpeed += 2.4f;
             }
-
-            if (pissed)
-            {
-                shootRate -= 10;
-                laserSpeed += 4f;
-                laserSpread = 0.4f;
-            }
-
-            if (attackTimer % (shootRate * 5f) == shootRate * 4f || pissed)
-                burstCount += 2;
 
             // Release lasers.
             if (attackTimer % shootRate == 0f)
@@ -70,7 +60,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
                         if (burstCount >= 2)
                             laserVelocity = laserVelocity.RotatedBy(MathHelper.Lerp(-laserSpread, laserSpread, i / (burstCount - 1f)));
 
-                        Utilities.NewProjectileBetter(npc.Center + cannonDirection * npc.width * npc.scale * 0.4f, laserVelocity, ModContent.ProjectileType<PrimeSmallLaser>(), 140, 0f);
+                        Utilities.NewProjectileBetter(npc.Center + cannonDirection * npc.width * npc.scale * 0.4f, laserVelocity, ModContent.ProjectileType<PrimeSmallLaser>(), SmallLaserDamage, 0f);
                     }
                 }
             }

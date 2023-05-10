@@ -14,6 +14,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
 
         public const int ShardBurstCount = 9;
 
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.CultistBossIceMist}";
+
         public override void SetStaticDefaults() => DisplayName.SetDefault("Ice Mass");
 
         public override void SetDefaults()
@@ -28,6 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             Projectile.Opacity = 0f;
             Projectile.extraUpdates = 1;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -40,8 +43,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             Time++;
         }
 
-
-
         public override bool PreDraw(ref Color lightColor)
         {
             // Draw telegraph lines.
@@ -51,7 +52,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
                 float lineWidth = Utils.GetLerpValue(45f, 75f, Time, true) * Utils.GetLerpValue(0f, 30f, Projectile.timeLeft, true) * 2.5f + 0.2f;
 
                 if (lineWidth > 1f)
-                    lineWidth += (float)Math.Sin(Main.GlobalTimeWrappedHourly * 5f) * 0.15f;
+                    lineWidth += MathF.Sin(Main.GlobalTimeWrappedHourly * 5f) * 0.15f;
 
                 for (int i = 0; i < ShardBurstCount; i++)
                 {
@@ -74,7 +75,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
                 for (float speed = 6f; speed <= 21f; speed += 3.3f)
                 {
                     Vector2 iceVelocity = (MathHelper.TwoPi * (i + 0.5f) / ShardBurstCount).ToRotationVector2() * speed * (BossRushEvent.BossRushActive ? 1.6f : 1f);
-                    Utilities.NewProjectileBetter(Projectile.Center, iceVelocity, ModContent.ProjectileType<IceShard>(), 175, 0f);
+                    Utilities.NewProjectileBetter(Projectile.Center, iceVelocity, ModContent.ProjectileType<IceShard>(), CultistBehaviorOverride.IceShardDamage, 0f);
                 }
             }
         }

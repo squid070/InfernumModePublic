@@ -1,13 +1,19 @@
 using CalamityMod;
 using CalamityMod.CalPlayer;
+using CalamityMod.NPCs.AdultEidolonWyrm;
+using CalamityMod.Systems;
 using InfernumMode.Assets.Effects;
+using InfernumMode.Content.Achievements.InfernumAchievements;
 using InfernumMode.Content.Biomes;
 using InfernumMode.Content.Subworlds;
-using InfernumMode.Content.Tiles;
+using InfernumMode.Content.WorldGeneration;
 using InfernumMode.Core.GlobalInstances.Systems;
 using Microsoft.Xna.Framework;
 using SubworldLibrary;
+using System;
 using Terraria;
+using Terraria.GameContent.Events;
+using Terraria.Graphics.Effects;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -16,8 +22,10 @@ namespace InfernumMode.Core.GlobalInstances.Players
 {
     public class BiomeEffectsPlayer : ModPlayer
     {
-        // This exists because the crystal door in the profaned temple uses the shatter timer as a ref local for readability, which is not possible on properties.
+        // These exist because the crystal door in the profaned temple uses the shatter timer as a ref local for readability, which is not possible on properties.
         internal int providenceRoomShatterTimer;
+
+        internal float lostColosseumTeleportInterpolant;
 
         public int ProvidenceRoomShatterTimer
         {
@@ -42,6 +50,28 @@ namespace InfernumMode.Core.GlobalInstances.Players
             get;
             set;
         }
+
+        public bool ProfanedLavaFountain
+        {
+            get;
+            set;
+        }
+
+        public bool CosmicBackgroundEffect
+        {
+            get;
+            set;
+        }
+
+        public float MapObscurityInterpolant
+        {
+            get;
+            set;
+        }
+
+        public bool ZoneProfaned => Player.InModBiome(ModContent.GetInstance<ProfanedTempleBiome>()) && !SubworldSystem.IsActive<LostColosseum>();
+
+        public bool InLayer3HadalZone => CustomAbyss.InsideOfLayer3HydrothermalZone(Player.Center.ToTileCoordinates());
 
         public bool InProfanedArena
         {
@@ -75,13 +105,11 @@ namespace InfernumMode.Core.GlobalInstances.Players
             }
         }
 
-        public bool ProfanedLavaFountain
+        internal float LostColosseumTeleportInterpolant
         {
-            get;
-            set;
+            get => lostColosseumTeleportInterpolant;
+            set => lostColosseumTeleportInterpolant = value;
         }
-
-        public bool ZoneProfaned => Player.InModBiome(ModContent.GetInstance<ProfanedTempleBiome>()) && !WeakReferenceSupport.InAnySubworld();
 
         public override void ResetEffects()
         {
@@ -95,31 +123,19 @@ namespace InfernumMode.Core.GlobalInstances.Players
 
         public override void PreUpdate()
         {
-            // Constantly redefine whether the player is near a profaned fountain. This influences the color of lava to be the same as in the Profaned Temple.
-            // NearbyEffects and other things that rely on Terraria's natural scene system had an insufficient range, hence why it's handled in here specifically.
-            ProfanedLavaFountain = false;
+            // Disable the layer 4 abyss water tiles requirement due to how open the biome is overall.
+            if (InfernumMode.CanUseCustomAIs)
+                BiomeTileCounterSystem.Layer4Tiles = 250;
 
-            int profanedFountainID = ModContent.TileType<ProfanedFountainTile>();
-            for (int dx = -75; dx < 75; dx++)
-            {
-                for (int dy = -75; dy < 75; dy++)
-                {
-                    int x = (int)(Player.Center.X / 16f + dx);
-                    int y = (int)(Player.Center.Y / 16f + dy);
-                    if (!WorldGen.InWorld(x, y))
-                        continue;
-
-                    if (Main.tile[x, y].HasTile && Main.tile[x, y].TileType == profanedFountainID && Main.tile[x, y].TileFrameX < 36)
-                    {
-                        ProfanedLavaFountain = true;
-                        return;
-                    }
-                }
-            }
+            // Make the map turn black if in the final layer of the abyss.
+            bool obscureMap = Player.Calamity().ZoneAbyssLayer4 && !NPC.AnyNPCs(ModContent.NPCType<AdultEidolonWyrmHead>());
+            MapObscurityInterpolant = MathHelper.Clamp(MapObscurityInterpolant + obscureMap.ToDirectionInt() * 0.008f, 0f, 1f);
 
             // Disable Acid Rain in the Lost Colosseum.
             if (SubworldSystem.IsActive<LostColosseum>())
                 Player.Calamity().noStupidNaturalARSpawns = true;
+
+            LostColosseumTeleportInterpolant = MathHelper.Clamp(LostColosseumTeleportInterpolant - 0.008f, 0f, 1f);
         }
 
         // Ensure that the profaned temple title card animation state is saved after the player leaves the world.
@@ -172,8 +188,18 @@ namespace InfernumMode.Core.GlobalInstances.Players
                 Player.Calamity().momentumCapacitorBoost = 1.8f;
 
             // Reset the screen distortion shader for the next frame.
-            if (Main.netMode != NetmodeID.Server && InfernumEffectsRegistry.ScreenDistortionScreenShader.IsActive())
-                InfernumEffectsRegistry.ScreenDistortionScreenShader.Deactivate();
+            if (Main.netMode != NetmodeID.Server)
+            {
+                if (InfernumEffectsRegistry.ScreenDistortionScreenShader.IsActive())
+                    InfernumEffectsRegistry.ScreenDistortionScreenShader.Deactivate();
+                if (InfernumEffectsRegistry.ScreenBorderShader.IsActive())
+                {
+                    InfernumEffectsRegistry.ScreenBorderShader.GetShader().UseOpacity(0f);
+                    InfernumEffectsRegistry.ScreenBorderShader.GetShader().UseIntensity(0f);
+                    InfernumEffectsRegistry.ScreenBorderShader.Deactivate();
+                }
+            }
+            UpdatePortalDistortionEffects();
 
             // Check whether to change the boss rush list.
 
@@ -185,6 +211,26 @@ namespace InfernumMode.Core.GlobalInstances.Players
             //    BossRushChanges.SwapToOrder(false);            
         }
 
+        public void UpdatePortalDistortionEffects()
+        {
+            if (LostColosseumTeleportInterpolant <= 0f || Main.netMode == NetmodeID.Server || Main.myPlayer != Player.whoAmI)
+                return;
+
+            if (!InfernumEffectsRegistry.ScreenDistortionScreenShader.IsActive())
+                Filters.Scene.Activate("InfernumMode:ScreenDistortion", Player.Center);
+            PrepareScreenDistortionShaderParameters();
+            if (lostColosseumTeleportInterpolant >= 0.67f)
+                MoonlordDeathDrama.RequestLight(1f, Player.Center);
+        }
+
+        public void PrepareScreenDistortionShaderParameters()
+        {
+            InfernumEffectsRegistry.ScreenDistortionScreenShader.GetShader().UseImage("Images/Extra_193");
+            InfernumEffectsRegistry.ScreenDistortionScreenShader.GetShader().Shader.Parameters["distortionAmount"].SetValue(MathF.Pow(LostColosseumTeleportInterpolant, 0.89f) * 50f);
+            InfernumEffectsRegistry.ScreenDistortionScreenShader.GetShader().Shader.Parameters["uvSampleFactors"].SetValue(new Vector2(1f, 5f));
+            InfernumEffectsRegistry.ScreenDistortionScreenShader.GetShader().Shader.Parameters["wiggleSpeed"].SetValue(6f);
+        }
+
         public override void UpdateDead()
         {
             // Ensure that the player respawns at the campfire in the Lost Colosseum.
@@ -194,6 +240,8 @@ namespace InfernumMode.Core.GlobalInstances.Players
                 Main.spawnTileX = LostColosseum.CampfirePosition.X;
                 Main.spawnTileY = LostColosseum.CampfirePosition.Y;
             }
+
+            LostColosseumTeleportInterpolant = 0f;
         }
     }
 }

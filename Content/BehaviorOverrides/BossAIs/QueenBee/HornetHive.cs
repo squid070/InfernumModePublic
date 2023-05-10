@@ -8,6 +8,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenBee
 {
     public class HornetHive : ModProjectile
     {
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.BeeHive}";
+
         public override void SetStaticDefaults() => DisplayName.SetDefault("Hive");
 
         public override void SetDefaults()
@@ -20,6 +22,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenBee
             Projectile.tileCollide = true;
             Projectile.friendly = false;
             Projectile.hostile = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

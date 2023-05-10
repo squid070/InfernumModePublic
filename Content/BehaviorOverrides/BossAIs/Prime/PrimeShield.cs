@@ -6,6 +6,7 @@ using System;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.Graphics.Shaders;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
@@ -40,6 +41,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
             Projectile.hostile = true;
             Projectile.timeLeft = Lifetime;
             Projectile.scale = 0.001f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -52,7 +54,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
 
             Projectile.Center = Owner.Center;
 
-            Radius = (float)Math.Sin(Projectile.timeLeft / (float)Lifetime * MathHelper.Pi) * MaxRadius * 4f;
+            Radius = MathF.Sin(Projectile.timeLeft / (float)Lifetime * MathHelper.Pi) * MaxRadius * 4f;
             if (Radius > MaxRadius)
                 Radius = MaxRadius;
             Projectile.scale = 2f;
@@ -66,24 +68,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
         {
             if (!Main.npc.IndexInRange((int)OwnerIndex) || !Main.npc[(int)OwnerIndex].active)
                 return false;
-
-            Main.spriteBatch.EnterShaderRegion();
-
-            Vector2 scale = new(1.5f, 1f);
-            DrawData drawData = new(InfernumTextureRegistry.CultistRayMap.Value,
-                Projectile.Center - Main.screenPosition + Projectile.Size * scale * 0.5f,
-                new Rectangle(0, 0, Projectile.width, Projectile.height),
-                new Color(new Vector4(1f)) * 0.7f * Projectile.Opacity,
-                Projectile.rotation,
-                Projectile.Size,
-                scale,
-                SpriteEffects.None, 0);
-
-            GameShaders.Misc["ForceField"].UseColor(Color.Lerp(Color.Orange, Color.Red, 0.84f));
-            GameShaders.Misc["ForceField"].Apply(drawData);
-            drawData.Draw(Main.spriteBatch);
-
-            Main.spriteBatch.ExitShaderRegion();
+            Cultist.CultistBehaviorOverride.DrawForcefield(Projectile.Center - Main.screenPosition, Projectile.Opacity, Color.Lerp(Color.Orange, Color.Red, 0.84f), InfernumTextureRegistry.HexagonGrid.Value, false, 1f * (Radius / MaxRadius),  fresnelScaleFactor: 1.3f, noiseScaleFactor: 0.75f);
             return false;
         }
     }

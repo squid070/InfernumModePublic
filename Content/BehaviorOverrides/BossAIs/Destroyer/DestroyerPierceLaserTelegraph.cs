@@ -29,7 +29,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
         public override void AI()
         {
             // Pulse in and out.
-            Projectile.scale = (float)Math.Sin(MathHelper.Pi * Projectile.timeLeft / 45f) * 6f;
+            Projectile.scale = MathF.Sin(MathHelper.Pi * Projectile.timeLeft / 45f) * 6f;
         }
 
         public override bool? CanDamage()/* tModPorter Suggestion: Return null instead of false */ => false;
@@ -56,7 +56,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
             if (Main.netMode == NetmodeID.MultiplayerClient)
                 return;
 
-            Utilities.NewProjectileBetter(Projectile.Center, Projectile.velocity.SafeNormalize(-Vector2.UnitY), ModContent.ProjectileType<DestroyerPierceLaser>(), 120, 0f);
+            Utilities.NewProjectileBetter(Projectile.Center, Projectile.velocity.SafeNormalize(-Vector2.UnitY), ModContent.ProjectileType<DestroyerPierceLaser>(), DestroyerHeadBehaviorOverride.PierceLaserbeamDamage, 0f);
         }
     }
 }

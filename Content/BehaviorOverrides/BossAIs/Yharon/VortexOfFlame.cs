@@ -10,12 +10,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
     public class VortexOfFlame : ModProjectile
     {
         public const int Lifetime = 600;
+
         public const int AuraCount = 4;
+
         public ref float Timer => ref Projectile.ai[0];
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Vortex of Flame");
         }
+
         public override void SetDefaults()
         {
             Projectile.width = 408;
@@ -43,7 +47,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
                     for (int i = 0; i < 4; i++)
                     {
                         float offsetAngle = MathHelper.TwoPi * i / 4f;
-                        Utilities.NewProjectileBetter(Projectile.Center, Projectile.SafeDirectionTo(player.Center).RotatedBy(offsetAngle) * 7f, ProjectileID.CultistBossFireBall, 560, 0f, Main.myPlayer);
+                        Utilities.NewProjectileBetter(Projectile.Center, Projectile.SafeDirectionTo(player.Center).RotatedBy(offsetAngle) * 7f, ProjectileID.CultistBossFireBall, YharonBehaviorOverride.RegularFireballDamage, 0f, Main.myPlayer);
                     }
                 }
             }
@@ -81,8 +85,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
                 drawColor.A = 127;
                 Main.spriteBatch.Draw(texture, Projectile.Center + offset - Main.screenPosition, null, drawColor, Projectile.rotation, texture.Size() * 0.5f, Projectile.scale, SpriteEffects.None, 0f);
             }
-
-            Main.spriteBatch.ResetBlendState();
             return false;
         }
     }

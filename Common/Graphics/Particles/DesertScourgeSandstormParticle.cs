@@ -8,11 +8,12 @@ namespace InfernumMode.Common.Graphics.Particles
 {
     public class DesertScourgeSandstormParticle : Particle
     {
-        private float Spin;
 
         private float opacity;
 
         public Rectangle Frame;
+
+        public readonly float Spin;
 
         public override string Texture => "CalamityMod/Particles/SandyDust";
 
@@ -29,7 +30,7 @@ namespace InfernumMode.Common.Graphics.Particles
             Color = color;
             Scale = scale;
             Lifetime = lifeTime;
-            Rotation = Main.rand.NextFloat((float)Math.PI * 2f);
+            Rotation = Main.rand.NextFloat(MathHelper.TwoPi);
             Spin = rotationSpeed;
             Variant = Main.rand.Next(12);
             Frame = new Rectangle(Variant % 6 * 12, 12 + Variant / 6 * 12, 10, 10);
@@ -37,7 +38,7 @@ namespace InfernumMode.Common.Graphics.Particles
 
         public override void Update()
         {
-            opacity = (float)Math.Cos(MathHelper.PiOver2 * LifetimeCompletion);
+            opacity = MathF.Cos(MathHelper.PiOver2 * LifetimeCompletion);
             Velocity *= 0.99f;
             Rotation += Spin * (Velocity.X > 0f ? 1f : -1f);
             Scale *= 0.98f;

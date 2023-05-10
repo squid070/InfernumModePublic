@@ -4,12 +4,11 @@ using CalamityMod.Items.Weapons.DraedonsArsenal;
 using CalamityMod.Items.Weapons.Typeless;
 using CalamityMod.NPCs;
 using CalamityMod.NPCs.DevourerofGods;
-using CalamityMod.Projectiles.Boss;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.Sounds;
 using InfernumMode.Common.Graphics;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.CeaselessVoid;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Content.Projectiles.Pets;
 using InfernumMode.Content.Skies;
 using InfernumMode.Core;
 using InfernumMode.Core.GlobalInstances.Players;
@@ -156,10 +155,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             // Get rid of the dumb edgy on-hit text.
             target.Calamity().dogTextCooldown = 20;
 
-            // Disable teleportations.
-            target.Calamity().normalityRelocator = false;
-            target.Calamity().spectralVeil = false;
-
             // Take more damage than usual.
             npc.takenDamageMultiplier = 2f;
 
@@ -198,6 +193,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                     npc.velocity = npc.SafeDirectionTo(target.Center) * 36f;
                     npc.netUpdate = true;
                     sentinelAttackTimer = 0f;
+                    ScreenEffectSystem.SetBlurEffect(npc.Center, 0.2f, 30);
+                    if (Main.netMode != NetmodeID.MultiplayerClient)
+                        Projectile.NewProjectile(npc.GetSource_FromAI(), npc.Center, Vector2.Zero, ModContent.ProjectileType<DoGSpawnBoom>(), 0, 0f);
                 }
                 return false;
             }
@@ -312,7 +310,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                     {
                         specialAttackTimer = 0f;
                         performingSpecialAttack = 1f;
-                        
+
                         // Select a special attack type.
                         do
                             npc.Infernum().ExtraAI[SpecialAttackTypeIndex] = (int)Utils.SelectRandom(Main.rand, SpecialAttackType.LaserWalls, SpecialAttackType.CircularLaserBurst);
@@ -498,7 +496,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                             {
                                 laser.MaxUpdates = 3;
                             });
-                            Utilities.NewProjectileBetter(target.Center + spawnOffset, laserShootVelocity, ModContent.ProjectileType<DoGDeathInfernum>(), 455, 0f);
+                            Utilities.NewProjectileBetter(target.Center + spawnOffset, laserShootVelocity, ModContent.ProjectileType<DoGDeathInfernum>(), DeathLaserDamage, 0f);
                         }
                     }
                 }
@@ -525,7 +523,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             {
                 // Randomly play an electric pop sound to accompany the destruction of a segment.
                 if (Main.rand.NextBool(5))
-                    SoundEngine.PlaySound(SoundID.Item94, npc.Center);
+                    SoundEngine.PlaySound(DevourerofGodsHead.DeathSegmentSound, npc.Center);
 
                 List<int> segments = new()
                 {
@@ -563,6 +561,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             int lastSegmentsDestructionDelay = 30;
             int lastSegmentsDestructionTime = 60;
             float idealSpeed = MathHelper.Lerp(9f, 4.75f, Utils.GetLerpValue(15f, 210f, deathAnimationTimer, true));
+            npc.velocity = npc.velocity.RotateTowards(npc.AngleTo(Main.player[npc.target].Center), 0.02f);
             if (npc.velocity.Length() != idealSpeed)
                 npc.velocity = npc.velocity.SafeNormalize(Vector2.UnitY) * MathHelper.Lerp(npc.velocity.Length(), idealSpeed, 0.08f);
 
@@ -574,10 +573,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             if (deathAnimationTimer == textDelay + 100f)
                 Utilities.DisplayText("I WILL NOT BE DESTROYED!!!!", Color.Cyan);
 
-            if (deathAnimationTimer == deathAnimationTimer + segmentDestructionTime - 50f)
+            if (deathAnimationTimer == textDelay + 200f)
                 Utilities.DisplayText("I WILL NOT...", Color.Cyan);
 
-            if (deathAnimationTimer == deathAnimationTimer + segmentDestructionTime + 40f)
+            if (deathAnimationTimer == textDelay + 270f)
                 Utilities.DisplayText("I...", Color.Cyan);
 
             // Destroy most of DoG's first segments.
@@ -748,8 +747,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             }
             else
                 HatGirl.SayThingWhileOwnerIsAlive(target, "Don't feel intimidated, face fear in the eyes and dash directly into the Devourer's maw!");
-            
-            float slitherOffsetAngle = (float)Math.Sin(MathHelper.TwoPi * universalFightTimer / 160f) * Utils.GetLerpValue(400f, 540f, distanceFromBaseDestination, true) * 0.19f;
 
             // Charge if the player is far away.
             // Don't do this at the start of the fight though. Doing so might lead to an unfair
@@ -787,7 +784,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                 speed = MathHelper.Clamp(speed, flySpeedFactor * 14.333f, flySpeedFactor * 32f);
 
                 // And handle movement.
-                npc.velocity = npc.velocity.RotateTowards(npc.AngleTo(destination) + slitherOffsetAngle, flyAcceleration, true) * speed;
+                npc.velocity = npc.velocity.RotateTowards(npc.AngleTo(destination), flyAcceleration, true) * speed;
                 npc.velocity = npc.velocity.MoveTowards(npc.SafeDirectionTo(destination) * speed, flyAcceleration * 25f);
             }
 
@@ -858,13 +855,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                         {
                             laser.MaxUpdates = 2;
                         });
-                        Utilities.NewProjectileBetter(laserSpawnPositionRight, laserVelocityRight, shootType, 400, 0f);
+                        Utilities.NewProjectileBetter(laserSpawnPositionRight, laserVelocityRight, shootType, DeathLaserDamage, 0f);
 
                         ProjectileSpawnManagementSystem.PrepareProjectileForSpawning(laser =>
                         {
                             laser.MaxUpdates = 2;
                         });
-                        Utilities.NewProjectileBetter(laserSpawnPositionLeft, laserVelocityLeft, shootType, 400, 0f);
+                        Utilities.NewProjectileBetter(laserSpawnPositionLeft, laserVelocityLeft, shootType, DeathLaserDamage, 0f);
                     }
 
                     // Lower wall.
@@ -877,7 +874,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                         {
                             laser.MaxUpdates = 2;
                         });
-                        Utilities.NewProjectileBetter(laserSpawnPosition, laserVelocity, shootType, 400, 0f);
+                        Utilities.NewProjectileBetter(laserSpawnPosition, laserVelocity, shootType, DeathLaserDamage, 0f);
                     }
 
                     // Upper wall.
@@ -890,7 +887,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                         {
                             laser.MaxUpdates = 2;
                         });
-                        Utilities.NewProjectileBetter(laserSpawnPosition, laserVelocity, shootType, 400, 0f);
+                        Utilities.NewProjectileBetter(laserSpawnPosition, laserVelocity, shootType, DeathLaserDamage, 0f);
                     }
                 }
             }
@@ -1024,15 +1021,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                     npc.Opacity = 1f;
                     npc.netUpdate = true;
 
-                    // Create a burst of homing flames.
+                    // Create a burst of accelerating flames.
                     float flameBurstOffsetAngle = Main.rand.NextFloat(MathHelper.TwoPi);
                     for (int i = 0; i < fireballCount; i++)
                     {
                         Vector2 flameShootVelocity = (MathHelper.TwoPi * i / fireballCount + flameBurstOffsetAngle).ToRotationVector2() * 13f;
-                        Utilities.NewProjectileBetter(npc.Center + flameShootVelocity * 3f, flameShootVelocity, ModContent.ProjectileType<AcceleratingDoGBurst>(), 380, 0f);
+                        Utilities.NewProjectileBetter(npc.Center + flameShootVelocity * 3f, flameShootVelocity, ModContent.ProjectileType<AcceleratingDoGBurst>(), AcceleratingFireballDamage, 0f);
 
                         flameShootVelocity = flameShootVelocity.RotatedBy(MathHelper.Pi / fireballCount) * 0.5f;
-                        Utilities.NewProjectileBetter(npc.Center + flameShootVelocity * 3f, flameShootVelocity, ModContent.ProjectileType<AcceleratingDoGBurst>(), 380, 0f);
+                        Utilities.NewProjectileBetter(npc.Center + flameShootVelocity * 3f, flameShootVelocity, ModContent.ProjectileType<AcceleratingDoGBurst>(), AcceleratingFireballDamage, 0f);
                     }
 
                     // Create the portal to go through.
@@ -1091,7 +1088,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                         if (Main.netMode != NetmodeID.MultiplayerClient)
                         {
                             float scaleFactor = 1.6f;
-                            perpendicularPortalAngle = MathHelper.PiOver2 * (float)Math.Round(npc.Infernum().ExtraAI[PreviousSnapAngleIndex] / MathHelper.PiOver2);
+                            perpendicularPortalAngle = MathHelper.PiOver2 * MathF.Round(npc.Infernum().ExtraAI[PreviousSnapAngleIndex] / MathHelper.PiOver2);
 
                             ProjectileSpawnManagementSystem.PrepareProjectileForSpawning(portal =>
                             {
@@ -1173,6 +1170,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                             SoundEngine.PlaySound(YanmeisKnife.HitSound with { Volume = 1.7f }, target.Center);
                             SoundEngine.PlaySound(TeslaCannon.FireSound with { Volume = 1.7f }, target.Center);
                             target.Calamity().GeneralScreenShakePower = 10f;
+                            ScreenEffectSystem.SetBlurEffect(npc.Center, 0.1f, 25);
                         }
                     }
 
@@ -1250,7 +1248,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                             portal.ModProjectile<DoGChargeGate>().IsGeneralPortalIndex = false;
                             portal.netUpdate = true;
                         }
-                        
+
                         ProjectileSpawnManagementSystem.PrepareProjectileForSpawning(portal =>
                         {
                             portal.ModProjectile<DoGChargeGate>().IsGeneralPortalIndex = true;
@@ -1289,7 +1287,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
 
                     if (!finalPhase)
                         npc.Infernum().ExtraAI[AnimationMoveDelayIndex] = 0f;
-                    
+
                     performingSpecialAttack = 0f;
                     specialAttackTimer = 0f;
                     damageImmunityCountdown = 60f;
@@ -1327,10 +1325,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                             DoSpecialAttack_ChargeGates(npc, target, finalPhase, ref specialAttackTimer, ref segmentFadeType);
                             return false;
                     }
-
-                    // Provide the target infinite flight time during laser grid attacks.
-                    if (specialAttackType != SpecialAttackType.ChargeGates)
-                        target.wingTime = target.wingTimeMax;
 
                     if (specialAttackType is SpecialAttackType.LaserWalls or SpecialAttackType.CircularLaserBurst)
                         HatGirl.SayThingWhileOwnerIsAlive(target, "Oh man, theres so many lasers! Slow and precise movements seem like your best bet here...");
@@ -1386,8 +1380,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                     jawSpriteEffect |= SpriteEffects.FlipHorizontally;
                 }
                 Vector2 jawPosition = drawPosition;
-                jawPosition += Vector2.UnitX.RotatedBy(npc.rotation + jawRotation * i) * i * (jawBaseOffset + (float)Math.Sin(jawRotation) * 24f);
-                jawPosition -= Vector2.UnitY.RotatedBy(npc.rotation) * (58f + (float)Math.Sin(jawRotation) * 30f);
+                jawPosition += Vector2.UnitX.RotatedBy(npc.rotation + jawRotation * i) * i * (jawBaseOffset + MathF.Sin(jawRotation) * 24f);
+                jawPosition -= Vector2.UnitY.RotatedBy(npc.rotation) * (58f + MathF.Sin(jawRotation) * 30f);
                 Main.spriteBatch.Draw(jawTexture, jawPosition, null, npc.GetAlpha(lightColor) * (1f - FadeToAntimatterForm), npc.rotation + jawRotation * i, jawOrigin, npc.scale, jawSpriteEffect, 0f);
                 Main.spriteBatch.Draw(jawTextureAntimatter, jawPosition, null, npc.GetAlpha(lightColor) * FadeToAntimatterForm, npc.rotation + jawRotation * i, jawOrigin, npc.scale, jawSpriteEffect, 0f);
             }

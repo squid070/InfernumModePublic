@@ -1,5 +1,6 @@
 using CalamityMod;
 using Microsoft.Xna.Framework;
+using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -22,16 +23,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenBee
             Projectile.ignoreWater = true;
             Projectile.timeLeft = 240;
             Projectile.scale = 1f;
-            Projectile.alpha = 255;
+            Projectile.Opacity = 0f;
             Projectile.tileCollide = false;
             Projectile.friendly = false;
             Projectile.hostile = true;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
-            Projectile.alpha = Utils.Clamp(Projectile.alpha - 50, 0, 255);
+            Projectile.Opacity = MathHelper.Clamp(Projectile.Opacity + 0.03f, 0f, 1f);
             Projectile.rotation = MathHelper.Clamp(Projectile.velocity.X * 0.15f, -0.7f, 0.7f);
             Projectile.spriteDirection = (Projectile.velocity.X < 0f).ToDirectionInt();
 
@@ -48,10 +50,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenBee
             SoundEngine.PlaySound(SoundID.NPCDeath1, Projectile.Center);
             for (int i = 0; i < 12; i++)
             {
-                Dust honey = Dust.NewDustDirect(Projectile.position, Projectile.width, Projectile.height, 147, 0f, 0f, 0, default, 0.8f);
+                Dust honey = Dust.NewDustDirect(Projectile.position, Projectile.width, Projectile.height, DustID.t_Honey, 0f, 0f, 0, default, 0.8f);
                 if (Main.rand.NextBool(2))
                     honey.scale *= 1.4f;
             }
+        }
+
+        public override bool PreDraw(ref Color lightColor)
+        {
+            Projectile.DrawProjectileWithBackglowTemp(Color.White with { A = 0 } * MathF.Pow(Projectile.Opacity, 2f), lightColor, Projectile.Opacity * 6f);
+            return false;
         }
     }
 }

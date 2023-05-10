@@ -1,5 +1,5 @@
 using CalamityMod;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
@@ -32,7 +32,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.CeaselessVoid
             Projectile.penetrate = -1;
             Projectile.timeLeft = 32;
             Projectile.scale = 2f;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -66,7 +66,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.CeaselessVoid
                 float opacity = Utils.GetLerpValue(0f, 0.15f, completionRatio, true);
                 return Projectile.GetAlpha(Color.White) * opacity;
             });
-            TelegraphDrawer.Draw(TelegraphPoints, -Main.screenPosition, 43);
+            TelegraphDrawer.Draw(TelegraphPoints, -Main.screenPosition, 15);
             return false;
         }
     }

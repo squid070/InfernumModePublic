@@ -1,4 +1,5 @@
 using CalamityMod;
+using CalamityMod.Sounds;
 using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
@@ -30,7 +31,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.timeLeft = 105;
             Projectile.Calamity().DealsDefenseDamage = true;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -110,7 +111,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.Center = Projectile.position;
             Projectile.Damage();
 
-            SoundEngine.PlaySound(SoundID.Item93, Projectile.Center);
+            SoundEngine.PlaySound(CommonCalamitySounds.ExoPlasmaExplosionSound, Projectile.Center);
 
             // Release fire gas.
             if (Main.netMode != NetmodeID.MultiplayerClient)

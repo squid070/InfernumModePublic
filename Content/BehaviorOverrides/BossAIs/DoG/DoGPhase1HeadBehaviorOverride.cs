@@ -3,9 +3,9 @@ using CalamityMod.Buffs.DamageOverTime;
 using CalamityMod.Buffs.StatDebuffs;
 using CalamityMod.NPCs;
 using CalamityMod.NPCs.DevourerofGods;
-using CalamityMod.Projectiles.Boss;
 using InfernumMode.Content.BossIntroScreens;
 using InfernumMode.Content.Skies;
+using InfernumMode.Core.GlobalInstances;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
@@ -16,7 +16,6 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
-
 using DoGHead = CalamityMod.NPCs.DevourerofGods.DevourerofGodsHead;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
@@ -64,6 +63,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             get;
             set;
         }
+
+        public static int AcceleratingFireballDamage => 380;
+
+        public static int DeathLaserDamage => 400;
 
         public const float Phase2LifeRatio = 0.8f;
 
@@ -151,6 +154,47 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             DoGPhase2HeadBehaviorOverride.FinalPhaseLifeRatio
         };
 
+        #region Loading
+        public override void Load()
+        {
+            GlobalNPCOverrides.BossHeadSlotEvent += RedefineMapSlotConditions;
+            GlobalNPCOverrides.StrikeNPCEvent += UpdateLifeTriggers;
+        }
+
+        private void RedefineMapSlotConditions(NPC npc, ref int index)
+        {
+            bool isDoG = npc.type == ModContent.NPCType<DoGHead>() || npc.type == ModContent.NPCType<DevourerofGodsBody>() || npc.type == ModContent.NPCType<DevourerofGodsTail>();
+            if (isDoG)
+            {
+                if (npc.Opacity <= 0.02f)
+                {
+                    index = -1;
+                    return;
+                }
+
+                int p1HeadIcon = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP1HeadMapIcon");
+                int p1TailIcon = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP1TailMapIcon");
+                int p2HeadIcon = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP2HeadMapIcon");
+                int p2BodyIcon = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP2BodyMapIcon");
+                int p2TailIcon = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP2TailMapIcon");
+                bool inPhase2 = DoGPhase2HeadBehaviorOverride.InPhase2;
+
+                if (npc.type == ModContent.NPCType<DoGHead>())
+                    index = inPhase2 ? p2HeadIcon : p1HeadIcon;
+                else if (npc.type == ModContent.NPCType<DevourerofGodsBody>())
+                    index = inPhase2 ? p2BodyIcon : -1;
+                else if (npc.type == ModContent.NPCType<DevourerofGodsTail>())
+                    index = inPhase2 ? p2TailIcon : p1TailIcon;
+            }
+        }
+
+        private bool UpdateLifeTriggers(NPC npc, ref double damage, int realDamage, int defense, ref float knockback, int hitDirection, ref bool crit)
+        {
+            // Make DoG enter the second phase once ready.
+            bool isDoG = npc.type == ModContent.NPCType<DoGHead>() || npc.type == ModContent.NPCType<DevourerofGodsBody>() || npc.type == ModContent.NPCType<DevourerofGodsTail>();
+            return !isDoG || HandleDoGLifeBasedHitTriggers(npc, realDamage, ref damage);
+        }
+
         public static bool HandleDoGLifeBasedHitTriggers(NPC npc, double realDamage, ref double damage)
         {
             int life = npc.realLife >= 0 ? Main.npc[npc.realLife].life : npc.life;
@@ -178,14 +222,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             }
             return true;
         }
+        #endregion Loading
 
         #region AI
         public override bool PreAI(NPC npc)
         {
-            // Disable secondary teleport effects.
-            Main.player[npc.target].Calamity().normalityRelocator = false;
-            Main.player[npc.target].Calamity().spectralVeil = false;
-
             ref float universalFightTimer = ref npc.Infernum().ExtraAI[UniversalFightTimerIndex];
             ref float flyAcceleration = ref npc.Infernum().ExtraAI[CurrentFlyAccelerationIndex];
             ref float jawRotation = ref npc.Infernum().ExtraAI[JawRotationIndex];
@@ -376,7 +417,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                             {
                                 laser.MaxUpdates = 3;
                             });
-                            Utilities.NewProjectileBetter(target.Center + spawnOffset, laserShootVelocity, ModContent.ProjectileType<DoGDeathInfernum>(), 455, 0f);
+                            Utilities.NewProjectileBetter(target.Center + spawnOffset, laserShootVelocity, ModContent.ProjectileType<DoGDeathInfernum>(), DeathLaserDamage, 0f);
                         }
                     }
                 }
@@ -470,8 +511,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                     jawBaseOffset *= -1f;
                 }
                 Vector2 jawPosition = drawPosition;
-                jawPosition += Vector2.UnitX.RotatedBy(npc.rotation + jawRotation * i) * (18f + i * (34f + jawBaseOffset + (float)Math.Sin(jawRotation) * 20f));
-                jawPosition -= Vector2.UnitY.RotatedBy(npc.rotation) * (16f + (float)Math.Sin(jawRotation) * 20f);
+                jawPosition += Vector2.UnitX.RotatedBy(npc.rotation + jawRotation * i) * (18f + i * (34f + jawBaseOffset + MathF.Sin(jawRotation) * 20f));
+                jawPosition -= Vector2.UnitY.RotatedBy(npc.rotation) * (16f + MathF.Sin(jawRotation) * 20f);
                 Main.spriteBatch.Draw(jawTexture, jawPosition, null, lightColor, npc.rotation + jawRotation * i, jawOrigin, npc.scale, jawSpriteEffect, 0f);
             }
 
@@ -480,6 +521,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
 
             Texture2D glowmaskTexture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP1HeadGlow").Value;
             Main.spriteBatch.Draw(glowmaskTexture, drawPosition, headFrame, Color.White, npc.rotation, headTextureOrigin, npc.scale, spriteEffects, 0f);
+
             return false;
         }
         #endregion Drawing

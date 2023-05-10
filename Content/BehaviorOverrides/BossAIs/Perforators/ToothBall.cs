@@ -29,6 +29,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Perforators
             Projectile.hostile = true;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -58,7 +59,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Perforators
                 for (int i = 0; i < 6; i++)
                 {
                     Vector2 ichorShootVelocity = (MathHelper.TwoPi * i / 6f + offsetAngle).ToRotationVector2() * 9f;
-                    Utilities.NewProjectileBetter(Projectile.Center, ichorShootVelocity, ModContent.ProjectileType<IchorSpit>(), 75, 0f);
+                    Utilities.NewProjectileBetter(Projectile.Center, ichorShootVelocity, ModContent.ProjectileType<IchorSpit>(), PerforatorHiveBehaviorOverride.IchorSpitDamage, 0f);
                 }
             }
         }

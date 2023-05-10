@@ -1,7 +1,9 @@
 using CalamityMod;
+using CalamityMod.NPCs;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -42,6 +44,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.hide = true;
             Projectile.netImportant = true;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -72,7 +75,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 
             // Spin.
             float spinInterpolant = Utils.GetLerpValue(16f, 150f, Time, true);
-            float angularVelocity = MathHelper.Lerp(0.006f, 0.0174f, (float)Math.Pow(spinInterpolant, 1.75));
+            float angularVelocity = MathHelper.Lerp(0.006f, 0.0174f, MathF.Pow(spinInterpolant, 1.75f));
             Projectile.velocity = Projectile.velocity.RotatedBy(angularVelocity);
 
             // Make the beam cast light along its length. The brightness of the light is reliant on the scale of the beam.
@@ -87,9 +90,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
         {
             float opacity = Projectile.Opacity * Utils.GetLerpValue(0.97f, 0.9f, completionRatio, true) *
                 Utils.GetLerpValue(0f, MathHelper.Clamp(15f / LaserLength, 0f, 0.5f), completionRatio, true) *
-                (float)Math.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3D);
-            float flameInterpolant = (float)Math.Sin(completionRatio * 3f + Main.GlobalTimeWrappedHourly * 0.5f + Projectile.identity * 0.3156f) * 0.5f + 0.5f;
-            Color c = Color.Lerp(Color.White, Color.Orange, MathHelper.Lerp(0.5f, 0.8f, flameInterpolant)) * opacity;
+                MathF.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3f);
+
+            float flameInterpolant = MathF.Sin(completionRatio * 3f + Main.GlobalTimeWrappedHourly * 0.5f + Projectile.identity * 0.3156f) * 0.5f + 0.5f;
+            Color flameColor = Color.Orange;
+            if (CalamityGlobalNPC.SCal == CalamityGlobalNPC.SCalLament)
+                flameColor = Color.Lerp(flameColor, Color.Blue, 0.6f);
+
+            Color c = Color.Lerp(Color.White, flameColor, MathHelper.Lerp(0.5f, 0.8f, flameInterpolant)) * opacity;
             c.A = 0;
 
             return c;
@@ -108,14 +116,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 
             Projectile.scale *= 0.8f;
             InfernumEffectsRegistry.PrismaticRayVertexShader.UseImage1("Images/Misc/Perlin");
-            Main.instance.GraphicsDevice.Textures[2] = InfernumTextureRegistry.StreakFire.Value;
+            Main.instance.GraphicsDevice.Textures[2] = InfernumTextureRegistry.TrypophobiaNoise.Value;
             Projectile.scale /= 0.8f;
 
             RayDrawer.DrawPixelated(basePoints, overallOffset, 42);
 
             Projectile.scale *= 1.5f;
             InfernumEffectsRegistry.PrismaticRayVertexShader.SetShaderTexture(InfernumTextureRegistry.CultistRayMap);
-            Main.instance.GraphicsDevice.Textures[2] = InfernumTextureRegistry.StreakFire.Value;
+            Main.instance.GraphicsDevice.Textures[2] = InfernumTextureRegistry.TrypophobiaNoise.Value;
             RayDrawer.DrawPixelated(basePoints, overallOffset, 42);
             Projectile.scale /= 1.5f;
         }

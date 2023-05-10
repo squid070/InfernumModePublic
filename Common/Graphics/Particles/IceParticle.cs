@@ -8,13 +8,14 @@ namespace InfernumMode.Common.Graphics.Particles
 {
     public class SnowyIceParticle : Particle
     {
-        private float Spin;
 
         private float opacity;
 
         private Vector2 Gravity;
 
         public Rectangle Frame;
+
+        public readonly float Spin;
 
         public override bool UseHalfTransparency => false;
 
@@ -31,7 +32,7 @@ namespace InfernumMode.Common.Graphics.Particles
             Color = color;
             Scale = scale;
             Lifetime = lifetime;
-            Rotation = Main.rand.NextFloat((float)Math.PI * 2);
+            Rotation = Main.rand.NextFloat(MathHelper.TwoPi);
             Spin = rotationspeed;
             Gravity = (gravity ?? new Vector2?(Vector2.Zero)).Value;
             Variant = Main.rand.Next(12);
@@ -41,7 +42,7 @@ namespace InfernumMode.Common.Graphics.Particles
         public override void Update()
         {
             Velocity += Gravity;
-            opacity = (float)Math.Cos(MathHelper.PiOver2 * LifetimeCompletion);
+            opacity = MathF.Cos(MathHelper.PiOver2 * LifetimeCompletion);
             Velocity *= 0.95f;
             Rotation += Spin * (Velocity.X > 0f ? 1f : -1f);
             Scale *= 0.98f;

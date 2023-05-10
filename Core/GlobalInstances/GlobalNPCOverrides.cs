@@ -1,64 +1,73 @@
 using CalamityMod;
 using CalamityMod.Buffs.StatBuffs;
+using CalamityMod.Buffs.StatDebuffs;
 using CalamityMod.Events;
 using CalamityMod.NPCs;
 using CalamityMod.NPCs.AstrumAureus;
+using CalamityMod.NPCs.CeaselessVoid;
 using CalamityMod.NPCs.DevourerofGods;
 using CalamityMod.NPCs.ExoMechs;
-using CalamityMod.NPCs.ExoMechs.Apollo;
-using CalamityMod.NPCs.ExoMechs.Ares;
-using CalamityMod.NPCs.ExoMechs.Thanatos;
 using CalamityMod.NPCs.GreatSandShark;
 using CalamityMod.NPCs.NormalNPCs;
-using CalamityMod.NPCs.Providence;
-using CalamityMod.NPCs.SlimeGod;
+using CalamityMod.NPCs.PlaguebringerGoliath;
+using CalamityMod.NPCs.SupremeCalamitas;
 using CalamityMod.NPCs.Yharon;
 using CalamityMod.UI;
-using InfernumMode.Assets.Sounds;
 using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
+using InfernumMode.Content.Achievements;
 using InfernumMode.Content.Achievements.InfernumAchievements;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Cryogen;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.DoG;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.EoW;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Prime;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod;
-using InfernumMode.Content.Subworlds;
-using InfernumMode.Content.WorldGeneration;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians;
+using InfernumMode.Content.Items.SummonItems;
 using InfernumMode.Core.Balancing;
 using InfernumMode.Core.GlobalInstances.Players;
-using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
-using SubworldLibrary;
 using System;
 using System.Linq;
 using Terraria;
-using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
 using CryogenNPC = CalamityMod.NPCs.Cryogen.Cryogen;
-using OldDukeNPC = CalamityMod.NPCs.OldDuke.OldDuke;
 
-namespace InfernumMode.GlobalInstances
+namespace InfernumMode.Core.GlobalInstances
 {
     public partial class GlobalNPCOverrides : GlobalNPC
     {
         #region Instance and Variables
         public override bool InstancePerEntity => true;
 
+        // I'll be fucking damned if this isn't enough.
         public const int TotalExtraAISlots = 100;
 
-        // I'll be fucking damned if this isn't enough.
         public int? TotalPlayersAtStart = null;
-        public bool ShouldUseSaturationBlur = false;
+
+        public bool DisableNaturalDespawning;
+
+        public bool ShouldUseSaturationBlur;
+
+        public bool IsAbyssPredator;
+
+        public bool IsAbyssPrey;
+
+        public bool HasResetHP;
+
+        // I'll be fucking damned if this isn't enough.
         public float[] ExtraAI = new float[TotalExtraAISlots];
+
         public Rectangle Arena = default;
+
         public PrimitiveTrailCopy OptionalPrimitiveDrawer;
 
+        public Primitive3DStrip Optional3DStripDrawer;
+
         internal static int Cryogen = -1;
+
         internal static int AstrumAureus = -1;
+
+        internal static int ProfanedCrystal = -1;
+
         internal static int Yharon = -1;
 
         #endregion
@@ -66,29 +75,32 @@ namespace InfernumMode.GlobalInstances
         #region Reset Effects
         public override void ResetEffects(NPC npc)
         {
-            static void ResetSavedIndex(ref int type, int type1, int type2 = -1)
+            static void ResetSavedIndex(ref int index, int type, int type2 = -1)
             {
-                if (type >= 0)
+                if (index >= 0)
                 {
-                    if (!Main.npc[type].active)
-                    {
-                        type = -1;
-                    }
+                    // If the index npc is not active, reset the index.
+                    if (!Main.npc[index].active)
+                        index = -1;
+
+                    // Else, if this is -1,
                     else if (type2 == -1)
                     {
-                        if (Main.npc[type].type != type1)
-                            type = -1;
+                        // If the index is not the correct type, reset the index.
+                        if (Main.npc[index].type != type)
+                            index = -1;
                     }
                     else
                     {
-                        if (Main.npc[type].type != type1 && Main.npc[type].type != type2)
-                            type = -1;
+                        if (Main.npc[type].type != type && Main.npc[index].type != type2)
+                            index = -1;
                     }
                 }
             }
 
             ResetSavedIndex(ref Cryogen, ModContent.NPCType<CryogenNPC>());
             ResetSavedIndex(ref AstrumAureus, ModContent.NPCType<AstrumAureus>());
+            ResetSavedIndex(ref ProfanedCrystal, ModContent.NPCType<HealerShieldCrystal>());
             ResetSavedIndex(ref Yharon, ModContent.NPCType<Yharon>());
         }
         #endregion Reset Effects
@@ -101,40 +113,22 @@ namespace InfernumMode.GlobalInstances
                 ExtraAI[i] = 0f;
 
             ShouldUseSaturationBlur = false;
+            IsAbyssPredator = false;
+            IsAbyssPrey = false;
+            HasResetHP = false;
             OptionalPrimitiveDrawer = null;
+            Optional3DStripDrawer = null;
 
             if (InfernumMode.CanUseCustomAIs)
             {
-                if (OverridingListManager.InfernumSetDefaultsOverrideList.ContainsKey(npc.type))
-                    OverridingListManager.InfernumSetDefaultsOverrideList[npc.type].DynamicInvoke(npc);
+                if (OverridingListManager.InfernumSetDefaultsOverrideList.TryGetValue(npc.type, out Delegate value))
+                    value.DynamicInvoke(npc);
             }
         }
 
         public override void SetStaticDefaults()
         {
             NPCID.Sets.BossBestiaryPriority.Add(ModContent.NPCType<GreatSandShark>());
-        }
-
-        public void AdjustMaxHP(ref int maxHP)
-        {
-            float hpMultiplier = 1f;
-            float accumulatedFactor = 0.35f;
-            if (Main.netMode != NetmodeID.SinglePlayer)
-            {
-                for (int i = 1; i < (TotalPlayersAtStart ?? 1); i++)
-                {
-                    hpMultiplier += accumulatedFactor * 0.5f;
-                    accumulatedFactor += (1f - accumulatedFactor) / 3f;
-                }
-            }
-            if (hpMultiplier > 8f)
-                hpMultiplier = (hpMultiplier * 2f + 8f) / 3f;
-
-            if (hpMultiplier > 1000f)
-                hpMultiplier = 1000f;
-
-            maxHP = (int)(maxHP * hpMultiplier);
-            maxHP += (int)(maxHP * CalamityConfig.Instance.BossHealthBoost * 0.01);
         }
 
         public override bool PreAI(NPC npc)
@@ -154,14 +148,13 @@ namespace InfernumMode.GlobalInstances
                 TotalPlayersAtStart = activePlayerCount;
                 npc.netUpdate = true;
             }
-            
+
             if (InfernumMode.CanUseCustomAIs)
             {
                 // Correct an enemy's life depending on its cached true life value.
-                if (NPCHPValues.HPValues.ContainsKey(npc.type) && NPCHPValues.HPValues[npc.type] >= 0)
+                if (!HasResetHP && NPCHPValues.HPValues.TryGetValue(npc.type, out int maxHP) && maxHP >= 0)
                 {
-                    int maxHP = NPCHPValues.HPValues[npc.type];
-                    AdjustMaxHP(ref maxHP);
+                    NPCHPValues.AdjustMaxHP(npc, ref maxHP);
 
                     if (maxHP != npc.lifeMax)
                     {
@@ -172,33 +165,44 @@ namespace InfernumMode.GlobalInstances
                         npc.netUpdate = true;
                     }
                 }
+                HasResetHP = true;
 
-                if (OverridingListManager.InfernumNPCPreAIOverrideList.ContainsKey(npc.type))
+                if (OverridingListManager.InfernumNPCPreAIOverrideList.TryGetValue(npc.type, out OverridingListManager.NPCPreAIDelegate value))
                 {
                     // Disable the effects of timed DR.
-                    if (npc.Calamity().KillTime > 0 && npc.Calamity().AITimer < npc.Calamity().KillTime)
+                    if (npc.Calamity().KillTime >= 1 && npc.Calamity().AITimer < npc.Calamity().KillTime)
                         npc.Calamity().AITimer = npc.Calamity().KillTime;
 
                     // If any boss NPC is active, apply Zen to nearby players to reduce spawn rate.
                     if (Main.netMode != NetmodeID.Server && CalamityConfig.Instance.BossZen && (npc.Calamity().KillTime > 0 || npc.type == ModContent.NPCType<Draedon>() || npc.type == ModContent.NPCType<ThiccWaifu>()))
                     {
-                        if (!Main.player[Main.myPlayer].dead && Main.player[Main.myPlayer].active && npc.WithinRange(Main.player[Main.myPlayer].Center, 6400f))
-                            Main.player[Main.myPlayer].AddBuff(ModContent.BuffType<BossEffects>(), 2);
+                        if (!Main.LocalPlayer.dead && Main.LocalPlayer.active && npc.WithinRange(Main.LocalPlayer.Center, 6400f))
+                            Main.LocalPlayer.AddBuff(ModContent.BuffType<BossEffects>(), 2);
                     }
 
                     // Decrement each immune timer if it's greater than 0.
                     for (int i = 0; i < CalamityGlobalNPC.maxPlayerImmunities; i++)
                     {
-                        if (npc.Calamity().dashImmunityTime[i] > 0)
+                        if (npc.Calamity().dashImmunityTime[i] >= 1)
                             npc.Calamity().dashImmunityTime[i]--;
                     }
 
                     // Disable netOffset effects.
                     npc.netOffset = Vector2.Zero;
 
-                    bool result = OverridingListManager.InfernumNPCPreAIOverrideList[npc.type].Invoke(npc);
+                    bool result = value.Invoke(npc);
                     if (ShouldUseSaturationBlur && !BossRushEvent.BossRushActive)
                         ScreenSaturationBlurSystem.ShouldEffectBeActive = true;
+
+                    // Disable the effects of certain unpredictable freeze debuffs.
+                    // Time Bolt and a few other weapon-specific debuffs are not counted here since those are more deliberate weapon mechanics.
+                    // That said, I don't know a single person who uses Time Bolt so it's probably irrelevant either way lol.
+                    npc.buffImmune[ModContent.BuffType<ExoFreeze>()] = true;
+                    npc.buffImmune[ModContent.BuffType<Eutrophication>()] = true;
+                    npc.buffImmune[ModContent.BuffType<GalvanicCorrosion>()] = true;
+                    npc.buffImmune[ModContent.BuffType<GlacialState>()] = true;
+                    npc.buffImmune[ModContent.BuffType<TemporalSadness>()] = true;
+                    npc.buffImmune[BuffID.Webbed] = true;
 
                     return result;
                 }
@@ -206,89 +210,12 @@ namespace InfernumMode.GlobalInstances
             return base.PreAI(npc);
         }
 
-        public override bool PreKill(NPC npc)
-        {
-            if (!InfernumMode.CanUseCustomAIs)
-                return base.PreKill(npc);
-
-            if (npc.type == NPCID.EaterofWorldsHead && OverridingListManager.Registered(npc.type))
-                return EoWHeadBehaviorOverride.PerformDeathEffect(npc);
-
-            if (npc.type == ModContent.NPCType<OldDukeNPC>() && OverridingListManager.Registered(npc.type))
-                CalamityMod.CalamityMod.StopRain();
-
-            int apolloID = ModContent.NPCType<Apollo>();
-            int thanatosID = ModContent.NPCType<ThanatosHead>();
-            int aresID = ModContent.NPCType<AresBody>();
-            int totalExoMechs = 0;
-            for (int i = 0; i < Main.maxNPCs; i++)
-            {
-                if (Main.npc[i].type != apolloID && Main.npc[i].type != thanatosID && Main.npc[i].type != aresID)
-                    continue;
-                if (!Main.npc[i].active)
-                    continue;
-
-                totalExoMechs++;
-            }
-            if (totalExoMechs >= 2 && Utilities.IsExoMech(npc) && OverridingListManager.Registered<Apollo>())
-                return false;
-
-            // Prevent wandering eye fishes from dropping loot if they were spawned by a dreadnautilus.
-            if (npc.type == NPCID.EyeballFlyingFish && NPC.AnyNPCs(NPCID.BloodNautilus))
-                DropHelper.BlockDrops(ItemID.ChumBucket, ItemID.VampireFrogStaff, ItemID.BloodFishingRod, ItemID.BloodRainBow, ItemID.MoneyTrough, ItemID.BloodMoonStarter);
-
-            // Ensure that the great sand shark drops its items on top of the player. The reason for this is because if it releases items inside of blocks they will
-            // be completely unobtainable, due to the Colosseum subworld not being mineable.
-            if (npc.type == ModContent.NPCType<GreatSandShark>())
-            {
-                npc.damage = 0;
-                npc.Center = Main.player[npc.target].Center;
-            }
-
-            return base.PreKill(npc);
-        }
-
         public override void OnKill(NPC npc)
         {
             if (!InfernumMode.CanUseCustomAIs)
                 return;
-            
-            bool bigSlimeGod = npc.type == ModContent.NPCType<EbonianSlimeGod>() || npc.type == ModContent.NPCType<CrimulanSlimeGod>();
-            if (bigSlimeGod && OverridingListManager.Registered(npc.type))
-            {
-                for (int i = 0; i < 12; i++)
-                {
-                    int slime = NPC.NewNPC(npc.GetSource_Death(), (int)npc.Center.X, (int)npc.Center.Y, npc.type, ModContent.NPCType<SplitBigSlimeAnimation>());
-                    Main.npc[slime].velocity = Main.rand.NextVector2Circular(8f, 8f);
-                }
-            }
 
-            if (!WeakReferenceSupport.InAnySubworld())
-            {
-                // Create a profaned temple after the moon lord is killed if it doesn't exist yet, for backwards world compatibility reasons.
-                if (npc.type == NPCID.MoonLordCore && !WorldSaveSystem.HasGeneratedProfanedShrine)
-                {
-                    Utilities.DisplayText("A profaned shrine has erupted from the ashes at the underworld's edge!", Color.Orange);
-                    ProfanedGarden.Generate(new(), new(new()));
-                    WorldSaveSystem.HasGeneratedProfanedShrine = true;
-                }
-
-                // Create a lost colosseum entrance after the cultistis killed if it doesn't exist yet, for backwards world compatibility reasons.
-                if (npc.type == NPCID.CultistBoss && !WorldSaveSystem.HasGeneratedColosseumEntrance)
-                {
-                    Utilities.DisplayText("Mysterious ruins have materialized in the heart of the desert!", Color.Lerp(Color.Orange, Color.Yellow, 0.65f));
-                    LostColosseumEntrance.Generate(new(), new(new()));
-                    WorldSaveSystem.HasGeneratedColosseumEntrance = true;
-                }
-            }
-
-            if (npc.type == ModContent.NPCType<Providence>())
-            {
-                if (!Main.dayTime && !WorldSaveSystem.HasBeatedInfernumProvRegularly)
-                    WorldSaveSystem.HasBeatedInfernumNightProvBeforeDay = true;
-                WorldSaveSystem.HasBeatedInfernumProvRegularly = true;
-                CalamityNetcode.SyncWorld();
-            }
+            OnKillEvent?.Invoke(npc);
 
             // Trigger achievement checks.
             for (int i = 0; i < Main.maxPlayers; i++)
@@ -297,24 +224,20 @@ namespace InfernumMode.GlobalInstances
                     continue;
 
                 Player player = Main.player[i];
-                if (npc.boss)
-                    AchievementPlayer.ExtraUpdateAchievements(player, new UpdateContext(npc.whoAmI));
-                else if (KillAllMinibossesAchievement.MinibossIDs.Contains(npc.type))
-                    AchievementPlayer.ExtraUpdateAchievements(player, new UpdateContext(npc.whoAmI));
-            }
-        }
-
-        public override void EditSpawnRate(Player player, ref int spawnRate, ref int maxSpawns)
-        {
-            if (player.Infernum_Biome().ZoneProfaned || SubworldSystem.IsActive<LostColosseum>())
-            {
-                spawnRate *= 40000;
-                maxSpawns = 0;
+                if (npc.boss || KillAllMinibossesAchievement.MinibossIDs.Contains(npc.type))
+                    AchievementPlayer.ExtraUpdateHandler(player, AchievementUpdateCheck.NPCKill, npc.whoAmI);
             }
         }
 
         public override bool CanHitPlayer(NPC npc, Player target, ref int cooldownSlot)
         {
+            if (!InfernumMode.CanUseCustomAIs)
+                return base.CanHitPlayer(npc, target, ref cooldownSlot);
+
+            bool isSepulcher = npc.type == ModContent.NPCType<SepulcherHead>() || npc.type == ModContent.NPCType<SepulcherBody>() || npc.type == ModContent.NPCType<SepulcherBodyEnergyBall>() || npc.type == ModContent.NPCType<SepulcherTail>();
+            if (npc.type == NPCID.KingSlime || npc.type == NPCID.Plantera || npc.type == ModContent.NPCType<PlaguebringerGoliath>() || npc.type == ModContent.NPCType<DarkEnergy>() || isSepulcher)
+                cooldownSlot = ImmunityCooldownID.Bosses;
+
             if (npc.type == ModContent.NPCType<DevourerofGodsBody>() && OverridingListManager.Registered<DevourerofGodsHead>())
             {
                 cooldownSlot = 0;
@@ -338,16 +261,7 @@ namespace InfernumMode.GlobalInstances
             if (!InfernumMode.CanUseCustomAIs)
                 return;
 
-            // Play GSS' custom hit sound.
-            if (npc.type == ModContent.NPCType<GreatSandShark>() && npc.soundDelay <= 0)
-            {
-                SoundEngine.PlaySound(InfernumSoundRegistry.GreatSandSharkHitSound with { Volume = 2f }, npc.Center);
-                npc.soundDelay = 11;
-            }
-
-            // Ensure that Prime's saw ends the saw sound if it's unexpectedly killed.
-            if (npc.type == NPCID.PrimeSaw && npc.life <= 0)
-                PrimeViceBehaviorOverride.DoBehavior_SlowSparkShrapnelMeleeCharges(npc, Main.player[npc.target], false);
+            HitEffectsEvent?.Invoke(npc, hitDirection, damage);
         }
 
         public override bool StrikeNPC(NPC npc, ref double damage, int defense, ref float knockback, int hitDirection, ref bool crit)
@@ -355,34 +269,18 @@ namespace InfernumMode.GlobalInstances
             if (!InfernumMode.CanUseCustomAIs)
                 return base.StrikeNPC(npc, ref damage, defense, ref knockback, hitDirection, ref crit);
 
-            if (npc.type == ModContent.NPCType<Yharon>() && OverridingListManager.Registered(npc.type))
+            // Loop through the StrikeNPC event subscribers and dynamically update the damage and such for every loop iteration.
+            // If any of the subscribers instruct this method to return false and disable damage, that applies universally.
+            // The reason the loop is necessary is because simply invoking the event and returning the result will only give back the result for the
+            // last subscriber called, effectively ignoring whatever all the other subscribers say should happen.
+            bool result = true;
+            foreach (Delegate d in StrikeNPCEvent.GetInvocationList())
             {
-                if (npc.life - (int)Math.Ceiling(damage) <= 0)
-                    npc.NPCLoot();
+                int realDamage = (int)Math.Ceiling(crit ? damage * 2D : damage);
+                result &= ((StrikeNPCDelegate)d).Invoke(npc, ref damage, realDamage, defense, ref knockback, hitDirection, ref crit);
             }
 
-            double realDamage = crit ? damage * 2D : damage;
-
-            // Make DoG enter the second phase once ready.
-            bool isDoG = npc.type == ModContent.NPCType<DevourerofGodsHead>() || npc.type == ModContent.NPCType<DevourerofGodsBody>() || npc.type == ModContent.NPCType<DevourerofGodsTail>();
-            if (isDoG && OverridingListManager.Registered<DevourerofGodsHead>())
-                DoGPhase1HeadBehaviorOverride.HandleDoGLifeBasedHitTriggers(npc, realDamage, ref damage);
-
-            if ((npc.type is NPCID.MoonLordHand or NPCID.MoonLordHead) && OverridingListManager.Registered(NPCID.MoonLordCore))
-                MoonLordCoreBehaviorOverride.HandleBodyPartDeathTriggers(npc, realDamage);
-
-            // Make Thanatos' head take a flat multiplier in terms of final damage, as a means of allowing direct hits to be effective.
-            if (npc.type == ModContent.NPCType<ThanatosHead>() && OverridingListManager.Registered(npc.type))
-            {
-                damage = (int)(damage * ThanatosHeadBehaviorOverride.FlatDamageBoostFactor);
-                if (npc.Calamity().DR > 0.999f)
-                {
-                    damage = 0D;
-                    return false;
-                }
-            }
-
-            return base.StrikeNPC(npc, ref damage, defense, ref knockback, hitDirection, ref crit);
+            return result;
         }
 
         public override void ModifyHitByProjectile(NPC npc, Projectile projectile, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
@@ -395,29 +293,31 @@ namespace InfernumMode.GlobalInstances
 
         public override bool CheckDead(NPC npc)
         {
-            if (InfernumMode.CanUseCustomAIs && OverridingListManager.InfernumCheckDeadOverrideList.ContainsKey(npc.type))
-                return (bool)OverridingListManager.InfernumCheckDeadOverrideList[npc.type].DynamicInvoke(npc);
-            
+            if (InfernumMode.CanUseCustomAIs && OverridingListManager.InfernumCheckDeadOverrideList.TryGetValue(npc.type, out OverridingListManager.NPCCheckDeadDelegate value))
+                return (bool)value.DynamicInvoke(npc);
+
             return base.CheckDead(npc);
         }
 
         public override bool CheckActive(NPC npc)
         {
+            if (DisableNaturalDespawning)
+                return false;
+
             if (!InfernumMode.CanUseCustomAIs)
                 return base.CheckActive(npc);
-
-            if (npc.type == NPCID.KingSlime && OverridingListManager.Registered(npc.type))
-                return false;
-            if (npc.type == NPCID.SkeletronHand && OverridingListManager.Registered(NPCID.SkeletronHead))
-                return false;
-            if (npc.type == NPCID.AncientCultistSquidhead && OverridingListManager.Registered(NPCID.CultistBoss))
-                return false;
-            if (npc.type == NPCID.MoonLordFreeEye && OverridingListManager.Registered(NPCID.MoonLordCore))
-                return false;
 
             return base.CheckActive(npc);
         }
 
+        public override void OnChatButtonClicked(NPC npc, bool firstButton)
+        {
+            if (npc.type == NPCID.OldMan && firstButton && InfernumMode.CanUseCustomAIs && !Main.LocalPlayer.GetModPlayer<SkeletronSummonerGiftPlayer>().WasGivenDungeonsCurse)
+            {
+                Item.NewItem(npc.GetSource_FromThis(), Main.LocalPlayer.Hitbox, ModContent.ItemType<DungeonsCurse>());
+                Main.LocalPlayer.GetModPlayer<SkeletronSummonerGiftPlayer>().WasGivenDungeonsCurse = true;
+            }
+        }
         #endregion
     }
 }

@@ -30,7 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             Projectile.ignoreWater = true;
             Projectile.Calamity().DealsDefenseDamage = true;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -45,13 +45,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
 
             // Calculate light power. This checks below the position of the fog to check if this fog is underground.
             // Without this, it may render over the fullblack that the game renders for obscured tiles.
-            float lightPowerBelow = Lighting.GetColor((int)Projectile.Center.X / 16, (int)Projectile.Center.Y / 16 + 6).ToVector3().Length() / (float)Math.Sqrt(3D);
+            float lightPowerBelow = Lighting.GetColor((int)Projectile.Center.X / 16, (int)Projectile.Center.Y / 16 + 6).ToVector3().Length() / MathF.Sqrt(3f);
             LightPower = MathHelper.Lerp(LightPower, lightPowerBelow, 0.15f);
             Projectile.Opacity = Utils.GetLerpValue(180f, 165f, Projectile.timeLeft, true) * Utils.GetLerpValue(0f, 60f, Projectile.timeLeft, true);
             Projectile.rotation += Projectile.velocity.X * 0.004f;
             Projectile.velocity *= 0.985f;
         }
-        
+
         public override bool? CanDamage()/* tModPorter Suggestion: Return null instead of false */ => Projectile.Opacity > 0.6f;
 
         public override bool PreDraw(ref Color lightColor) => false;

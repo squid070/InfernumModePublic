@@ -1,7 +1,7 @@
+using CalamityMod;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
-using Terraria.Utilities;
 
 namespace InfernumMode
 {
@@ -27,14 +27,14 @@ namespace InfernumMode
         /// <param name="angle">The angular interpolant.</param>
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
-        public static float AngularSmoothstep(float angle, float min, float max) => ((max - min) * ((float)Math.Cos(angle) * 0.5f)) + min + ((max - min) * 0.5f);
+        public static float AngularSmoothstep(float angle, float min, float max) => ((max - min) * (MathF.Cos(angle) * 0.5f)) + min + ((max - min) * 0.5f);
 
         /// <summary>
         /// Determines the angular distance between two vectors based on dot product comparisons. This method ensures underlying normalization is performed safely.
         /// </summary>
         /// <param name="v1">The first vector.</param>
         /// <param name="v2">The second vector.</param>
-        public static float AngleBetween(this Vector2 v1, Vector2 v2) => (float)Math.Acos(Vector2.Dot(v1.SafeNormalize(Vector2.Zero), v2.SafeNormalize(Vector2.Zero)));
+        public static float AngleBetween(this Vector2 v1, Vector2 v2) => MathF.Acos(Vector2.Dot(v1.SafeNormalize(Vector2.Zero), v2.SafeNormalize(Vector2.Zero)));
 
         /// <summary>
         /// Uses a rewritten horizontal range formula to determine the direction to fire a projectile in order for it to hit a destination. Falls back on a certain value if no such direction can exist. If no fallback is provided, a clamp is used.
@@ -50,13 +50,13 @@ namespace InfernumMode
             gravity = -Math.Abs(gravity);
 
             float horizontalRange = MathHelper.Distance(shootingPosition.X, destination.X);
-            float fireAngleSine = gravity * horizontalRange / (float)Math.Pow(shootSpeed, 2);
+            float fireAngleSine = gravity * horizontalRange / MathF.Pow(shootSpeed, 2f);
 
             // Clamp the sine if no fallback is provided.
             if (nanFallback is null)
                 fireAngleSine = MathHelper.Clamp(fireAngleSine, -1f, 1f);
 
-            fireAngle = (float)Math.Asin(fireAngleSine) * 0.5f;
+            fireAngle = MathF.Asin(fireAngleSine) * 0.5f;
 
             // Get out of here if no valid firing angle exists. This can only happen if a fallback does indeed exist.
             if (float.IsNaN(fireAngle))
@@ -118,7 +118,14 @@ namespace InfernumMode
         /// <param name="v">The vector.</param>
         /// <param name="min">The minimum magnitude.</param>
         /// <param name="max">The maximum magnitude.</param>
-        public static Vector2 ClampMagnitude(this Vector2 v, float min, float max) => v.SafeNormalize(Vector2.UnitY) * MathHelper.Clamp(v.Length(), min, max);
+        public static Vector2 ClampMagnitude(this Vector2 v, float min, float max)
+        {
+            Vector2 result = v.SafeNormalize(Vector2.UnitY) * MathHelper.Clamp(v.Length(), min, max);
+            if (result.HasNaNs())
+                return Vector2.UnitY * -min;
+
+            return result;
+        }
 
         public static Vector2 MoveTowards(this Vector2 currentPosition, Vector2 targetPosition, float maxAmountAllowedToMove)
         {
@@ -127,73 +134,6 @@ namespace InfernumMode
                 return targetPosition;
 
             return currentPosition + v.SafeNormalize(Vector2.Zero) * maxAmountAllowedToMove;
-        }
-
-        /// <summary>
-        /// Gives an approximation of a derivative of a function at a given point based on the limit (f(x+h) - f(x)) / h, with an extremely small value for h.
-        /// </summary>
-        /// <param name="fx">The function to derive.</param>
-        /// <param name="x">The input.</param>
-        public static double ApproximateDerivative(this Func<double, double> fx, double x)
-        {
-            double h = 1e-7;
-            return (float)((fx(x + h) - fx(x)) / h);
-        }
-
-        /// <summary>
-        /// Approximates the partial derivative of a function at a given input for a specific variable.
-        /// </summary>
-        /// <param name="fxy">The function.</param>
-        /// <param name="x">The function input.</param>
-        public static double ApproximatePartialDerivative(this Func<double, double, double> fxy, double x, double y, int term)
-        {
-            switch (term)
-            {
-                case 0:
-                    return (fxy(x + 1e-7, y) - fxy(x, y)) * 1e7;
-                case 1:
-                    return (fxy(x, y + 1e-7) - fxy(x, y)) * 1e7;
-            }
-            return 0D;
-        }
-
-        /// <summary>
-        /// Returns a number between a minimum and maximum range.
-        /// </summary>
-        /// <param name="rng">The random number generator.</param>
-        /// <param name="min">The lower bound for randomness.</param>
-        /// <param name="max">The upper bound for randomness.</param>
-        public static double NextRange(this UnifiedRandom rng, double min, double max) => rng.NextDouble() * (max - min) + min;
-
-        /// <summary>
-        /// Performs a logistic sigmoid function on an input.
-        /// </summary>
-        /// <param name="x">The input.</param>
-        public static double Sigmoid(double x) => 1D / (1D + Math.Exp(-x));
-
-        /// <summary>
-        /// Gets the index of the number with the highest value in a collection of numbers.
-        /// </summary>
-        /// <param name="values">The collection of numbers.</param>
-        public static int Argmax(double[] values)
-        {
-            int index = -1;
-            double min = double.NegativeInfinity;
-
-            for (int i = 0; i < values.Length; i++)
-            {
-                if (values[i] > min)
-                {
-                    index = i;
-                    min = values[i];
-                }
-            }
-            return index;
-        }
-
-        public static float Remap(float fromValue, float fromMin, float fromMax, float toMin, float toMax, bool clamped = true)
-        {
-            return MathHelper.Lerp(toMin, toMax, Utils.GetLerpValue(fromMin, fromMax, fromValue, clamped));
         }
 
         public static int Factorial(int n)
@@ -218,5 +158,99 @@ namespace InfernumMode
 
         public static int NumberOfCombinations(int sizeOfSet, int totalToSelect) =>
             Factorial(sizeOfSet) / (Factorial(totalToSelect) * Factorial(sizeOfSet - totalToSelect));
+
+        /// <summary>
+        /// Returns a 0-1 value based on an easing curve.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static float EaseInBounce(float value) => 1f - EaseOutBounce(1f - value);
+
+        /// <summary>
+        /// Returns a 0-1 value based on an easing curve.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static float EaseOutBounce(float value)
+        {
+            float n1 = 7.5625f;
+            float d1 = 2.75f;
+
+            if (value < 1f / d1)
+            {
+                return n1 * value * value;
+            }
+            else if (value < 2f / d1)
+            {
+                return n1 * (value -= 1.5f / d1) * value + 0.75f;
+            }
+            else if (value < 2.5f / d1)
+            {
+                return n1 * (value -= 2.25f / d1) * value + 0.9375f;
+            }
+            else
+            {
+                return n1 * (value -= 2.625f / d1) * value + 0.984375f;
+            }
+        }
+
+        /// <summary>
+        /// Returns a 0-1 value based on an easing curve.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static float EaseInOutCubic(float value)
+        {
+            return value < 0.5f ?
+                4f * value * value * value * value :
+                1f - MathF.Pow(-2f * value + 2f, 3f) / 2f;
+        }
+
+        public static float EndingHeight(this CalamityUtils.CurveSegment segment) => segment.startingHeight + segment.elevationShift;
+
+        public static float AccelerationToReachSpeed(float startingSpeed, float idealSpeed, int accelerationTime)
+        {
+            // Writing exponential acceleration as an algebraic equation can allow us to determine how fast each frame must be to reach
+            // the ideal speed:
+            // a^t * v0 = v1
+
+            // a is the variable we wish to find, which can be done by rewriting like so:
+            // a^t * v0 / v1 = 1
+            // a^t = v0 / v1
+            // a = (v0 / v1) ^ (1 / t)
+            return MathF.Pow(idealSpeed / startingSpeed, 1f / accelerationTime);
+        }
+
+        // Approximates a derivative based on the following limit:
+        // lim h -> 0 (f(x + h) - f(x - h)) / 2h
+        // This method uses doubles for precision when approximating the tiny infinitesimal of h.
+        public static double ApproximateDerivative(this Func<double, double> fx, double x) =>
+            (fx(x + 1e-8) - fx(x - 1e-8)) * 5e7;
+
+        public static double IterativelySearchForRoot(this Func<double, double> fx, double initialGuess, int iterations)
+        {
+            // This uses the Newton-Raphson method to iteratively get closer and closer to roots of a given function.
+            // The exactly formula is as follows:
+            // x = x - f(x) / f'(x)
+            // In most circumstances repeating the above equation will result in closer and closer approximations to a root.
+            // The exact reason as to why this intuitively works can be found at the following video:
+            // https://www.youtube.com/watch?v=-RdOwhmqP5s
+            double result = initialGuess;
+            for (int i = 0; i < iterations; i++)
+            {
+                double derivative = fx.ApproximateDerivative(result);
+                result -= fx(result) / derivative;
+            }
+
+            return result;
+        }
+
+        public static Vector2 QuadraticBezier(Vector2 a, Vector2 b, Vector2 c, float interpolant)
+        {
+            Vector2 firstTerm = MathF.Pow(1f - interpolant, 2f) * a;
+            Vector2 secondTerm = (2f - interpolant * 2f) * interpolant * b;
+            Vector2 thirdTerm = MathF.Pow(interpolant, 2f) * c;
+            return firstTerm + secondTerm + thirdTerm;
+        }
     }
 }

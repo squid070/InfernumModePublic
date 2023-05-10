@@ -1,11 +1,11 @@
 ﻿using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
@@ -14,7 +14,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
     {
         internal PrimitiveTrail SlashDrawer;
 
-        public List<Vector2> TrailCache = new();
+        private readonly List<Vector2> TrailCache = new();
 
         public float ScaleFactorDelta => Projectile.localAI[0];
 
@@ -38,7 +38,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
             Projectile.tileCollide = false;
             Projectile.friendly = true;
             Projectile.timeLeft = Projectile.MaxUpdates * Lifetime;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
+
         public override void AI()
         {
             // Disappear if the ninja is not present.
@@ -81,7 +83,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
             }
             // Fade in.
             float disappearInterpolant = Utils.GetLerpValue(0f, 24f, Projectile.timeLeft / Projectile.MaxUpdates, true);
-            float scaleGrowInterpolant = (float)Math.Pow(Utils.GetLerpValue(0f, 64f, Time, true), 1.72);
+            float scaleGrowInterpolant = MathF.Pow(Utils.GetLerpValue(0f, 64f, Time, true), 1.72f);
             Projectile.Opacity = Utils.GetLerpValue(0f, 24f, Time / Projectile.MaxUpdates, true) * disappearInterpolant;
             Projectile.scale = MathHelper.Lerp(0.24f, 1f, scaleGrowInterpolant) * disappearInterpolant;
             Time++;
@@ -93,9 +95,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
             for (int i = 0; i < TrailCache.Count; i++)
             {
                 if (Utils.CenteredRectangle(TrailCache[i], Vector2.One * WidthFunction(i / (float)(TrailCache.Count - 1f) * 0.7f)).Intersects(targetHitbox))
-                {
                     return true;
-                }
 
             }
             return false;
@@ -103,7 +103,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
 
         internal float WidthFunction(float completionRatio)
         {
-            float baseWidth = MathHelper.Lerp(32f, 33f, (float)Math.Sin(MathHelper.Pi * 4f * completionRatio) * 0.5f + 0.5f) * Projectile.scale;
+            float baseWidth = MathHelper.Lerp(32f, 33f, MathF.Sin(MathHelper.Pi * 4f * completionRatio) * 0.5f + 0.5f) * Projectile.scale;
             return CalamityUtils.Convert01To010(completionRatio) * baseWidth * (1f + ScaleFactorDelta) * 0.5f;
         }
 
@@ -115,10 +115,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.KingSlime
             opacity *= Projectile.Opacity * 0.18f;
             return Color.White * opacity;
         }
+
         public override bool PreDraw(ref Color lightColor)
         {
-            if (SlashDrawer is null)
-                SlashDrawer = new(WidthFunction, ColorFunction, null, InfernumEffectsRegistry.RealityTearVertexShader);
+            SlashDrawer ??= new(WidthFunction, ColorFunction, null, InfernumEffectsRegistry.RealityTearVertexShader);
 
             InfernumEffectsRegistry.RealityTearVertexShader.SetShaderTexture(InfernumTextureRegistry.GrayscaleWater);
             InfernumEffectsRegistry.RealityTearVertexShader.Shader.Parameters["useOutline"].SetValue(true);

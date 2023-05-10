@@ -1,8 +1,7 @@
-﻿using CalamityMod;
-using CalamityMod.DataStructures;
+﻿using CalamityMod.DataStructures;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -60,6 +59,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             Projectile.tileCollide = false;
             Projectile.MaxUpdates = 2;
             Projectile.ignoreWater = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public static Vector2 StarPolarEquation(int pointCount, float angle)
@@ -72,9 +72,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
                 spacedAngle -= MathHelper.PiOver2;
 
             // Refer to desmos to view the resulting shape this creates. It's basically a black box of trig otherwise.
-            float numerator = (float)Math.Cos(MathHelper.Pi * (pointCount + 1f) / pointCount);
-            float starAdjustedAngle = (float)Math.Asin(Math.Cos(pointCount * spacedAngle)) * 2f;
-            float denominator = (float)Math.Cos((starAdjustedAngle + MathHelper.PiOver2 * pointCount) / (pointCount * 2f));
+            float numerator = MathF.Cos(MathHelper.Pi * (pointCount + 1f) / pointCount);
+            float starAdjustedAngle = MathF.Asin(MathF.Cos(pointCount * spacedAngle)) * 2f;
+            float denominator = MathF.Cos((starAdjustedAngle + MathHelper.PiOver2 * pointCount) / (pointCount * 2f));
             Vector2 result = angle.ToRotationVector2() * numerator / denominator / 1.732051f;
             return result;
         }
@@ -159,11 +159,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             // Draw the afterimage trail.
             Rectangle cutoffRegion = new(-50, -50, Main.screenWidth + 100, Main.screenHeight + 100);
             Main.spriteBatch.EnforceCutoffRegion(cutoffRegion, Main.GameViewMatrix.TransformationMatrix, SpriteSortMode.Immediate, BlendState.Additive);
-            
+
             TrailDrawer.Draw(Projectile.oldPos, Projectile.Size * 0.5f + Projectile.velocity.SafeNormalize(Vector2.Zero) * 6f - Main.screenPosition, 11);
 
             Main.spriteBatch.ExitShaderRegion();
-            
+
             return false;
         }
 

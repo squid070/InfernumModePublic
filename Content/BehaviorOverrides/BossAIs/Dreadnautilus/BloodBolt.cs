@@ -16,7 +16,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
         {
             DisplayName.SetDefault("Blood Bolt");
             ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
-            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 12;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 7;
         }
 
         public override void SetDefaults()
@@ -30,6 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             Projectile.timeLeft = 230;
             Projectile.tileCollide = false;
             Projectile.ignoreWater = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -117,7 +118,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             Color smallGleamColor = color * 0.5f;
             float opacity = Utils.GetLerpValue(15f, 30f, Projectile.timeLeft, true) *
                 Utils.GetLerpValue(240f, 200f, Projectile.timeLeft, true) *
-                (1f + 0.2f * (float)Math.Cos(Main.GlobalTimeWrappedHourly % 30f / 0.5f * MathHelper.Pi * 6f)) * 0.8f;
+                (1f + 0.2f * MathF.Cos(Main.GlobalTimeWrappedHourly % 30f / 0.5f * MathHelper.Pi * 6f)) * 0.8f;
             Vector2 bigGleamScale = new Vector2(0.5f, 5f) * opacity;
             Vector2 smallGleamScale = new Vector2(0.5f, 2f) * opacity;
             bigGleamColor *= opacity;

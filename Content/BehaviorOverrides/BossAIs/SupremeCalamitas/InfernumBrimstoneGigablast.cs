@@ -1,12 +1,12 @@
-﻿using CalamityMod.Dusts;
+﻿using CalamityMod;
+using CalamityMod.Dusts;
+using CalamityMod.Projectiles.Boss;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.ModLoader;
-using Terraria.ID;
 using Terraria.Audio;
-using CalamityMod;
-using CalamityMod.Projectiles.Boss;
+using Terraria.ID;
+using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 {
@@ -30,7 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.timeLeft = 90;
             Projectile.Opacity = 0f;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -81,7 +81,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 
                 for (int i = 0; i < barrageCount; i++)
                 {
-                    Vector2 dartVelocity = (MathHelper.TwoPi * i / barrageCount).ToRotationVector2() * 5f;
+                    Vector2 dartVelocity = (MathHelper.TwoPi * i / barrageCount + Projectile.AngleTo(Main.player[Projectile.owner].Center)).ToRotationVector2() * 5f;
                     Projectile.NewProjectile(Projectile.GetSource_FromThis(), Projectile.Center, dartVelocity, ModContent.ProjectileType<BrimstoneBarrage>(), Projectile.damage, Projectile.knockBack, Projectile.owner, 0f, 1f);
                 }
             }

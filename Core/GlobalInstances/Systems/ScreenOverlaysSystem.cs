@@ -1,6 +1,6 @@
 using CalamityMod.NPCs;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Cil;
@@ -36,6 +36,12 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             private set;
         } = new();
 
+        public static List<DrawData> ThingsToDrawOnTopOfBlurAdditive
+        {
+            get;
+            private set;
+        } = new();
+
         internal static void DrawBlackout(ILContext il)
         {
             ILCursor cursor = new(il);
@@ -52,12 +58,12 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 {
                     try
                     {
-                        Main.instance.DrawProj(DrawCacheBeforeBlack[i]);
+                        Main.instance.DrawNPC(DrawCacheBeforeBlack[i], false);
                     }
                     catch (Exception e)
                     {
                         TimeLogger.DrawException(e);
-                        Main.projectile[DrawCacheBeforeBlack[i]].active = false;
+                        Main.npc[DrawCacheBeforeBlack[i]].active = false;
                     }
                 }
                 DrawCacheBeforeBlack.Clear();
@@ -153,6 +159,19 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                     ((ISpecializedDrawRegion)proj.ModProjectile).SpecialDraw(Main.spriteBatch);
             }
             Main.spriteBatch.ExitShaderRegion();
+        }
+
+        internal static void DrawAboveWaterProjectiles()
+        {
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.Default, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+            for (int i = 0; i < Main.maxProjectiles; i++)
+            {
+                if (!Main.projectile[i].active || Main.projectile[i].ModProjectile is not IAboveWaterProjectileDrawer drawer)
+                    continue;
+
+                drawer.DrawAboveWater(Main.spriteBatch);
+            }
         }
 
         public override void OnModLoad()

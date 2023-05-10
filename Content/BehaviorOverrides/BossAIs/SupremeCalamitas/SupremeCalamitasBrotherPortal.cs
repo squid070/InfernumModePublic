@@ -33,7 +33,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.penetrate = -1;
             Projectile.timeLeft = Lifetime;
             Projectile.scale = 0f;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -42,7 +42,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.Opacity = Projectile.scale;
 
             // Create a lot of light particles around the portal.
-            float particleSpawnChance = Utilities.Remap(Time, 0f, 60f, 0.1f, 0.9f);
+            float particleSpawnChance = Utils.Remap(Time, 0f, 60f, 0.1f, 0.9f);
             for (int i = 0; i < 3; i++)
             {
                 if (Main.rand.NextFloat() > particleSpawnChance)
@@ -60,7 +60,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             if (Time == (int)(Lifetime * 0.8f))
             {
                 SoundEngine.PlaySound(InfernumSoundRegistry.WyrmChargeSound with { Volume = 1.2f }, Projectile.Center);
-                SoundEngine.PlaySound(InfernumSoundRegistry.HeavyExplosionSound with { Volume = 1.6f }, Projectile.Center);
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     int explosion = Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<DemonicExplosion>(), 0, 0f);

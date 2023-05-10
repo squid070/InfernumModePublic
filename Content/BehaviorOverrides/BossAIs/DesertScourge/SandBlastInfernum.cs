@@ -1,9 +1,9 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CalamityMod;
+using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.Audio;
 using Terraria.ID;
 using Terraria.ModLoader;
-using Terraria.Audio;
-using CalamityMod;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DesertScourge
 {
@@ -26,6 +26,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DesertScourge
             Projectile.penetrate = -1;
             Projectile.timeLeft = 1200;
             Projectile.Opacity = 0f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

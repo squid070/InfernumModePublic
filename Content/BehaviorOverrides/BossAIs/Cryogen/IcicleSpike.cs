@@ -1,17 +1,25 @@
 using CalamityMod.Events;
 using CalamityMod.Particles;
 using InfernumMode.Common.Graphics.Particles;
+using InfernumMode.Core.GlobalInstances;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cryogen
 {
     public class IcicleSpike : ModProjectile
     {
+        public float InwardRadiusOffset
+        {
+            get;
+            set;
+        }
+
         public static float SpeedPower => BossRushEvent.BossRushActive ? 1.122f : 0.66f;
 
         public ref float Time => ref Projectile.localAI[0];
@@ -33,11 +41,21 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cryogen
             Projectile.ignoreWater = true;
             Projectile.timeLeft = 240;
             Projectile.alpha = 255;
+            Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
-        public override void SendExtraAI(BinaryWriter writer) => writer.Write(Time);
+        public override void SendExtraAI(BinaryWriter writer)
+        {
+            writer.Write(Time);
+            writer.Write(InwardRadiusOffset);
+        }
 
-        public override void ReceiveExtraAI(BinaryReader reader) => Time = reader.ReadSingle();
+        public override void ReceiveExtraAI(BinaryReader reader)
+        {
+            Time = reader.ReadSingle();
+            InwardRadiusOffset = reader.ReadSingle();
+        }
 
         public override void AI()
         {
@@ -57,8 +75,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cryogen
             if (Time > 80f && Projectile.velocity.Length() < SpeedPower * 33f)
                 Projectile.velocity *= 1f + SpeedPower * 0.03f;
 
+            bool fadingAway = Projectile.Infernum().FadeAwayTimer >= 1;
             if (Time <= 80f)
-                Projectile.Center = Owner.Center + OffsetRotation.ToRotationVector2() * MathHelper.Lerp(110f, 72f, SpeedPower);
+            {
+                // Make the bomb radius fade away if the projectile itself is fading away.
+                float offsetRadius = MathHelper.Lerp(110f, 72f, SpeedPower) - InwardRadiusOffset;
+                if (fadingAway)
+                    offsetRadius = Projectile.Infernum().FadeAwayTimer / (float)GlobalProjectileOverrides.FadeAwayTime;
+                Projectile.Center = Owner.Center + OffsetRotation.ToRotationVector2() * offsetRadius;
+            }
             else if (Time % 10 == 0)
             {
                 // Leave a trail of particles.

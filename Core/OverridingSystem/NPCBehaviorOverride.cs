@@ -19,7 +19,7 @@ namespace InfernumMode.Core.OverridingSystem
         {
             BehaviorOverrides = new();
 
-            foreach (Type type in Utilities.GetEveryMethodDerivedFrom(typeof(NPCBehaviorOverride), typeof(InfernumMode).Assembly))
+            foreach (Type type in Utilities.GetEveryTypeDerivedFrom(typeof(NPCBehaviorOverride), typeof(InfernumMode).Assembly))
             {
                 NPCBehaviorOverride instance = (NPCBehaviorOverride)Activator.CreateInstance(type);
 
@@ -48,6 +48,9 @@ namespace InfernumMode.Core.OverridingSystem
                 if (checkDeadMethod is not null && checkDeadMethod.DeclaringType != typeof(NPCBehaviorOverride))
                     OverridingListManager.InfernumCheckDeadOverrideList[instance.NPCOverrideType] = new OverridingListManager.NPCCheckDeadDelegate(n => (bool)checkDeadMethod.Invoke(instance, new object[] { n }));
 
+                // Call the load hook.
+                instance.Load();
+
                 BehaviorOverrides[instance.NPCOverrideType] = instance;
             }
         }
@@ -64,9 +67,11 @@ namespace InfernumMode.Core.OverridingSystem
                         InfernumMode.PhaseIndicator.Call(0, npcID, (NPC npc, float difficulty) => lifeRatio);
                 }
 
-                HatGirlTipsManager.TipsRegistry[instance.NPCOverrideType] = instance.GetTips().ToList();
+                TipsManager.TipsRegistry[instance.NPCOverrideType] = instance.GetTips().ToList();
             }
         }
+
+        public virtual void Load() { }
 
         public virtual void SendExtraData(NPC npc, ModPacket writer) { }
 

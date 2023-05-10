@@ -5,7 +5,6 @@ using CalamityMod.Sounds;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.HiveMind;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
@@ -17,7 +16,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
     public class AncientDoom : ModProjectile
     {
         public ref float Time => ref Projectile.ai[0];
+
         public Player Target => Main.player[(int)Projectile.ai[1]];
+
+        public override string Texture => $"Terraria/Images/NPC_{NPCID.AncientDoom}";
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Doomer");
@@ -34,6 +37,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             Projectile.timeLeft = 60;
             Projectile.Opacity = 0f;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -108,15 +112,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
                 if (BossRushEvent.BossRushActive)
                     doomVelocity *= 1.5f;
 
-                Utilities.NewProjectileBetter(Projectile.Center, doomVelocity, ModContent.ProjectileType<DarkPulse>(), 170, 0f);
-                Utilities.NewProjectileBetter(Projectile.Center, doomVelocity * 0.25f, ModContent.ProjectileType<DarkPulse>(), 170, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center, doomVelocity, ModContent.ProjectileType<DarkPulse>(), CultistBehaviorOverride.DarkPulseDamage, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center, doomVelocity * 0.25f, ModContent.ProjectileType<DarkPulse>(), CultistBehaviorOverride.DarkPulseDamage, 0f);
             }
             for (int i = 0; i < 9; i++)
             {
                 Vector2 beamDirection = (MathHelper.TwoPi * i / 9f).ToRotationVector2();
                 if (Projectile.localAI[1] == 1f)
                     beamDirection = beamDirection.RotatedBy(MathHelper.TwoPi / 18f);
-                Utilities.NewProjectileBetter(Projectile.Center, beamDirection, ModContent.ProjectileType<DoomBeam>(), 240, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center, beamDirection, ModContent.ProjectileType<DoomBeam>(), CultistBehaviorOverride.DoomBeamDamage, 0f);
             }
         }
     }

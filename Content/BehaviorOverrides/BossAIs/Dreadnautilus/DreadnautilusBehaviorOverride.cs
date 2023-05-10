@@ -2,6 +2,7 @@
 using CalamityMod.Buffs.DamageOverTime;
 using CalamityMod.Particles;
 using InfernumMode.Assets.ExtraTextures;
+using InfernumMode.Core.GlobalInstances;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -29,6 +30,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
         }
 
         public override int NPCOverrideType => NPCID.BloodNautilus;
+
+        public static int GoreSpikeDamage => 115;
+
+        public static int GoreSpitBallDamage => 120;
+
+        public static int BoltBoltDamage => 120;
+
+        public static int SanguineBatDamage => 130;
 
         public const float Phase2LifeRatio = 0.55f;
 
@@ -68,6 +77,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             npc.Calamity().canBreakPlayerDefense = true;
         }
 
+        public override void Load()
+        {
+            GlobalNPCOverrides.BossHeadSlotEvent += UseCustomMapIcon;
+        }
+
+        private void UseCustomMapIcon(NPC npc, ref int index)
+        {
+            // Have Dreadnautilus use a custom map icon.
+            if (npc.type == NPCID.BloodNautilus)
+                index = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/Dreadnautilus/DreadnautilusMapIcon");
+        }
+
         public override bool PreAI(NPC npc)
         {
             npc.TargetClosestIfTargetIsInvalid();
@@ -105,8 +126,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
 
             if (target.HasBuff(ModContent.BuffType<BurningBlood>()))
                 target.ClearBuff(ModContent.BuffType<BurningBlood>());
-
-
 
             switch ((DreadnautilusAttackState)npc.ai[0])
             {
@@ -152,7 +171,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
                 for (int i = 0; i < 36; i++)
                 {
                     Vector2 velocityDirection = (npc.velocity.SafeNormalize(Vector2.UnitY) * new Vector2(npc.width / 2f, npc.height) * 0.75f * 0.5f).RotatedBy(MathHelper.TwoPi * i / 36f);
-                    Dust blood = Dust.NewDustDirect(npc.Center, 0, 0, 5, 0f, 0f, 100, default, 1.4f);
+                    Dust blood = Dust.NewDustDirect(npc.Center, 0, 0, DustID.Blood, 0f, 0f, 100, default, 1.4f);
                     blood.velocity = velocityDirection.SafeNormalize(Vector2.UnitY) * 3f;
                     blood.noGravity = true;
                 }
@@ -174,7 +193,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
 
         public static void DoBehavior_BloodSpitToothBalls(NPC npc, Player target, bool phase2, bool phase3, ref float attackTimer)
         {
-            int shootCycleTime = 62;
+            int shootCycleTime = 51;
             int shootPrepareTime = 30;
             int shotCount = 3;
 
@@ -382,11 +401,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
         {
             int minHoverTime = 45;
             int maxHoverTime = 270;
-            int upwardChargeTime = 66;
+            int upwardChargeTime = 57;
             int perpendicularBoltReleaseRate = 9;
             float upwardChargeSpeed = 28f;
             float upwardChargeSpinArc = MathHelper.Pi * 0.6f;
-            Vector2 hoverDestination = target.Center + new Vector2((target.Center.X < npc.Center.X).ToDirectionInt() * 420f, 180f);
+            Vector2 hoverDestination = target.Center + new Vector2((target.Center.X < npc.Center.X).ToDirectionInt() * 400f, 180f);
 
             if (phase2)
             {
@@ -402,6 +421,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
 
             ref float chargeAngularVelocity = ref npc.Infernum().ExtraAI[0];
             ref float reachedDestination = ref npc.Infernum().ExtraAI[1];
+
+            // Create a weird sound as the attack starts.
+            if (attackTimer == 1f)
+                SoundEngine.PlaySound(SoundID.Zombie63, target.Center);
 
             // Hover to the bottom left/right of the target.
             if (attackTimer < maxHoverTime)
@@ -458,7 +481,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             {
                 SoundEngine.PlaySound(SoundID.Item122, npc.Center);
 
-                npc.velocity = Vector2.UnitY * -upwardChargeSpeed;
+                npc.velocity = Vector2.UnitY.RotateRandom(0.32f) * -upwardChargeSpeed;
                 chargeAngularVelocity = (target.Center.X > npc.Center.X).ToDirectionInt() * upwardChargeSpinArc / upwardChargeTime;
                 npc.netUpdate = true;
 
@@ -479,8 +502,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 perpendicularVelocity = npc.velocity.SafeNormalize(Vector2.UnitY).RotatedBy(MathHelper.PiOver2) * 1.3f;
-                    Utilities.NewProjectileBetter(mouthPosition + perpendicularVelocity * 24f, perpendicularVelocity, ModContent.ProjectileType<BloodBolt>(), 120, 0f);
-                    Utilities.NewProjectileBetter(mouthPosition - perpendicularVelocity * 24f, -perpendicularVelocity, ModContent.ProjectileType<BloodBolt>(), 120, 0f);
+                    Utilities.NewProjectileBetter(mouthPosition + perpendicularVelocity * 24f, perpendicularVelocity, ModContent.ProjectileType<BloodBolt>(), BoltBoltDamage, 0f);
+                    Utilities.NewProjectileBetter(mouthPosition - perpendicularVelocity * 24f, -perpendicularVelocity, ModContent.ProjectileType<BloodBolt>(), BoltBoltDamage, 0f);
                 }
             }
 
@@ -489,10 +512,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             npc.rotation += chargeAngularVelocity;
 
             // Emit a bunch of blood dust from the mouth.
-            Dust blood = Dust.NewDustDirect(mouthPosition + mouthDirection * 50f - new Vector2(15f), 30, 30, 5, 0f, 0f, 0, Color.Transparent, 1.5f);
+            Dust blood = Dust.NewDustDirect(mouthPosition + mouthDirection * 50f - new Vector2(15f), 30, 30, DustID.Blood, 0f, 0f, 0, Color.Transparent, 1.5f);
             blood.velocity = blood.position.DirectionFrom(mouthPosition + Main.rand.NextVector2Circular(5f, 5f)) * blood.velocity.Length();
             blood.position -= mouthDirection * 60f;
-            blood = Dust.NewDustDirect(mouthPosition + mouthDirection * 90f - new Vector2(20f), 40, 40, 5, 0f, 0f, 100, Color.Transparent, 1.5f);
+            blood = Dust.NewDustDirect(mouthPosition + mouthDirection * 90f - new Vector2(20f), 40, 40, DustID.Blood, 0f, 0f, 100, Color.Transparent, 1.5f);
             blood.velocity = blood.position.DirectionFrom(mouthPosition + Main.rand.NextVector2Circular(10f, 10f)) * (blood.velocity.Length() + 5f);
             blood.position -= mouthDirection * 100f;
 
@@ -539,9 +562,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             // Hover into position prior to firing.
             if (attackTimer < shootDelay)
             {
-                Vector2 hoverDestination = target.Center + new Vector2((target.Center.X < npc.Center.X).ToDirectionInt() * 530f, -50f);
+                Vector2 hoverDestination = target.Center + new Vector2((target.Center.X < npc.Center.X).ToDirectionInt() * 436f, -50f);
                 if (!npc.WithinRange(hoverDestination, 50f))
-                    npc.SimpleFlyMovement(npc.SafeDirectionTo(hoverDestination) * 15f, 0.4f);
+                    npc.SimpleFlyMovement(npc.SafeDirectionTo(hoverDestination) * 15f, 0.54f);
             }
 
             // Slow down for a moment.
@@ -561,7 +584,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
 
                     float offsetAngle = Utils.Remap(attackTimer - shootDelay - slowdownTime, 0f, shootTime, -0.91f, 0.91f);
                     Vector2 shootVelocity = (shootDirection + offsetAngle).ToRotationVector2() * shootSpeed;
-                    Utilities.NewProjectileBetter(mouthPosition, shootVelocity, ModContent.ProjectileType<BloodBolt>(), 120, 0f);
+                    Utilities.NewProjectileBetter(mouthPosition, shootVelocity, ModContent.ProjectileType<BloodBolt>(), BoltBoltDamage, 0f);
 
                     npc.netUpdate = true;
                 }
@@ -622,7 +645,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
                         for (int i = 0; i < backSpikeCount; i++)
                         {
                             Vector2 backSpikeShootVelocity = -mouthDirection.RotatedBy(MathHelper.Lerp(-1.5f, 1.5f, i / (float)(backSpikeCount - 1f))) * 7f;
-                            Utilities.NewProjectileBetter(npc.Center + backSpikeShootVelocity * 8f, backSpikeShootVelocity, ModContent.ProjectileType<GoreSpike>(), 125, 0f);
+                            Utilities.NewProjectileBetter(npc.Center + backSpikeShootVelocity * 8f, backSpikeShootVelocity, ModContent.ProjectileType<GoreSpike>(), GoreSpikeDamage, 0f);
                         }
                     }
 
@@ -660,7 +683,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
                 blood.color = Color.Red;
 
                 // Do damage and become temporarily invulnerable. This is done to prevent dash-cheese.
-                npc.damage = npc.defDamage + 40;
+                npc.damage = npc.defDamage + 15;
                 npc.dontTakeDamage = true;
             }
             else
@@ -683,7 +706,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             int totalBatsToSummon = 15;
             int batAttackTime = SanguineBat.Lifetime;
             int attackTransitionDelay = 90;
-            int bloodBurstReleaseRate = 24;
+            int bloodBurstReleaseRate = 30;
             int bloodBurstCycleTime = 90;
             ref float bloodBurstShootCounter = ref npc.Infernum().ExtraAI[0];
 
@@ -717,7 +740,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
 
                 if (attackTimer == 1f)
                 {
-                    npc.Center = target.Center - Vector2.UnitY * 875f;
+                    npc.Center = target.Center - Vector2.UnitY * 500f;
                     npc.netUpdate = true;
                 }
             }
@@ -735,7 +758,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
                     {
                         int batLifetime = batAttackTime + (slowdownTime + summonTime - (int)attackTimer);
                         Vector2 batSpawnPosition = target.Center + new Vector2(Main.rand.NextFloatDirection() * 600f, -1000f);
-                        int bat = Utilities.NewProjectileBetter(batSpawnPosition, Vector2.UnitY * -6f, ModContent.ProjectileType<SanguineBat>(), 130, 0f);
+                        int bat = Utilities.NewProjectileBetter(batSpawnPosition, Vector2.UnitY * -6f, ModContent.ProjectileType<SanguineBat>(), SanguineBatDamage, 0f);
                         if (Main.projectile.IndexInRange(bat))
                         {
                             Main.projectile[bat].ai[1] = batLifetime;
@@ -766,7 +789,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
                         for (int i = 0; i < 8; i++)
                         {
                             Vector2 bloodShootVelocity = (MathHelper.TwoPi * (i + (bloodBurstShootCounter % 2f == 0f ? 0.5f : 0f)) / 8f).ToRotationVector2() * 2f;
-                            Utilities.NewProjectileBetter(mouthPosition, bloodShootVelocity, ModContent.ProjectileType<BloodBolt>(), 125, 0f);
+                            Utilities.NewProjectileBetter(mouthPosition, bloodShootVelocity, ModContent.ProjectileType<BloodBolt>(), BoltBoltDamage, 0f);
                         }
                         bloodBurstShootCounter++;
                         npc.netUpdate = true;
@@ -903,10 +926,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             // Create a backglow as necessary.
             if (backglowFade > 0f)
             {
-                float drawOffsetFactor = backglowFade * 7.5f + (float)Math.Cos(Main.GlobalTimeWrappedHourly * 5f) * 3f;
+                float drawOffsetFactor = backglowFade * 7.5f + MathF.Cos(Main.GlobalTimeWrappedHourly * 5f) * 3f;
                 if (drawOffsetFactor < 0f)
                     drawOffsetFactor = 0f;
-                Color backglowColor = Color.Red * (float)Math.Pow(backglowFade, 0.55f);
+                Color backglowColor = Color.Red * MathF.Pow(backglowFade, 0.55f);
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -945,7 +968,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
                 {
                     npc.Opacity * eyeGleamInterpolant * 1.65f,
                     npc.Opacity * eyeGleamInterpolant* 1.65f,
-                    npc.Opacity * eyeGleamInterpolant * Utils.Remap((float)Math.Cos(Main.GlobalTimeWrappedHourly * 9.3f), -1f, 1f, 2f, 2.7f),
+                    npc.Opacity * eyeGleamInterpolant * Utils.Remap(MathF.Cos(Main.GlobalTimeWrappedHourly * 9.3f), -1f, 1f, 2f, 2.7f),
                 };
 
                 for (int i = 0; i < eyeRotations.Length; i++)

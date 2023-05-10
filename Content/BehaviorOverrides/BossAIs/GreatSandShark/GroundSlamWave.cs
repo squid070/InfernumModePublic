@@ -1,6 +1,7 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -40,6 +41,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             Projectile.alpha = 255;
             Projectile.timeLeft = Lifetime;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -56,13 +58,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
 
         internal Color ColorFunction(float completionRatio)
         {
-            Color c = Color.Lerp(Color.DeepSkyBlue, Color.Turquoise, (float)Math.Abs(Math.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly)) * 0.5f);
+            Color c = Color.Lerp(Color.DeepSkyBlue, Color.Turquoise, Math.Abs(MathF.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly)) * 0.5f);
             return c * Projectile.Opacity;
         }
 
         public float WidthFunction(float completionRatio) => WaveHeight;
 
-        public Vector2 OffsetFunction(float completionRatio) => Vector2.UnitY * (float)Math.Sin(completionRatio * MathHelper.Pi + Time / 11f) * 16f;
+        public Vector2 OffsetFunction(float completionRatio) => Vector2.UnitY * MathF.Sin(completionRatio * MathHelper.Pi + Time / 11f) * 16f;
 
         public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
         {

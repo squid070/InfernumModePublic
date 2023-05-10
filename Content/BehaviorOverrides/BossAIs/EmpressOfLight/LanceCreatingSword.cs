@@ -1,8 +1,8 @@
-﻿using CalamityMod;
-using CalamityMod.Events;
+﻿using CalamityMod.Events;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Core.GlobalInstances.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -60,7 +60,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             get
             {
                 Vector2 hoverDestination = Owner.Top - Vector2.UnitY.RotatedBy(MathHelper.Lerp(-0.94f, 0.94f, SwordIndex / (SwordCount - 1f))) * new Vector2(500f, 100f);
-                hoverDestination.Y += (float)Math.Sin(MathHelper.TwoPi * Timer / 60f + MathHelper.PiOver2 * SwordIndex / SwordCount) * 24f - 40f;
+                hoverDestination.Y += MathF.Sin(MathHelper.TwoPi * Timer / 60f + MathHelper.PiOver2 * SwordIndex / SwordCount) * 24f - 40f;
                 return hoverDestination;
             }
         }
@@ -72,6 +72,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
         public ref float SwordIndex => ref Projectile.localAI[1];
 
         public const float TelegraphLength = 3600f;
+
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.EmpressBlade}";
 
         public override void SetStaticDefaults()
         {
@@ -93,6 +95,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             Projectile.tileCollide = false;
             Projectile.ignoreWater = true;
             Projectile.netImportant = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -126,7 +129,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             TelegraphInterpolant = 0f;
             AttackTarget();
         }
-        
+
         public void AttackTarget()
         {
             int lungeDelay = 35;
@@ -219,9 +222,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             {
                 Main.spriteBatch.SetBlendState(BlendState.Additive);
 
-                float telegraphHue = (float)Math.Cos(MathHelper.TwoPi * TelegraphInterpolant) * 0.5f + 0.5f;
+                float telegraphHue = MathF.Cos(MathHelper.TwoPi * TelegraphInterpolant) * 0.5f + 0.5f;
                 float telegraphWidth = MathHelper.Lerp(0.2f, 1.2f, TelegraphInterpolant);
-                float telegraphOpacity = (float)Math.Pow(TelegraphInterpolant, 1.7) * 0.7f;
+                float telegraphOpacity = MathF.Pow(TelegraphInterpolant, 1.7f) * 0.7f;
                 Vector2 telegraphScale = new(telegraphWidth, TelegraphLength / telegraphTexture.Height);
                 Color telegraphColor = Main.hslToRgb(telegraphHue, 1f, 0.8f) * telegraphOpacity;
                 Vector2 telegraphOrigin = telegraphTexture.Size() * new Vector2(0.5f, 0f);

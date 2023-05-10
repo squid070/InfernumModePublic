@@ -1,4 +1,5 @@
 using CalamityMod;
+using CalamityMod.Buffs.DamageOverTime;
 using CalamityMod.Events;
 using CalamityMod.Projectiles.Boss;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Ravager;
@@ -26,6 +27,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
         }
 
         public override int NPCOverrideType => NPCID.EaterofWorldsHead;
+
+        public static int CursedCinderDamage => 90;
+
+        public static int ShadeNimbusDamage => 90;
+
+        public static int CorruptThornVineDamage => 95;
+
+        public static int CursedFlameBombDamage => 95;
+
+        public static int ShockwaveDamage => 140;
 
         // This is applicable to all split worms as well.
         // Since split worms share HP, the total amount of HP of the boss is equal to Worm HP * (Total Splits + 1).
@@ -90,6 +101,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
                 return false;
             }
 
+            if (target.HasBuff(ModContent.BuffType<Shadowflame>()))
+                target.ClearBuff(ModContent.BuffType<Shadowflame>());
+
             switch ((EoWAttackState)(int)attackState)
             {
                 case EoWAttackState.CursedBombBurst:
@@ -102,10 +116,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
                     DoAttack_ShadowOrbSummon(npc, target, splitCounter, enraged, ref attackTimer);
                     break;
                 case EoWAttackState.RainHover:
-                    DoAttack_RainHover(npc, target, splitCounter, enraged, ref attackTimer);
+                    DoAttack_RainHover(npc, target, splitCounter, ref attackTimer);
                     break;
                 case EoWAttackState.DownwardSlam:
-                    DoAttack_DownwardSlam(npc, target, splitCounter, enraged, ref attackTimer);
+                    DoAttack_DownwardSlam(npc, target, enraged, ref attackTimer);
                     break;
             }
 
@@ -191,12 +205,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
                         if (totalFireballsPerBurst > 1f)
                             shootOffsetAngle = MathHelper.Lerp(-0.84f, 0.84f, i / (float)(totalFireballsPerBurst - 1f));
                         Vector2 shootVelocity = npc.SafeDirectionTo(target.Center, -Vector2.UnitY).RotatedBy(shootOffsetAngle) * 7f;
-                        Utilities.NewProjectileBetter(npc.Center, shootVelocity, ModContent.ProjectileType<CursedFlameBomb>(), 85, 0f);
+                        Utilities.NewProjectileBetter(npc.Center, shootVelocity, ModContent.ProjectileType<CursedFlameBomb>(), CursedFlameBombDamage, 0f);
                     }
                 }
             }
 
-            if (attackTimer >= 720f)
+            if (attackTimer >= 540f)
                 SelectNextAttack(npc);
         }
 
@@ -220,7 +234,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
                 for (float dx = -2000f; dx < 2000f; dx += spacing)
                 {
                     Vector2 spawnPosition = target.Bottom + Vector2.UnitX * dx;
-                    Utilities.NewProjectileBetter(spawnPosition, Vector2.Zero, ModContent.ProjectileType<CorruptThorn>(), 90, 0f);
+                    Utilities.NewProjectileBetter(spawnPosition, Vector2.Zero, ModContent.ProjectileType<CorruptThorn>(), CorruptThornVineDamage, 0f);
                 }
             }
 
@@ -236,7 +250,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
                         Vector2 shootVelocity = Main.rand.NextVector2CircularEdge(6f, 6f);
                         if (BossRushEvent.BossRushActive)
                             shootVelocity *= 3.2f;
-                        Utilities.NewProjectileBetter(npc.Center, shootVelocity, ModContent.ProjectileType<CursedBullet>(), 85, 0f);
+                        Utilities.NewProjectileBetter(npc.Center, shootVelocity, ModContent.ProjectileType<CursedBullet>(), CursedCinderDamage, 0f);
                     }
                 }
             }
@@ -262,7 +276,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
                 }
             }
 
-            if (attackTimer >= 520f)
+            if (attackTimer >= 360f)
                 SelectNextAttack(npc);
         }
 
@@ -308,7 +322,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
                 SelectNextAttack(npc);
         }
 
-        public static void DoAttack_RainHover(NPC npc, Player target, float splitCounter, bool enraged, ref float attackTimer)
+        public static void DoAttack_RainHover(NPC npc, Player target, float splitCounter, ref float attackTimer)
         {
             // Hover above the player.
             Vector2 hoverDestination = target.Center - Vector2.UnitY * 300f + target.velocity * 25f;
@@ -335,7 +349,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer % rainReleaseRate == rainReleaseRate - 1f && npc.Center.Y < target.Center.Y - 185f)
             {
                 Vector2 cloudSpawnPosition = npc.Center + Main.rand.NextVector2Circular(npc.width, npc.height) * 0.45f;
-                Utilities.NewProjectileBetter(cloudSpawnPosition, Vector2.Zero, ModContent.ProjectileType<ShadeNimbusHostile>(), 85, 0f);
+                Utilities.NewProjectileBetter(cloudSpawnPosition, Vector2.Zero, ModContent.ProjectileType<ShadeNimbusHostile>(), ShadeNimbusDamage, 0f);
             }
 
             if (attackTimer >= 480f)
@@ -343,7 +357,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
         }
 
 
-        public static void DoAttack_DownwardSlam(NPC npc, Player target, float splitCounter, bool enraged, ref float attackTimer)
+        public static void DoAttack_DownwardSlam(NPC npc, Player target, bool enraged, ref float attackTimer)
         {
             ref float wasPreviouslyInTiles = ref npc.Infernum().ExtraAI[11];
 
@@ -377,7 +391,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
 
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
-                        Utilities.NewProjectileBetter(npc.Center, Vector2.Zero, ModContent.ProjectileType<StompShockwave>(), 125, 0f);
+                        Utilities.NewProjectileBetter(npc.Center, Vector2.Zero, ModContent.ProjectileType<StompShockwave>(), ShockwaveDamage, 0f);
                         wasPreviouslyInTiles = 1f;
                     }
 
@@ -419,8 +433,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             Vector2 pushAway = Vector2.Zero;
             for (int i = 0; i < Main.maxNPCs; i++)
             {
-                if (Main.npc[i].type == npc.type && i != npc.whoAmI)
-                    pushAway += npc.SafeDirectionTo(Main.npc[i].Center, Vector2.UnitY) * Utils.GetLerpValue(135f, 45f, npc.Distance(Main.npc[i].Center), true) * 1.8f;
+                NPC n = Main.npc[i];
+                bool isEoW = n.type is NPCID.EaterofWorldsHead or NPCID.EaterofWorldsHead;
+                if (isEoW && i != npc.whoAmI)
+                    pushAway += npc.SafeDirectionTo(n.Center, Vector2.UnitY) * Utils.GetLerpValue(190f, 90f, npc.Distance(n.Center), true) * -4f;
             }
             idealVelocity += pushAway;
 
@@ -518,7 +534,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
                 // Mark an index based on whether it can be split at a specific split counter value.
 
                 // Small worm split indices.
-                if (i == BaseBodySegmentCount / 4 || i == BaseBodySegmentCount * 3 / 4)
+                if (i is (BaseBodySegmentCount / 4) or (BaseBodySegmentCount * 3 / 4))
                     Main.npc[nextIndex].ai[3] = 2f;
 
                 // Medium worm split index.
@@ -543,7 +559,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             yield return n => "A dash and a hook can greatly help with reacting to the Eaters bursts of speed!";
             yield return n =>
             {
-                if (HatGirlTipsManager.ShouldUseJokeText)
+                if (TipsManager.ShouldUseJokeText)
                     return "I guess it eats more than just worlds.";
                 return string.Empty;
             };

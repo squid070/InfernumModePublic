@@ -26,6 +26,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DesertScourge
             Projectile.timeLeft = 360;
             Projectile.alpha = 255;
             Projectile.scale = 1.5f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -42,7 +43,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DesertScourge
                     Projectile.Kill();
             }
             else
-                Projectile.velocity.Y = (float)Math.Sin(Projectile.position.X * MathHelper.TwoPi / 1776f) + 1.5f;
+                Projectile.velocity.Y = MathF.Sin(Projectile.position.X * MathHelper.TwoPi / 1776f) + 1.5f;
 
             Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.PiOver2;
         }

@@ -1,5 +1,8 @@
+using CalamityMod.NPCs.CeaselessVoid;
+using CalamityMod.NPCs.Signus;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
+using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 
@@ -7,6 +10,20 @@ namespace InfernumMode.Core.GlobalInstances.Systems
 {
     public class WorldSaveSystem : ModSystem
     {
+        private static bool infernumMode;
+
+        public static int AbyssLayer1ForestSeed
+        {
+            get;
+            set;
+        }
+
+        public static int AbyssLayer3CavernSeed
+        {
+            get;
+            set;
+        }
+
         public static bool HasGeneratedProfanedShrine
         {
             get;
@@ -19,13 +36,13 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             set;
         }
 
-        public static bool HasBeatedInfernumProvRegularly
+        public static bool HasBeatenInfernumProvRegularly
         {
             get;
             set;
         }
 
-        public static bool HasBeatedInfernumNightProvBeforeDay
+        public static bool HasBeatenInfernumNightProvBeforeDay
         {
             get;
             set;
@@ -33,8 +50,30 @@ namespace InfernumMode.Core.GlobalInstances.Systems
 
         public static bool InfernumMode
         {
-            get;
-            set;
+            get => infernumMode;
+            set
+            {
+                if (!value)
+                {
+                    int signusID = ModContent.NPCType<Signus>();
+                    int ceaselessVoidID = ModContent.NPCType<CeaselessVoid>();
+                    for (int i = 0; i < Main.maxNPCs; i++)
+                    {
+                        NPC n = Main.npc[i];
+                        if (n.active && (n.type == signusID || n.type == ceaselessVoidID))
+                            n.active = false;
+                    }
+
+                    CalamityBossHPBarChangesSystem.UndoBarChanges();
+                }
+                else
+                {
+                    CalamityBossHPBarChangesSystem.PerformBarChanges();
+                    CeaselessVoidArchivesSpawnSystem.WaitingForPlayersToLeaveArchives = true;
+                }
+
+                infernumMode = value;
+            }
         }
 
         public static Rectangle ProvidenceArena
@@ -59,7 +98,33 @@ namespace InfernumMode.Core.GlobalInstances.Systems
         {
             get;
             set;
-        } = false;
+        }
+
+        public static bool HasDefeatedEidolists
+        {
+            get;
+            set;
+        }
+
+        public static Point SquidDenCenter
+        {
+            get;
+            set;
+        }
+
+        public static Point EidolistWorshipPedestalCenter
+        {
+            get;
+            set;
+        }
+
+        // This value is only set to true in new worldgen code. All prior worlds will never naturally have this flag enabled.
+        // This is done to allow backwards compatibility with old Abyss worldgen.
+        public static bool InPostAEWUpdateWorld
+        {
+            get;
+            set;
+        }
 
         public static Vector2 WayfinderGateLocation
         {
@@ -97,10 +162,37 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             set;
         }
 
+        public static bool MetSignusAtProfanedGarden
+        {
+            get;
+            set;
+        }
+
+        public static bool MetCalamitasAtCrags
+        {
+            get;
+            set;
+        }
+
+        public static Point ForbiddenArchiveCenter
+        {
+            get;
+            set;
+        }
+
+        public static Point BlossomGardenCenter
+        {
+            get;
+            set;
+        }
+
         public const int LostColosseumPortalAnimationTime = 150;
 
         public override void SaveWorldData(TagCompound tag)
         {
+            if (WorldGen.generatingWorld)
+                return;
+
             var downed = new List<string>();
             if (InfernumMode)
                 downed.Add("InfernumModeActive");
@@ -108,14 +200,16 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 downed.Add("HasGeneratedProfanedShrine");
             if (HasGeneratedColosseumEntrance)
                 downed.Add("HasGeneratedColosseumEntrance");
-            if (HasBeatedInfernumProvRegularly)
-                downed.Add("HasBeatedInfernumProvRegularly");
-            if (HasBeatedInfernumNightProvBeforeDay)
-                downed.Add("HasBeatedInfernumNightProvBeforeDay");
+            if (HasBeatenInfernumProvRegularly)
+                downed.Add("HasBeatenInfernumProvRegularly");
+            if (HasBeatenInfernumNightProvBeforeDay)
+                downed.Add("HasBeatenInfernumNightProvBeforeDay");
             if (HasProvidenceDoorShattered)
                 downed.Add("HasProvidenceDoorShattered");
             if (HasSepulcherAnimationBeenPlayed)
                 downed.Add("HasSepulcherAnimationBeenPlayed");
+            if (InPostAEWUpdateWorld)
+                downed.Add("InPostAEWUpdateWorld");
             if (HasOpenedLostColosseumPortal)
                 downed.Add("HasOpenedLostColosseumPortal");
             if (DownedBereftVassal)
@@ -124,6 +218,10 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 downed.Add("DisplayedEmodeWarningText");
             if (PerformedLacewingAnimation)
                 downed.Add("PerformedLacewingAnimation");
+            if (MetSignusAtProfanedGarden)
+                downed.Add("MetSignusAtProfanedGarden");
+            if (MetCalamitasAtCrags)
+                downed.Add("MetCalamitasAtCrags");
 
             tag["downed"] = downed;
             tag["ProvidenceArenaX"] = ProvidenceArena.X;
@@ -131,8 +229,21 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             tag["ProvidenceArenaWidth"] = ProvidenceArena.Width;
             tag["ProvidenceArenaHeight"] = ProvidenceArena.Height;
             tag["ProvidenceDoorXPosition"] = ProvidenceDoorXPosition;
+
+            tag["AbyssLayer1ForestSeed"] = AbyssLayer1ForestSeed;
+            tag["AbyssLayer3CavernSeed"] = AbyssLayer3CavernSeed;
+            tag["SquidDenCenterX"] = SquidDenCenter.X;
+            tag["SquidDenCenterY"] = SquidDenCenter.Y;
+            tag["EidolistWorshipPedestalCenterX"] = EidolistWorshipPedestalCenter.X;
+            tag["EidolistWorshipPedestalCenterY"] = EidolistWorshipPedestalCenter.Y;
+
             tag["DreamgateLocationX"] = WayfinderGateLocation.X;
             tag["DreamgateLocationY"] = WayfinderGateLocation.Y;
+
+            tag["ForbiddenArchiveCenterX"] = ForbiddenArchiveCenter.X;
+            tag["ForbiddenArchiveCenterY"] = ForbiddenArchiveCenter.Y;
+            tag["BlossomGardenCenterX"] = BlossomGardenCenter.X;
+            tag["BlossomGardenCenterY"] = BlossomGardenCenter.Y;
         }
 
         public override void LoadWorldData(TagCompound tag)
@@ -141,37 +252,35 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             InfernumMode = downed.Contains("InfernumModeActive");
             HasGeneratedProfanedShrine = downed.Contains("HasGeneratedProfanedShrine");
             HasGeneratedColosseumEntrance = downed.Contains("HasGeneratedColosseumEntrance");
-            HasBeatedInfernumProvRegularly = downed.Contains("HasBeatedInfernumProvRegularly");
-            HasBeatedInfernumNightProvBeforeDay = downed.Contains("HasBeatedInfernumNightProvBeforeDay");
+
+            // This used to be internally represented with a spelling error in the NBT data.
+            // As such, a legacy check is used to ensure that world data that has the old string is not discarded.
+            HasBeatenInfernumProvRegularly = downed.Contains("HasBeatedInfernumProvRegularly") || downed.Contains("HasBeatenInfernumProvRegularly");
+            HasBeatenInfernumNightProvBeforeDay = downed.Contains("HasBeatedInfernumNightProvBeforeDay") || downed.Contains("HasBeatenInfernumNightProvBeforeDay");
+
             HasProvidenceDoorShattered = downed.Contains("HasProvidenceDoorShattered");
             HasSepulcherAnimationBeenPlayed = downed.Contains("HasSepulcherAnimationBeenPlayed");
+            InPostAEWUpdateWorld = downed.Contains("InPostAEWUpdateWorld");
             HasOpenedLostColosseumPortal = downed.Contains("HasOpenedLostColosseumPortal");
             DownedBereftVassal = downed.Contains("DownedBereftVassal");
             DisplayedEmodeWarningText = downed.Contains("DisplayedEmodeWarningText");
             PerformedLacewingAnimation = downed.Contains("PerformedLacewingAnimation");
+            MetSignusAtProfanedGarden = downed.Contains("MetSignusAtProfanedGarden");
+            MetCalamitasAtCrags = downed.Contains("MetCalamitasAtCrags");
 
             ProvidenceArena = new(tag.GetInt("ProvidenceArenaX"), tag.GetInt("ProvidenceArenaY"), tag.GetInt("ProvidenceArenaWidth"), tag.GetInt("ProvidenceArenaHeight"));
             ProvidenceDoorXPosition = tag.GetInt("ProvidenceDoorXPosition");
+
+            AbyssLayer1ForestSeed = tag.GetInt("AbyssLayer1ForestSeed");
+            AbyssLayer3CavernSeed = tag.GetInt("AbyssLayer3CavernSeed");
+            SquidDenCenter = new(tag.GetInt("SquidDenCenterX"), tag.GetInt("SquidDenCenterY"));
+            EidolistWorshipPedestalCenter = new(tag.GetInt("EidolistWorshipPedestalCenterX"), tag.GetInt("EidolistWorshipPedestalCenterY"));
+
             WayfinderGateLocation = new(tag.GetFloat("DreamgateLocationX"), tag.GetFloat("DreamgateLocationY"));
-        }
 
-        public override void OnWorldLoad()
-        {
-            InfernumMode = false;
-            HasGeneratedProfanedShrine = false;
-            HasGeneratedColosseumEntrance = false;
-            HasBeatedInfernumProvRegularly = false;
-            HasBeatedInfernumNightProvBeforeDay = false;
-            HasProvidenceDoorShattered = false;
-            HasSepulcherAnimationBeenPlayed = false;
-            HasOpenedLostColosseumPortal = false;
-            DownedBereftVassal = false;
-            DisplayedEmodeWarningText = false;
-            PerformedLacewingAnimation = false;
+            ForbiddenArchiveCenter = new(tag.GetInt("ForbiddenArchiveCenterX"), tag.GetInt("ForbiddenArchiveCenterY"));
 
-            ProvidenceArena = Rectangle.Empty;
-            ProvidenceDoorXPosition = 0;
-            WayfinderGateLocation = Vector2.Zero;
+            BlossomGardenCenter = new(tag.GetInt("BlossomGardenCenterX"), tag.GetInt("BlossomGardenCenterY"));
         }
     }
 }

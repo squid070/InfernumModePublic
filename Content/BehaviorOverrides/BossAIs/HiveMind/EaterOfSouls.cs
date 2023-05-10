@@ -8,9 +8,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.HiveMind
 {
     public class EaterOfSouls : ModProjectile
     {
+        public override string Texture => $"Terraria/Images/NPC_{NPCID.EaterofSouls}";
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Eater of Souls");
+            Main.projFrames[Type] = 2;
             ProjectileID.Sets.TrailingMode[Projectile.type] = 0;
             ProjectileID.Sets.TrailCacheLength[Projectile.type] = 7;
         }
@@ -26,6 +29,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.HiveMind
             Projectile.friendly = false;
             Projectile.hostile = true;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI() => Projectile.rotation = Projectile.velocity.ToRotation() - MathHelper.PiOver2;

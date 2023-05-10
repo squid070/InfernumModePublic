@@ -1,5 +1,6 @@
 using CalamityMod;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -33,7 +34,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.ignoreWater = true;
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
             Projectile.timeLeft = 600;
             Projectile.Calamity().DealsDefenseDamage = true;
         }
@@ -58,7 +59,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.frame = Projectile.frameCounter / 5 % Main.projFrames[Projectile.type];
 
             // Rotation.
-            Projectile.rotation = (float)Math.Atan2(Projectile.velocity.Y, Projectile.velocity.X) + MathHelper.PiOver2;
+            Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.PiOver2;
 
             // Spawn effects.
             if (Projectile.localAI[0] == 0f)
@@ -167,6 +168,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             SpriteEffects direction = SpriteEffects.None;
             if (Projectile.spriteDirection == -1)
                 direction = SpriteEffects.FlipHorizontally;
+            Utilities.DrawBackglow(Projectile, Color.Lime with { A = 0 }, 4f, frame);
             Main.spriteBatch.Draw(texture, Projectile.Center - Main.screenPosition, frame, Color.White, Projectile.rotation, origin, Projectile.scale, direction, 0f);
             return false;
         }

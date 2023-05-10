@@ -4,7 +4,7 @@ using CalamityMod.Particles;
 using CalamityMod.Projectiles.Boss;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -46,6 +46,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.scale = 1f;
             Projectile.hide = true;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer) => writer.Write(ExplodeCountdown);
@@ -93,7 +94,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                                     Vector2 dartVelocity = (MathHelper.TwoPi * j / dartsPerRing).ToRotationVector2() * dartSpeed;
                                     if (i % 2 == 0)
                                         dartVelocity = dartVelocity.RotatedBy(MathHelper.Pi / dartsPerRing);
-                                    Utilities.NewProjectileBetter(Projectile.Center, dartVelocity, ModContent.ProjectileType<BrimstoneBarrage>(), 500, 0f);
+                                    Utilities.NewProjectileBetter(Projectile.Center, dartVelocity, ModContent.ProjectileType<BrimstoneBarrage>(), SupremeCalamitasBehaviorOverride.BrimstoneDartDamage, 0f);
                                 }
                                 dartsPerRing += 4;
                             }
@@ -114,7 +115,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                 return;
             }
 
-            float mouthOffset = (float)Math.Pow(Radius / MaxRadius, 2.3) * MaxRadius * 0.92f + 45f;
+            float mouthOffset = MathF.Pow(Radius / MaxRadius, 2.3f) * MaxRadius * 0.92f + 45f;
             NPC sepulcher = Main.npc[sepulcherIndex];
             Projectile.Center = sepulcher.Center + sepulcher.velocity.SafeNormalize((sepulcher.rotation - MathHelper.PiOver2).ToRotationVector2()) * mouthOffset;
 

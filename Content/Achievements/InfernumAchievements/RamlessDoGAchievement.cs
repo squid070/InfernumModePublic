@@ -1,8 +1,6 @@
-﻿using CalamityMod.Items.Accessories;
-using CalamityMod.NPCs;
+﻿using CalamityMod.NPCs;
 using CalamityMod.NPCs.DevourerofGods;
 using InfernumMode.Core.GlobalInstances.Players;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
@@ -13,21 +11,16 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
     {
         #region Fields
         private bool UsedADash;
-        private static List<int> RamIDs => new()
-        {
-            ModContent.ItemType<AsgardsValor>(),
-            ModContent.ItemType<ElysianAegis>(),
-            ModContent.ItemType<AsgardianAegis>()
-        };
         #endregion
 
         #region Overrides
         public override void Initialize()
         {
-            Name = "Ramification";
+            Name = "Rampage";
             Description = "Best the Devourer at his own game: without a ram!\n[c/777777:Beat the Infernum Devourer of Gods without using a ram dash]";
             TotalCompletion = 1;
             PositionInMainList = 4;
+            UpdateCheck = AchievementUpdateCheck.None;
         }
         public override void Update()
         {
@@ -59,7 +52,7 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
             if (CalamityGlobalNPC.DoGHead != -1)
             {
                 // If at any point any player has a ram, invalidate them completing the achievement.
-                if (PlayerHasRam())
+                if (Main.LocalPlayer.HasShieldBash())
                     UsedADash = true;
             }
             // Else, ensure the variables are reset
@@ -77,25 +70,6 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
         {
             CurrentCompletion = tag.Get<int>("RamDogCurrentCompletion");
             DoneCompletionEffects = tag.Get<bool>("RamDogDoneCompletionEffects");
-        }
-        #endregion
-
-        #region Methods
-        private static bool PlayerHasRam()
-        {
-            // TODO -- This isn't going to work with TML's extra accessories system. There should be a ModPlayer hook for these sorts of checks.
-            Player player = Main.LocalPlayer;
-            for (int i = 0; i <= 7 + player.GetAmountOfExtraAccessorySlotsToShow(); i++)
-            {
-                foreach (int item in RamIDs)
-                {
-                    if (player.armor[i].type == item)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
         #endregion
     }

@@ -1,14 +1,14 @@
 using CalamityMod.Cooldowns;
 using InfernumMode.Assets.Effects;
+using InfernumMode.Content.BossBars;
 using InfernumMode.Content.BossIntroScreens;
-using InfernumMode.Content.Items;
-using InfernumMode.Core;
+using InfernumMode.Content.UI;
 using InfernumMode.Core.Balancing;
 using InfernumMode.Core.CrossCompatibility;
 using InfernumMode.Core.GlobalInstances.Systems;
+using InfernumMode.Core.ILEditingStuff;
 using InfernumMode.Core.Netcode;
 using InfernumMode.Core.OverridingSystem;
-using InfernumMode.ILEditingStuff;
 using System.IO;
 using Terraria;
 using Terraria.ID;
@@ -23,13 +23,27 @@ namespace InfernumMode
 
         internal static Mod CalamityMod = null;
 
+        internal static Mod InfernumMusicMod = null;
+
         internal static Mod FargosMutantMod = null;
 
         internal static Mod FargowiltasSouls = null;
 
         internal static Mod PhaseIndicator = null;
 
-        internal static bool CanUseCustomAIs => WorldSaveSystem.InfernumMode;
+        public static bool MusicModIsActive
+        {
+            get;
+            private set;
+        }
+
+        public static bool CalMusicModIsActive
+        {
+            get;
+            private set;
+        }
+
+        public static bool CanUseCustomAIs => WorldSaveSystem.InfernumMode;
 
         public static float BlackFade
         {
@@ -66,6 +80,8 @@ namespace InfernumMode
             ModLoader.TryGetMod("Fargowiltas", out FargosMutantMod);
             ModLoader.TryGetMod("FargowiltasSouls", out FargowiltasSouls);
             ModLoader.TryGetMod("PhaseIndicator", out PhaseIndicator);
+            MusicModIsActive = ModLoader.TryGetMod("InfernumModeMusic", out InfernumMusicMod);
+            CalMusicModIsActive = ModLoader.TryGetMod("CalamityModMusic", out _);
 
             BalancingChangesManager.Load();
             Main.RunOnMainThread(HookManager.Load);
@@ -80,11 +96,29 @@ namespace InfernumMode
             IntroScreenManager.Load();
             NPCBehaviorOverride.LoadAll();
             ProjectileBehaviorOverride.LoadAll();
+            BossBarManager.LoadPhaseInfo();
 
             if (Main.netMode != NetmodeID.Server)
             {
+                // Cryogen.
                 AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/Cryogen/CryogenMapIcon", -1);
+
+                // Dreadnautilus.
                 AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/Dreadnautilus/DreadnautilusMapIcon", -1);
+
+                // Calamitas' Shadow.
+                AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/CalamitasShadow/CalShadowMapIcon", -1);
+                AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/CalamitasShadow/CataclysmMapIcon", -1);
+                AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/CalamitasShadow/CatastropheMapIcon", -1);
+
+                // Devourer of Gods.
+                AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP1HeadMapIcon", -1);
+                AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP1TailMapIcon", -1);
+                AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP2HeadMapIcon", -1);
+                AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP2BodyMapIcon", -1);
+                AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/DoG/DoGP2TailMapIcon", -1);
+
+                // Calamitas.
                 AddBossHeadTexture("InfernumMode/Content/BehaviorOverrides/BossAIs/SupremeCalamitas/SepulcherMapIcon", -1);
 
                 InfernumEffectsRegistry.LoadEffects();
@@ -117,7 +151,7 @@ namespace InfernumMode
         }
 
         public override void HandlePacket(BinaryReader reader, int whoAmI) => PacketManager.ReceivePacket(reader);
-        
+
         public override object Call(params object[] args)
         {
             return InfernumModCalls.Call(args);

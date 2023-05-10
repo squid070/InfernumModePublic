@@ -1,12 +1,12 @@
+using CalamityMod;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
-using CalamityMod;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
 {
@@ -31,6 +31,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)

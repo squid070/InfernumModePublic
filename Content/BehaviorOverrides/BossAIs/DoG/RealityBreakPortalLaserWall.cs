@@ -1,5 +1,4 @@
 using CalamityMod.DataStructures;
-using CalamityMod.Projectiles.Boss;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Core.GlobalInstances.Systems;
@@ -28,6 +27,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             Projectile.penetrate = -1;
             Projectile.timeLeft = 100;
             Projectile.hide = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -54,7 +54,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                         {
                             laser.MaxUpdates = 2;
                         });
-                        Projectile.NewProjectile(Projectile.GetSource_FromAI(), Projectile.Center, shootVelocity, ModContent.ProjectileType<DoGDeathInfernum>(), 96, 0f, Projectile.owner);
+                        Utilities.NewProjectileBetter(Projectile.Center, shootVelocity, ModContent.ProjectileType<DoGDeathInfernum>(), DoGPhase1HeadBehaviorOverride.DeathLaserDamage, 0f, Projectile.owner);
                     }
                 }
             }

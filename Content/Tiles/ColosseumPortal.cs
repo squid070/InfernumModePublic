@@ -3,8 +3,8 @@ using CalamityMod.Items.SummonItems;
 using CalamityMod.Tiles.Astral;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Common.Graphics.Primitives;
+using InfernumMode.Content.Projectiles.Generic;
 using InfernumMode.Content.Subworlds;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.Netcode;
@@ -58,6 +58,9 @@ namespace InfernumMode.Content.Tiles
             // This is necessary to ensure that the primitives properly render.
             TileID.Sets.DrawTileInSolidLayer[Type] = true;
 
+            // Apparently this is necessary in multiplayer for some reason???
+            MinPick = int.MaxValue;
+
             TileObjectData.newTile.CopyFrom(TileObjectData.Style1x2);
             TileObjectData.newTile.Width = Width;
             TileObjectData.newTile.Height = Height;
@@ -109,29 +112,44 @@ namespace InfernumMode.Content.Tiles
             return false;
         }
 
+        public override void NearbyEffects(int i, int j, bool closer)
+        {
+            bool insidePortal = MathHelper.Distance(Main.LocalPlayer.Center.X, i * 16f) <= 108f && Main.LocalPlayer.Center.Y >= j * 16f - 250f;
+            ref float teleportInterpolant = ref Main.LocalPlayer.Infernum_Biome().lostColosseumTeleportInterpolant;
+            Tile t = CalamityUtils.ParanoidTileRetrieval(i, j);
+            if (!insidePortal || !WorldSaveSystem.HasOpenedLostColosseumPortal || t.TileFrameX != 36 || t.TileFrameY != 18)
+                return;
+
+            if (teleportInterpolant <= 1f)
+            {
+                teleportInterpolant += 0.028f;
+                return;
+            }
+
+            teleportInterpolant = 0f;
+            if (SubworldSystem.IsActive<LostColosseum>())
+                SubworldSystem.Exit();
+            else
+            {
+                // Don't allow the player to use the portal if Infernum is not active.
+                if (!InfernumMode.CanUseCustomAIs)
+                {
+                    CombatText.NewText(Main.LocalPlayer.Hitbox, Color.Orange, "Infernum must be enabled to enter the Colosseum!");
+                    return;
+                }
+
+                Main.LocalPlayer.Infernum_Biome().PositionBeforeEnteringSubworld = Main.LocalPlayer.Center;
+                SubworldSystem.Enter<LostColosseum>();
+            }
+        }
+
         public override bool RightClick(int i, int j)
         {
             if (!Main.LocalPlayer.HasItem(ModContent.ItemType<SandstormsCore>()) && !WorldSaveSystem.HasOpenedLostColosseumPortal)
                 return true;
 
             if (WorldSaveSystem.HasOpenedLostColosseumPortal)
-            {
-                if (SubworldSystem.IsActive<LostColosseum>())
-                    SubworldSystem.Exit();
-                else
-                {
-                    // Don't allow the player to use the portal if Infernum is not active.
-                    if (!InfernumMode.CanUseCustomAIs)
-                    {
-                        CombatText.NewText(Main.LocalPlayer.Hitbox, Color.Orange, "Infernum must be enabled to enter the Colosseum!");
-                        return true;
-                    }
-
-                    Main.LocalPlayer.Infernum_Biome().PositionBeforeEnteringSubworld = Main.LocalPlayer.Center;
-                    SubworldSystem.Enter<LostColosseum>();
-                }
                 return true;
-            }
 
             SoundEngine.PlaySound(AstralBeacon.UseSound);
             SoundEngine.PlaySound(SoundID.DD2_EtherianPortalOpen);
@@ -152,7 +170,7 @@ namespace InfernumMode.Content.Tiles
         {
             float tipFadeoffInterpolant = MathHelper.SmoothStep(0f, 1f, Utils.GetLerpValue(1f, 0.75f, completionRatio, true));
             float baseFadeoffInterpolant = MathHelper.SmoothStep(2.4f, 1f, 1f - CalamityUtils.Convert01To010(Utils.GetLerpValue(0f, 0.64f, completionRatio, true)));
-            float widthAdditionFactor = (float)Math.Sin(Main.GlobalTimeWrappedHourly * -13f + completionRatio * MathHelper.Pi * 4f) * 0.2f;
+            float widthAdditionFactor = MathF.Sin(Main.GlobalTimeWrappedHourly * -13f + completionRatio * MathHelper.Pi * 4f) * 0.2f;
             float generalSquishFactor = Utils.GetLerpValue(0.8f, 0.96f, AnimationCompletion, true);
 
             return tipFadeoffInterpolant * baseFadeoffInterpolant * (1f + widthAdditionFactor) * PortalWidth * generalSquishFactor;
@@ -161,9 +179,9 @@ namespace InfernumMode.Content.Tiles
         public static Color PillarColorFunction(float completionRatio)
         {
             Color lightSandColor = new(234, 179, 112);
-            float colorShiftInterpolant = (float)Math.Sin(-Main.GlobalTimeWrappedHourly * 6.7f + completionRatio * MathHelper.TwoPi) * 0.5f + 0.5f;
+            float colorShiftInterpolant = MathF.Sin(-Main.GlobalTimeWrappedHourly * 6.7f + completionRatio * MathHelper.TwoPi) * 0.5f + 0.5f;
             float opacity = Utils.GetLerpValue(0.84f, 0.96f, AnimationCompletion, true) * Utils.GetLerpValue(0f, 0.13f, completionRatio, true);
-            return Color.Lerp(lightSandColor, Color.SkyBlue, (float)Math.Pow(colorShiftInterpolant, 1.64f)) * opacity * 0.85f;
+            return Color.Lerp(lightSandColor, Color.SkyBlue, MathF.Pow(colorShiftInterpolant, 1.64f)) * opacity * 0.85f;
         }
 
         public static void DrawSpecialEffects(Vector2 center)

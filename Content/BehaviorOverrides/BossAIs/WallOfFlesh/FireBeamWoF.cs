@@ -1,12 +1,14 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
@@ -30,7 +32,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
             Projectile.timeLeft = 120;
             Projectile.alpha = 255;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -38,7 +40,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
             // Fade in.
             Projectile.alpha = Utils.Clamp(Projectile.alpha - 25, 0, 255);
 
-            Projectile.scale = (float)Math.Sin(Time / 120f * MathHelper.Pi) * 3f;
+            Projectile.scale = MathF.Sin(Time / 120f * MathHelper.Pi) * 3f;
             if (Projectile.scale > 1f)
                 Projectile.scale = 1f;
 
@@ -91,7 +93,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.WallOfFlesh
         public Color ColorFunction(float completionRatio)
         {
             Color color = Color.Lerp(Color.Red, Color.Orange, 0.65f);
-            return color * Projectile.Opacity * (float)Math.Pow(Utils.GetLerpValue(0f, 0.1f, completionRatio, true), 3D);
+            return color * Projectile.Opacity * MathF.Pow(Utils.GetLerpValue(0f, 0.1f, completionRatio, true), 3f);
         }
 
         public override bool PreDraw(ref Color lightColor) => false;

@@ -9,7 +9,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
     public class LunarFlare : ModProjectile
     {
         public ref float Countdown => ref Projectile.ai[0];
+
         public Player Target => Main.player[Projectile.owner];
+
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.LunarFlare}";
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Phantasmal Flare");
@@ -24,6 +28,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             Projectile.tileCollide = false;
             Projectile.extraUpdates = 5;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

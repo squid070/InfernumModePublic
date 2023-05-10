@@ -1,5 +1,6 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.Events;
+using InfernumMode.Assets.ExtraTextures;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -12,11 +13,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
 {
     public class QueenSlimeCrown : ModProjectile
     {
-        public int DefaultDamage;
-
         public ref float Time => ref Projectile.ai[0];
 
         public ref float ChargeGlowTelegraphInterpolant => ref Projectile.localAI[0];
+
+        public override string Texture => InfernumTextureRegistry.InvisPath;
 
         public override void SetStaticDefaults()
         {
@@ -34,6 +35,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 90000;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -46,10 +48,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
                 return;
             }
 
-            // Reset damage and the charge glow interpolant.
+            // Reset the glow interpolant.
             ChargeGlowTelegraphInterpolant = 0f;
-            if (DefaultDamage == 0)
-                DefaultDamage = Projectile.damage;
 
             Projectile.damage = 0;
             NPC queenSlime = Main.npc[queenSlimeIndex];
@@ -57,9 +57,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
 
             switch ((QueenSlimeBehaviorOverride.QueenSlimeAttackType)queenSlime.ai[0])
             {
-                case QueenSlimeBehaviorOverride.QueenSlimeAttackType.CrownDashes:
-                    DoBehavior_CrownDashes(queenSlime, target);
-                    break;
                 case QueenSlimeBehaviorOverride.QueenSlimeAttackType.CrownLasers:
                     DoBehavior_CrownLasers(queenSlime, target);
                     break;
@@ -72,71 +69,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
             Time++;
         }
 
-        public void DoBehavior_CrownDashes(NPC queenSlime, Player target)
-        {
-            // Return to the queen slime's head if it should.
-            if (queenSlime.Infernum().ExtraAI[1] == 1f)
-            {
-                Vector2 destination = QueenSlimeBehaviorOverride.CrownPosition(queenSlime);
-                Projectile.velocity = Projectile.SafeDirectionTo(destination) * 24f;
-                if (Projectile.WithinRange(destination, 28f))
-                {
-                    queenSlime.ai[2] = 1f;
-                    QueenSlimeBehaviorOverride.SelectNextAttack(queenSlime);
-                    Projectile.active = false;
-                }
-                return;
-            }
-
-            // Glow before charging.
-            ChargeGlowTelegraphInterpolant = Utils.GetLerpValue(100f, 165f, Time, true);
-            ChargeGlowTelegraphInterpolant = Utils.GetLerpValue(0f, 0.4f, ChargeGlowTelegraphInterpolant, true) * Utils.GetLerpValue(1f, 0.8f, ChargeGlowTelegraphInterpolant, true);
-
-            // Hover into position near the target.
-            if (Time < 150f)
-            {
-                float flySpeed = MathHelper.Lerp(23f, 48f, Time / 150f);
-                Vector2 hoverDestination = target.Center + new Vector2((target.Center.X < Projectile.Center.X).ToDirectionInt() * 400f, -200f);
-                Vector2 idealVelocity = Projectile.SafeDirectionTo(hoverDestination) * flySpeed;
-
-                Projectile.Center = Projectile.Center.MoveTowards(hoverDestination, 3f);
-                Projectile.velocity = (Projectile.velocity * 15f + idealVelocity) / 16f;
-                Projectile.velocity = Projectile.velocity.MoveTowards(idealVelocity, 1f);
-
-                if (Time >= 45f && Projectile.WithinRange(hoverDestination, 50f))
-                {
-                    Time = 150f;
-                    Projectile.velocity *= 0.6f;
-                    Projectile.netUpdate = true;
-                }
-            }
-
-            // Slow down before charging.
-            else if (Time < 165f)
-                Projectile.velocity *= 0.95f;
-
-            // Charge.
-            else
-            {
-                float chargeSpeedInterpolant = Utils.GetLerpValue(165f, 172f, Time, true);
-                float chargeSpeed = MathHelper.Lerp(8f, 28f, chargeSpeedInterpolant);
-                if (QueenSlimeBehaviorOverride.InPhase2(queenSlime))
-                    chargeSpeed *= 1.3f;
-                if (BossRushEvent.BossRushActive)
-                    chargeSpeed *= 1.8f;
-
-                if (chargeSpeedInterpolant < 1f)
-                    Projectile.velocity = Projectile.SafeDirectionTo(target.Center) * chargeSpeed;
-
-                if (Time >= 196f)
-                {
-                    Time = 0f;
-                    Projectile.netUpdate = true;
-                }
-                Projectile.damage = DefaultDamage;
-            }
-        }
-
         public void DoBehavior_CrownLasers(NPC queenSlime, Player target)
         {
             // Return to the queen slime's head if it should.
@@ -146,20 +78,27 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
                 Projectile.velocity = Projectile.SafeDirectionTo(destination) * 24f;
                 if (Projectile.WithinRange(destination, 28f))
                 {
-                    queenSlime.ai[2] = 1f;
+                    queenSlime.ai[3] = 1f;
+                    queenSlime.rotation = 0f;
                     QueenSlimeBehaviorOverride.SelectNextAttack(queenSlime);
+                    Utilities.DeleteAllProjectiles(false, ModContent.ProjectileType<QueenJewelBeam>(), ModContent.ProjectileType<FallingGel>());
                     Projectile.active = false;
                 }
                 return;
             }
 
+            int attackCycleTime = (int)queenSlime.Infernum().ExtraAI[2];
+            float wrappedAttackTimer = Time % attackCycleTime;
             Vector2 hoverDestination = target.Center + (MathHelper.TwoPi * Time / 180f).ToRotationVector2() * 680f;
-            if (Time % 90f > 75f)
+            if (wrappedAttackTimer > 75f)
                 Projectile.velocity *= 0.925f;
             else
-                Projectile.velocity = Vector2.Zero.MoveTowards(hoverDestination - Projectile.Center, 16f);
+                Projectile.velocity = Vector2.Zero.MoveTowards(hoverDestination - Projectile.Center, 28f);
 
-            if (Time % 90f == 89f)
+            ChargeGlowTelegraphInterpolant = Utils.GetLerpValue(attackCycleTime - 25f, attackCycleTime - 5f, wrappedAttackTimer, true);
+
+            // Periodically release lasers.
+            if (wrappedAttackTimer == attackCycleTime - 1f)
             {
                 SoundEngine.PlaySound(SoundID.Item43, Projectile.Center);
 
@@ -174,7 +113,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
                         if (BossRushEvent.BossRushActive)
                             shootVelocity *= 1.7f;
 
-                        Utilities.NewProjectileBetter(boltSpawnPosition, shootVelocity, ModContent.ProjectileType<CrownBeam>(), 125, 0f);
+                        Utilities.NewProjectileBetter(boltSpawnPosition, shootVelocity, ModContent.ProjectileType<QueenJewelBeam>(), QueenSlimeBehaviorOverride.JewelBeamDamage, 0f);
                     }
                 }
             }
@@ -182,7 +121,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
 
         public override bool PreDraw(ref Color lightColor)
         {
-            Texture2D texture = TextureAssets.Projectile[Projectile.type].Value;
+            Texture2D texture = TextureAssets.Extra[177].Value;
             Vector2 drawPosition = Projectile.Center - Main.screenPosition;
             Vector2 origin = texture.Size() * 0.5f;
 
@@ -192,7 +131,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
                 Vector2 drawOffset = (MathHelper.TwoPi * i / 10f).ToRotationVector2() * ChargeGlowTelegraphInterpolant * 10f;
                 Main.spriteBatch.Draw(texture, drawPosition + drawOffset, null, backglowColor, Projectile.rotation, origin, Projectile.scale, SpriteEffects.None, 0f);
             }
-            Utilities.DrawAfterimagesCentered(Projectile, Color.White, ProjectileID.Sets.TrailingMode[Projectile.type], 1);
+            Utilities.DrawAfterimagesCentered(Projectile, Color.White, ProjectileID.Sets.TrailingMode[Projectile.type], 1, texture);
             return false;
         }
 

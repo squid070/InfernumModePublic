@@ -30,6 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             Projectile.penetrate = -1;
             Projectile.timeLeft = 210;
             Projectile.Opacity = 0f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -73,7 +74,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             for (int i = 0; i < 4; i++)
             {
                 Vector2 shootVelocity = (MathHelper.TwoPi * i / 4f).ToRotationVector2() * 8.5f;
-                Utilities.NewProjectileBetter(Projectile.Center, shootVelocity, ModContent.ProjectileType<LeviathanVomit>(), 175, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center, shootVelocity, ModContent.ProjectileType<LeviathanVomit>(), LeviathanComboAttackManager.LeviathanVomitDamage, 0f);
             }
         }
 

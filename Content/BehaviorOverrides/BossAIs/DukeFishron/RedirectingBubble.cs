@@ -4,6 +4,7 @@ using CalamityMod.Projectiles.Rogue;
 using Microsoft.Xna.Framework;
 using System;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
@@ -11,10 +12,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
     public class RedirectingBubble : ModNPC
     {
         public Player Target => Main.player[NPC.target];
+
         public ref float Time => ref NPC.ai[0];
 
         public const float InitialSpeed = 0.3f;
+
         public const float RedirectSpeed = 11f;
+
+        public override string Texture => $"Terraria/Images/NPC_{NPCID.DetonatingBubble}";
+
         public override void SetStaticDefaults()
         {
             this.HideFromBestiary();
@@ -40,7 +46,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
         {
             float redirectSpeed = RedirectSpeed * (BossRushEvent.BossRushActive ? 2f : 1f);
             if (Time < 45 && NPC.velocity.Length() < redirectSpeed)
-                NPC.velocity *= (float)Math.Pow(redirectSpeed / InitialSpeed, 1f / 45f);
+                NPC.velocity *= MathF.Pow(redirectSpeed / InitialSpeed, 1f / 45f);
             else if (Time >= 45f)
                 NPC.velocity = NPC.velocity.RotateTowards(NPC.AngleTo(Target.Center), MathHelper.ToRadians(2.4f));
 

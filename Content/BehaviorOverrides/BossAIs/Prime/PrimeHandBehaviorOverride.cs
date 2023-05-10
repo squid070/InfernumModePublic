@@ -23,18 +23,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
             {
                 npc.active = false;
                 if (npc.type == NPCID.PrimeSaw)
-                    PrimeViceBehaviorOverride.DoBehavior_SlowSparkShrapnelMeleeCharges(npc, Main.player[npc.target], false);
+                    PrimeViceBehaviorOverride.DoBehavior_SlowSparkShrapnelMeleeCharges(npc, Main.player[npc.target]);
 
                 return false;
             }
 
             NPC head = Main.npc[headIndex];
-            bool pissed = head.Infernum().ExtraAI[HasPerformedDeathAnimationIndex] == 1f;
             PrimeAttackType attackState = (PrimeAttackType)head.ai[0];
-            GetCannonAttributesByAttack(attackState, head, out int telegraphTime, out _, out _);
-
-            if (pissed && npc.life > 10000)
-                npc.life = 10000;
+            GetCannonAttributesByAttack(attackState, out int telegraphTime, out _, out _);
 
             float wrappedAttackTimer = head.Infernum().ExtraAI[CannonCycleTimerIndex] - telegraphTime;
             ref float telegraphIntensity = ref npc.localAI[0];
@@ -114,7 +110,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
                     npc.ai[2] = 0f;
 
                 Vector2 cannonDirection = (npc.rotation + MathHelper.PiOver2).ToRotationVector2();
-                PerformAttackBehaviors(npc, attackState, target, wrappedAttackTimer, pissed, cannonDirection);
+                PerformAttackBehaviors(npc, attackState, target, wrappedAttackTimer, cannonDirection);
             }
 
             return false;
@@ -148,7 +144,20 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
                 Main.spriteBatch.ResetBlendState();
             }
 
-            Main.spriteBatch.Draw(TextureAssets.Npc[npc.type].Value, drawPosition, npc.frame, npc.GetAlpha(lightColor), npc.rotation, npc.frame.Size() * 0.5f, npc.scale, SpriteEffects.None, 0f);
+            // Draw backglow telegraphs.
+            Texture2D texture = TextureAssets.Npc[npc.type].Value;
+            if (telegraphIntensity > 0f)
+            {
+                float opacity = Utils.GetLerpValue(0f, 0.25f, telegraphIntensity, true) * Utils.GetLerpValue(1f, 0.9f, telegraphIntensity, true);
+                Color backglowColor = Color.Lerp(Color.OrangeRed, Color.Red, 0.75f) with { A = 0 };
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector2 drawOffset = (MathHelper.TwoPi * i / 8f).ToRotationVector2() * telegraphIntensity * 8f;
+                    Main.spriteBatch.Draw(texture, drawPosition + drawOffset, npc.frame, npc.GetAlpha(backglowColor) * opacity, npc.rotation, npc.frame.Size() * 0.5f, npc.scale, SpriteEffects.None, 0f);
+                }
+            }
+
+            Main.spriteBatch.Draw(texture, drawPosition, npc.frame, npc.GetAlpha(lightColor), npc.rotation, npc.frame.Size() * 0.5f, npc.scale, SpriteEffects.None, 0f);
             if (npc.ai[3] == 0f && npc.type == NPCID.PrimeLaser)
                 Main.spriteBatch.Draw(TextureAssets.BoneLaser.Value, drawPosition, npc.frame, new Color(200, 200, 200, 0), npc.rotation, npc.frame.Size() * 0.5f, npc.scale, SpriteEffects.None, 0f);
             return false;
@@ -158,7 +167,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
 
         public abstract Color TelegraphColor { get; }
 
-        public abstract void PerformAttackBehaviors(NPC npc, PrimeAttackType attackState, Player target, float attackTimer, bool pissed, Vector2 cannonDirection);
+        public abstract void PerformAttackBehaviors(NPC npc, PrimeAttackType attackState, Player target, float attackTimer, Vector2 cannonDirection);
 
         public virtual void PerformTelegraphBehaviors(NPC npc, PrimeAttackType attackState, float telegraphIntensity, Vector2 cannonDirection) { }
     }

@@ -11,6 +11,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
     public class ExplodingServant : ModNPC
     {
         public ref float Timer => ref NPC.ai[0];
+
+        public override string Texture => $"Terraria/Images/NPC_{NPCID.ServantofCthulhu}";
+
         public override void SetStaticDefaults()
         {
             this.HideFromBestiary();
@@ -23,7 +26,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
             NPC.noGravity = true;
             NPC.lavaImmune = true;
             NPC.noTileCollide = true;
-            NPC.damage = 48;
+            NPC.damage = 40;
             NPC.height = NPC.width = 28;
             NPC.defense = 2;
             NPC.lifeMax = BossRushEvent.BossRushActive ? 6500 : 24;
@@ -52,7 +55,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
             NPC.alpha = Utils.Clamp(NPC.alpha - 30, 0, 255);
 
             float maxSpeed = BossRushEvent.BossRushActive ? 34f : 14f;
-            float moveAcceleration = BossRushEvent.BossRushActive ? 1.04f : 1.0075f;
+            float moveAcceleration = BossRushEvent.BossRushActive ? 1.04f : 1.007f;
             if (Main.dayTime && !BossRushEvent.BossRushActive)
             {
                 maxSpeed *= 1.425f;
@@ -69,7 +72,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
             if (target != null && !target.dead && target.active)
             {
                 float squareTargetDistance = NPC.DistanceSQ(target.Center);
-                if (squareTargetDistance > 180f * 180f && squareTargetDistance < 1000f * 1000f)
+                if (squareTargetDistance is > (180f * 180f) and < (1000f * 1000f))
                     NPC.velocity = NPC.velocity.RotateTowards(NPC.AngleTo(target.Center), 0.0145f);
             }
 

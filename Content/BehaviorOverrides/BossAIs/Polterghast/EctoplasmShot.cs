@@ -1,4 +1,5 @@
 using CalamityMod;
+using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -29,7 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
         {
             DisplayName.SetDefault("Ectoplasm Blast");
             ProjectileID.Sets.TrailingMode[Projectile.type] = 2;
-            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 16;
+            ProjectileID.Sets.TrailCacheLength[Projectile.type] = 7;
         }
 
         public override void SetDefaults()
@@ -41,7 +42,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             Projectile.tileCollide = false;
             Projectile.ignoreWater = true;
             Projectile.hostile = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -86,22 +87,19 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
         public override bool PreDraw(ref Color lightColor)
         {
             Texture2D streakTexture = TextureAssets.Projectile[Projectile.type].Value;
-            for (int i = 1; i < Projectile.oldPos.Length; i++)
+            for (int i = 1; i < Projectile.oldPos.Length; i += InfernumConfig.Instance.ReducedGraphicsConfig ? 2 : 1)
             {
                 if (Projectile.oldPos[i - 1] == Vector2.Zero || Projectile.oldPos[i] == Vector2.Zero)
                     continue;
 
                 float completionRatio = i / (float)Projectile.oldPos.Length;
-                float fade = (float)Math.Pow(completionRatio, 2D);
-                float scale = Projectile.scale * MathHelper.Lerp(0.88f, 0.48f, Utils.GetLerpValue(0f, 0.24f, completionRatio, true)) *
-                    MathHelper.Lerp(0.9f, 0.56f, Utils.GetLerpValue(0.5f, 0.78f, completionRatio, true));
+                float fade = MathF.Pow(completionRatio, 2f);
+                float scale = Projectile.scale * MathHelper.Lerp(1.2f, 0.9f, Utils.GetLerpValue(0f, 0.24f, completionRatio, true)) * MathHelper.Lerp(0.9f, 0.56f, Utils.GetLerpValue(0.5f, 0.78f, completionRatio, true));
                 Color drawColor = Color.HotPink * (1f - fade) * Projectile.Opacity;
                 drawColor.A = 0;
 
                 Vector2 drawPosition = Projectile.oldPos[i - 1] + Projectile.Size * 0.5f - Main.screenPosition;
-                Vector2 drawPosition2 = Vector2.Lerp(drawPosition, Projectile.oldPos[i] + Projectile.Size * 0.5f - Main.screenPosition, 0.5f);
                 Main.spriteBatch.Draw(streakTexture, drawPosition, null, drawColor, Projectile.oldRot[i], streakTexture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
-                Main.spriteBatch.Draw(streakTexture, drawPosition2, null, drawColor, Projectile.oldRot[i], streakTexture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
             }
             return false;
         }

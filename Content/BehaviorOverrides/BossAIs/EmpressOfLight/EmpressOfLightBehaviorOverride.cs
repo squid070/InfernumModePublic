@@ -1,25 +1,24 @@
 ﻿using CalamityMod;
+using CalamityMod.Buffs.DamageOverTime;
 using CalamityMod.Events;
+using InfernumMode.Assets.Effects;
+using InfernumMode.Core;
+using InfernumMode.Core.GlobalInstances.Systems;
+using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using InfernumMode.Assets.Effects;
-using InfernumMode.Core.OverridingSystem;
-using InfernumMode.Core.GlobalInstances.Systems;
-using InfernumMode.Content.Buffs;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Terraria;
 using Terraria.Audio;
-using Terraria.ID;
-using Terraria.ModLoader;
+using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.GameContent.Events;
-using Terraria.DataStructures;
 using Terraria.Graphics.Shaders;
-using CalamityMod.Buffs.DamageOverTime;
-using InfernumMode.Core;
+using Terraria.ID;
+using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 {
@@ -65,9 +64,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
         public const float BorderWidth = 6000f;
 
-        public static int PrismaticBoltDamage => ShouldBeEnraged ? 350 : 175;
+        public static int PrismaticBoltDamage => ShouldBeEnraged ? 350 : 185;
 
-        public static int LanceDamage => ShouldBeEnraged ? 375 : 185;
+        public static int LanceDamage => ShouldBeEnraged ? 375 : 190;
 
         public static int SwordDamage => ShouldBeEnraged ? 400 : 200;
 
@@ -199,8 +198,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
                 if (player.dead || !player.active || !npc.WithinRange(player.Center, 10000f))
                     continue;
 
-                player.wingTime = player.wingTimeMax;
-                player.AddBuff(ModContent.BuffType<GlimmeringWings>(), 10);
+                target.DoInfiniteFlightCheck(Color.White);
             }
 
             // Use the bloom shader at night.
@@ -340,7 +338,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
                 }
 
                 npc.Opacity = 1f;
-                SelectNextAttack(npc);
+                if (attackTimer >= 90f)
+                    SelectNextAttack(npc);
                 return;
             }
 
@@ -489,7 +488,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
             // Fly around and release lances at the target.
             float flySpeedInterpolant = Utils.GetLerpValue(attackDelay, attackDelay + hoverTime, attackTimer, true);
-            float flySpeed = MathHelper.Lerp(10f, 56f, (float)Math.Pow(flySpeedInterpolant, 1.5));
+            float flySpeed = MathHelper.Lerp(10f, 56f, MathF.Pow(flySpeedInterpolant, 1.5f));
             Vector2 hoverDestination = target.Center + new Vector2(hoverOffsetX, hoverOffsetY);
             npc.velocity = Vector2.Zero.MoveTowards(hoverDestination - npc.Center, flySpeed);
 
@@ -894,7 +893,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             float idleHoverSpeed = 7f;
             float idleHoverAcceleration = 0.36f;
             float maxPerpendicularOffset = 450f;
-            
+
             if (InPhase2(npc))
             {
                 barrageCount++;
@@ -1334,7 +1333,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
                     if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer % prismReleaseRate == prismReleaseRate - 1f)
                         Utilities.NewProjectileBetter(npc.Center, Vector2.Zero, ModContent.ProjectileType<EmpressPrism>(), 0, 0f, -1, -prismFireDelay);
-                    
+
                     if (attackTimer == prismFireDelay)
                         SoundEngine.PlaySound(SoundID.Item163, target.Center);
 
@@ -1482,6 +1481,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             leftArmFrame = 0f;
             rightArmFrame = 0f;
 
+            // Disable damage.
+            npc.dontTakeDamage = true;
+
             // Do a charge-up effect for a little bit. This is emphasized by drawcode elsewhere.
             if (attackTimer < chargeUpTime && rainbowState == 0f)
             {
@@ -1514,7 +1516,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
                 }
 
                 animationScreenShaderStrength = Utils.GetLerpValue(0f, chargeUpTime - 90f, attackTimer, true);
-                wispInterpolant = (float)Math.Pow(animationScreenShaderStrength, 3D);
+                wispInterpolant = MathF.Pow(animationScreenShaderStrength, 3f);
                 return;
             }
 
@@ -1616,8 +1618,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
                 }
             }
 
-            npc.dontTakeDamage = true;
-
             // Stick to the moon once completely invisible.
             List<Projectile> moons = Utilities.AllProjectilesByID(ModContent.ProjectileType<StolenCelestialObject>()).ToList();
             if (npc.Opacity <= 0f && moons.Any())
@@ -1683,7 +1683,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             {
                 deathAnimationScreenShaderStrength = Utils.GetLerpValue(1f, fadeInTime, attackTimer, true);
                 outwardExpandFactor = Utils.GetLerpValue(-fadeOutTime, 0f, attackTimer - deathAnimationTime, true);
-                npc.Opacity = (float)Math.Pow(deathAnimationScreenShaderStrength, 3D) * (1f - outwardExpandFactor);
+                npc.Opacity = MathF.Pow(deathAnimationScreenShaderStrength, 3f) * (1f - outwardExpandFactor);
 
                 if (InfernumConfig.Instance.FlashbangOverlays)
                     MoonlordDeathDrama.RequestLight(outwardExpandFactor * 1.2f, target.Center);
@@ -1705,7 +1705,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             {
                 float dustPersistence = MathHelper.Lerp(1.3f, 0.7f, npc.Opacity);
                 Color newColor = Main.hslToRgb(Main.rand.NextFloat(), 1f, 0.5f);
-                Dust rainbowMagic = Dust.NewDustDirect(npc.position, npc.width, npc.height, 267, 0f, 0f, 0, newColor, 1f);
+                Dust rainbowMagic = Dust.NewDustDirect(npc.position, npc.width, npc.height, DustID.RainbowMk2, 0f, 0f, 0, newColor, 1f);
                 rainbowMagic.position = npc.Center + Main.rand.NextVector2Circular(npc.width * 12f, npc.height * 12f) + new Vector2(0f, -150f);
                 rainbowMagic.velocity *= Main.rand.NextFloat(0.8f);
                 rainbowMagic.noGravity = true;
@@ -2024,7 +2024,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
                 wingData.Draw(spriteBatch);
                 spriteBatch.ExitShaderRegion();
 
-                float pulse = (float)Math.Sin(Main.GlobalTimeWrappedHourly * MathHelper.Pi) * 0.5f + 0.5f;
+                float pulse = MathF.Sin(Main.GlobalTimeWrappedHourly * MathHelper.Pi) * 0.5f + 0.5f;
                 Color tentacleDressColor = Main.hslToRgb((pulse * 0.08f + 0.6f) % 1f, 1f, 0.5f);
                 tentacleDressColor.A = 0;
                 tentacleDressColor *= 0.6f;
@@ -2140,7 +2140,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
                     for (int j = 0; j < boltCount; j++)
                     {
-                        Color telegraphColor = Main.hslToRgb(j / (float)boltCount, 1f, 0.5f) * (float)Math.Sqrt(telegraphInterpolant);
+                        Color telegraphColor = Main.hslToRgb(j / (float)boltCount, 1f, 0.5f) * MathF.Sqrt(telegraphInterpolant);
                         if (ShouldBeEnraged)
                             telegraphColor = GetDaytimeColor(j / (float)boltCount);
                         telegraphColor *= 0.6f;
@@ -2199,5 +2199,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             return false;
         }
         #endregion Death Effects
+
+        #region Tips
+        public override IEnumerable<Func<NPC, string>> GetTips()
+        {
+            yield return n => "You know, I was already quite partial to rainbows, but this things attacks have killer looks- oh. Poor choice of words, then.";
+        }
+        #endregion Tips
     }
 }

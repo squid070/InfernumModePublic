@@ -48,7 +48,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             Projectile.tileCollide = false;
             Projectile.ignoreWater = true;
             Projectile.hostile = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -122,7 +122,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
                     continue;
 
                 float completionRatio = i / (float)Projectile.oldPos.Length;
-                float fade = (float)Math.Pow(completionRatio, 2D);
+                float fade = MathF.Pow(completionRatio, 2f);
                 float scale = Projectile.scale * MathHelper.Lerp(1f, 0.56f, Utils.GetLerpValue(0f, 0.24f, completionRatio, true)) * MathHelper.Lerp(0.9f, 0.56f, Utils.GetLerpValue(0.5f, 0.78f, completionRatio, true));
                 Color drawColor = Color.HotPink * (1f - fade) * Projectile.Opacity;
                 drawColor.A = 0;
@@ -138,8 +138,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
         {
             Texture2D texture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Polterghast/SoulMedium").Value;
             Vector2 drawPosition = Projectile.Center - Main.screenPosition;
-            Vector2 scale = Projectile.scale * Projectile.Size / texture.Size();
-            Main.EntitySpriteDraw(texture, drawPosition, null, Projectile.GetAlpha(Color.White), Projectile.rotation + MathHelper.Pi, texture.Size() * 0.5f, scale, 0, 0);
+            Rectangle frame = texture.Frame(1, 4, 0, 0);
+            Vector2 scale = Vector2.One * Projectile.scale * 0.4f;
+            Main.EntitySpriteDraw(texture, drawPosition, frame, Projectile.GetAlpha(Color.White), Projectile.rotation + MathHelper.Pi, frame.Size() * 0.5f, scale, 0, 0);
         }
 
         public override bool? CanDamage() => Projectile.timeLeft < 1480 ? null : false;

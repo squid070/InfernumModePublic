@@ -27,7 +27,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             Projectile.penetrate = -1;
             Projectile.timeLeft = 420;
             Projectile.alpha = 225;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -72,11 +72,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             SoundEngine.PlaySound(SoundID.Item20, Projectile.Center);
             for (int dust = 0; dust < 4; dust++)
                 Dust.NewDust(Projectile.position + Projectile.velocity, Projectile.width, Projectile.height, (int)CalamityDusts.Nightwither, 0f, 0f);
-        }
-
-        public override void ModifyHitPlayer(Player target, ref int damage, ref bool crit)
-        {
-
         }
     }
 }

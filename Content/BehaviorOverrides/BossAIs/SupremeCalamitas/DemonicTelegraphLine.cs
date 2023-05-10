@@ -34,6 +34,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 900;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -67,7 +68,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             SoundEngine.PlaySound(SoundID.Item74, Projectile.Center);
             if (Main.netMode != NetmodeID.MultiplayerClient)
             {
-                Vector2 bombShootVelocity = Projectile.velocity.SafeNormalize(Vector2.UnitY) * 23f;
+                Vector2 bombShootVelocity = Projectile.velocity.SafeNormalize(Vector2.UnitY) * 19.5f;
 
                 ProjectileSpawnManagementSystem.PrepareProjectileForSpawning(bomb =>
                 {

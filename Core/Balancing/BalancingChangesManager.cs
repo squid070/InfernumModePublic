@@ -1,3 +1,4 @@
+using CalamityMod;
 using CalamityMod.NPCs.AquaticScourge;
 using CalamityMod.NPCs.AstrumAureus;
 using CalamityMod.NPCs.AstrumDeus;
@@ -5,7 +6,9 @@ using CalamityMod.NPCs.DevourerofGods;
 using CalamityMod.NPCs.ExoMechs.Ares;
 using CalamityMod.NPCs.ExoMechs.Thanatos;
 using CalamityMod.NPCs.Perforator;
+using CalamityMod.NPCs.ProfanedGuardians;
 using CalamityMod.NPCs.Ravager;
+using CalamityMod.NPCs.StormWeaver;
 using CalamityMod.NPCs.SupremeCalamitas;
 using CalamityMod.Projectiles.DraedonsArsenal;
 using CalamityMod.Projectiles.Magic;
@@ -13,6 +16,7 @@ using CalamityMod.Projectiles.Melee;
 using CalamityMod.Projectiles.Ranged;
 using CalamityMod.Projectiles.Rogue;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
@@ -50,6 +54,7 @@ namespace InfernumMode.Core.Balancing
             int inkCloud3 = ProjectileType<InkCloud3>();
 
             float aresPierceResistFactor = 0.925f;
+            float thanatosPierceResistFactor = 0.75f;
             float sepulcherPierceResistFactor = 0.375f;
 
             NPCSpecificBalancingChanges = new List<NPCBalancingChange>()
@@ -92,10 +97,20 @@ namespace InfernumMode.Core.Balancing
                 new NPCBalancingChange(NPCID.CultistDragonBody4, Do(new PierceResistBalancingRule(0.1f))),
 
                 // Astrum Deus.
-                new NPCBalancingChange(NPCType<AstrumDeusBody>(), Do(new PierceResistBalancingRule(0.35f))),
+                new NPCBalancingChange(NPCType<AstrumDeusBody>(), Do(new PierceResistBalancingRule(0.55f))),
                 new NPCBalancingChange(NPCType<AstrumDeusBody>(), Do(new ProjectileResistBalancingRule(0.00000001f, ProjectileType<TenebreusTidesWaterProjectile>(), ProjectileType<TenebreusTidesWaterSpear>()))),
 
+                // Guardians. Summoner completely melted them at ~50% faster killtimes which is not ok.
+                new NPCBalancingChange(NPCType<ProfanedGuardianCommander>(), Do(new ClassResistBalancingRule(0.654424808f, ClassType.Summon))),
+                new NPCBalancingChange(NPCType<ProfanedGuardianDefender>(), Do(new ClassResistBalancingRule(0.654424808f, ClassType.Summon))),
+                new NPCBalancingChange(NPCType<ProfanedGuardianHealer>(), Do(new ClassResistBalancingRule(0.654424808f, ClassType.Summon))),
+                new NPCBalancingChange(NPCType<HealerShieldCrystal>(), Do(new ClassResistBalancingRule(0.654424808f, ClassType.Summon))),
+                
+                // Storm weaver.
+                new NPCBalancingChange(NPCType<StormWeaverBody>(), Do(new PierceResistBalancingRule(0.4f))),
+
                 // The Devourer of Gods.
+                new NPCBalancingChange(NPCType<DevourerofGodsBody>(), Do(new PierceResistBalancingRule(0.75f))),
                 new NPCBalancingChange(NPCType<DevourerofGodsBody>(), Do(new ProjectileResistBalancingRule(0.5f, ProjectileType<TerrorBeam>(), ProjectileType<TerrorBlast>()))),
                 new NPCBalancingChange(NPCType<DevourerofGodsHead>(), Do(new ProjectileResistBalancingRule(0.5f, ProjectileType<TerrorBeam>(), ProjectileType<TerrorBlast>()))),
 
@@ -106,6 +121,9 @@ namespace InfernumMode.Core.Balancing
                 new NPCBalancingChange(NPCType<AresTeslaCannon>(), Do(new PierceResistBalancingRule(aresPierceResistFactor))),
                 new NPCBalancingChange(NPCType<AresGaussNuke>(), Do(new PierceResistBalancingRule(aresPierceResistFactor))),
                 new NPCBalancingChange(NPCType<AresPulseCannon>(), Do(new PierceResistBalancingRule(aresPierceResistFactor))),
+                new NPCBalancingChange(NPCType<AresBody>(), Do(new PierceResistBalancingRule(aresPierceResistFactor))),
+                new NPCBalancingChange(NPCType<ThanatosBody1>(), Do(new PierceResistBalancingRule(thanatosPierceResistFactor))),
+                new NPCBalancingChange(NPCType<ThanatosBody2>(), Do(new PierceResistBalancingRule(thanatosPierceResistFactor))),
                 new NPCBalancingChange(NPCType<ThanatosBody1>(), Do(new ProjectileResistBalancingRule(0.2f, ProjectileType<WavePounderBoom>()))),
                 new NPCBalancingChange(NPCType<ThanatosBody2>(), Do(new ProjectileResistBalancingRule(0.2f, ProjectileType<WavePounderBoom>()))),
                 new NPCBalancingChange(NPCType<ThanatosBody1>(), Do(new ProjectileResistBalancingRule(0.45f, ProjectileType<DragonRageStaff>()))),
@@ -116,6 +134,7 @@ namespace InfernumMode.Core.Balancing
                 // Supreme Calamitas.
                 new NPCBalancingChange(NPCType<SepulcherBody>(), Do(new PierceResistBalancingRule(sepulcherPierceResistFactor))),
                 new NPCBalancingChange(NPCType<SepulcherBodyEnergyBall>(), Do(new PierceResistBalancingRule(sepulcherPierceResistFactor))),
+                new NPCBalancingChange(NPCType<SoulSeekerSupreme>(), Do(new TrueMeleeBalancingRule(0.45f))),
                 new NPCBalancingChange(NPCType<SupremeCalamitas>(), Do(new ProjectileResistBalancingRule(0.55f, ProjectileType<InfernadoFriendly>()))),
             };
         }

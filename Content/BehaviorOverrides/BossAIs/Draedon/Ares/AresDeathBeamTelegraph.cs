@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
@@ -18,7 +19,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
         public ref float TelegraphLifetime => ref Projectile.localAI[0];
 
         public Vector2 OldVelocity;
-        
+
         public const float TelegraphFadeTime = 8f;
 
         public const float TelegraphWidth = 4000f;
@@ -35,6 +36,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             Projectile.alpha = 255;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 600;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)

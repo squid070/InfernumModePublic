@@ -28,6 +28,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             Projectile.penetrate = -1;
             Projectile.timeLeft = 300;
             Projectile.Opacity = 0f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -68,8 +69,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
                 Player target = Main.player[Player.FindClosest(Projectile.Center, 1, 1)];
                 Vector2 homingVelocity = Projectile.SafeDirectionTo(target.Center) * oldSpeed;
 
-                Projectile.velocity = (Projectile.velocity * (inertia - 1f) + homingVelocity) / inertia;
-                Projectile.velocity = Projectile.velocity.SafeNormalize(-Vector2.UnitY) * oldSpeed;
+                if (!Projectile.WithinRange(target.Center, 270f))
+                {
+                    Projectile.velocity = (Projectile.velocity * (inertia - 1f) + homingVelocity) / inertia;
+                    Projectile.velocity = Projectile.velocity.SafeNormalize(-Vector2.UnitY) * oldSpeed;
+                }
             }
             else if (Projectile.velocity.Length() < 23.5f)
                 Projectile.velocity *= 1.015f;

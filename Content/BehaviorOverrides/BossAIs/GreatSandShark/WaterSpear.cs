@@ -32,13 +32,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             Projectile.timeLeft = 360;
             Projectile.penetrate = -1;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
             Lighting.AddLight(Projectile.Center, Color.Blue.ToVector3() * 0.64f);
 
-            Projectile.Opacity = (float)Math.Sin(MathHelper.Pi * Projectile.timeLeft / 360f) * 3f;
+            Projectile.Opacity = MathF.Sin(MathHelper.Pi * Projectile.timeLeft / 360f) * 3f;
             if (Projectile.Opacity > 1f)
                 Projectile.Opacity = 1f;
 

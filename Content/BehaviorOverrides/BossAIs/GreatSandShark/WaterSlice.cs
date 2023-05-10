@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
@@ -38,6 +39,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             Projectile.tileCollide = false;
             Projectile.hostile = true;
             Projectile.timeLeft = Projectile.MaxUpdates * Lifetime;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -85,7 +87,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
 
             // Fade in.
             float disappearInterpolant = Utils.GetLerpValue(0f, 24f, Projectile.timeLeft / Projectile.MaxUpdates, true);
-            float scaleGrowInterpolant = (float)Math.Pow(Utils.GetLerpValue(0f, 64f, Time, true), 1.72);
+            float scaleGrowInterpolant = MathF.Pow(Utils.GetLerpValue(0f, 64f, Time, true), 1.72f);
             Projectile.Opacity = Utils.GetLerpValue(0f, 24f, Time / Projectile.MaxUpdates, true) * disappearInterpolant;
             Projectile.scale = MathHelper.Lerp(0.24f, 1f, scaleGrowInterpolant) * disappearInterpolant;
             Time++;
@@ -106,7 +108,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
         #region Drawing
         internal float WidthFunction(float completionRatio)
         {
-            float baseWidth = MathHelper.Lerp(32f, 33f, (float)Math.Sin(MathHelper.Pi * 4f * completionRatio) * 0.5f + 0.5f) * Projectile.scale;
+            float baseWidth = MathHelper.Lerp(32f, 33f, MathF.Sin(MathHelper.Pi * 4f * completionRatio) * 0.5f + 0.5f) * Projectile.scale;
             return CalamityUtils.Convert01To010(completionRatio) * baseWidth * (1f + ScaleFactorDelta);
         }
 

@@ -1,6 +1,6 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ID;
@@ -27,6 +27,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             Projectile.ignoreWater = true;
             Projectile.timeLeft = 24;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -67,9 +68,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    Vector2 soulSpawnPosition = Projectile.Center + Main.rand.NextVector2Circular(120f, 120f);
+                    Vector2 soulSpawnPosition = Projectile.Center + Main.rand.NextVector2Circular(100f, 100f);
                     Vector2 soulVelocity = Projectile.velocity * 24.5f;
-                    Utilities.NewProjectileBetter(soulSpawnPosition, soulVelocity, ModContent.ProjectileType<NonReturningSoul>(), 300, 0f);
+                    Utilities.NewProjectileBetter(soulSpawnPosition, soulVelocity, ModContent.ProjectileType<NonReturningSoul>(), PolterghastBehaviorOverride.SoulDamage, 0f);
                 }
             }
         }

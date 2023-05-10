@@ -9,8 +9,8 @@ using CalamityMod.Sounds;
 using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Assets.Sounds;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Ravager;
+using InfernumMode.Core.GlobalInstances;
 using InfernumMode.Core.OverridingSystem;
-using InfernumMode.GlobalInstances;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -22,7 +22,6 @@ using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.Utilities;
-
 using AureusBoss = CalamityMod.NPCs.AstrumAureus.AstrumAureus;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
@@ -39,7 +38,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             LeapAtTarget,
             RocketBarrage,
             AstralLaserBursts,
-            CreateAureusSpawnRing,
             AstralDrillLaser,
             Recharge
         }
@@ -71,6 +69,24 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             new Vector2(-184f, -20f),
         };
 
+        public static int AstralLaserDamage => 170;
+
+        public static int AstralMissileDamage => 170;
+
+        public static int AstralCometDamage => 175;
+
+        public static int StompShockwaveDamage => 200;
+
+        public static int DrillLaserbeamDamage => 280;
+
+        public const int NextAttackTypeIndex = 5;
+
+        public const int SecondToLastAttackStateIndex = 6;
+
+        public const int OnlyDoOneJumpFlagIndex = 7;
+
+        public const int HasDoneDrillLaserYetFlagIndex = 8;
+
         public const float Phase2LifeRatio = 0.6f;
 
         public const float Phase3LifeRatio = 0.45f;
@@ -90,8 +106,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             ref float attackState = ref npc.ai[0];
             ref float attackTimer = ref npc.ai[1];
             ref float enrageCountdown = ref npc.ai[3];
-            ref float nextAttackType = ref npc.Infernum().ExtraAI[5];
-            ref float onlyDoOneJump = ref npc.Infernum().ExtraAI[6];
+            ref float nextAttackType = ref npc.Infernum().ExtraAI[NextAttackTypeIndex];
+            ref float onlyDoOneJump = ref npc.Infernum().ExtraAI[OnlyDoOneJumpFlagIndex];
             ref float frameType = ref npc.localAI[0];
             ref float phase2AnimationTimer = ref npc.localAI[1];
 
@@ -147,9 +163,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                     break;
                 case AureusAttackType.AstralLaserBursts:
                     DoAttack_AstralLaserBursts(npc, target, enraged, lifeRatio, ref attackTimer, ref frameType, ref enrageCountdown, ref nextAttackType, ref onlyDoOneJump);
-                    break;
-                case AureusAttackType.CreateAureusSpawnRing:
-                    DoAttack_CreateAureusSpawnRing(npc, lifeRatio, ref attackTimer, ref frameType);
                     break;
                 case AureusAttackType.AstralDrillLaser:
                     DoAttack_AstralDrillLaser(npc, target, lifeRatio, ref attackTimer, ref frameType);
@@ -259,17 +272,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             else
                 npc.velocity.X = (npc.velocity.X * 15f + walkSpeed) / 16f;
 
-            // Shoot bursts of lasers periodically.
-            laserShootCounter++;
+            // Shoot bursts of lasers periodically. This has a short delay to give the player some time to reposition.
+            if (attackTimer >= 54f)
+                laserShootCounter++;
             if (laserShootCounter >= laserShootRate)
             {
-                SoundEngine.PlaySound(SoundID.Item33, npc.Center);
+                SoundEngine.PlaySound(InfernumSoundRegistry.AstrumAureusLaserSound, npc.Center);
 
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     int laserCount = 16;
-                    int laserDamage = 165;
-                    float laserSpread = 0.78f;
+                    int laserDamage = AstralLaserDamage;
+                    float laserSpread = 0.85f;
                     if (enraged)
                     {
                         laserCount += 8;
@@ -336,6 +350,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                         {
                             npc.spriteDirection = (npc.Center.X < target.Center.X).ToDirectionInt();
                             npc.velocity = new(Math.Sign(target.Center.X - npc.Center.X) * 8f, -23f);
+                            SoundEngine.PlaySound(AureusBoss.JumpSound with { Volume = 0.4f }, target.Center);
+
                             attackState++;
                             attackTimer = 0f;
                             npc.netUpdate = true;
@@ -401,31 +417,40 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                         if (hitGround)
                         {
                             // Play a stomp sound.
-                            SoundEngine.PlaySound(AureusBoss.StompSound, npc.Center);
+                            SoundEngine.PlaySound(InfernumSoundRegistry.AstrumAureusStompSound with { Volume = 4f }, npc.Center);
 
-                            int missileDamage = 155;
-                            int shockwaveDamage = 200;
-                            if (enraged)
+                            // Create ground particle effects.
+                            if (Main.netMode != NetmodeID.MultiplayerClient)
                             {
-                                missileDamage = (int)(missileDamage * EnragedDamageFactor);
-                                shockwaveDamage = (int)(shockwaveDamage * EnragedDamageFactor);
-                            }
-
-                            for (int i = 0; i < 5; i++)
-                            {
-                                Vector2 crystalVelocity = npc.SafeDirectionTo(target.Center).RotatedBy(MathHelper.Lerp(-0.77f, 0.77f, i / 4f)) * 16f;
-                                Utilities.NewProjectileBetter(npc.Bottom + Vector2.UnitY * 40f, crystalVelocity, ModContent.ProjectileType<AstralBlueComet>(), missileDamage, 0f);
-                            }
-                            if (lifeRatio < Phase2LifeRatio)
-                            {
-                                for (int i = 0; i < 8; i++)
+                                int missileDamage = AstralMissileDamage;
+                                int shockwaveDamage = StompShockwaveDamage;
+                                if (enraged)
                                 {
-                                    Vector2 missileVelocity = npc.SafeDirectionTo(target.Center).RotatedByRandom(1.2f) * Main.rand.NextFloat(10.5f, 13f);
-                                    Utilities.NewProjectileBetter(npc.Bottom + Vector2.UnitY * 40f, missileVelocity, ModContent.ProjectileType<AstralMissile>(), missileDamage, 0f);
+                                    missileDamage = (int)(missileDamage * EnragedDamageFactor);
+                                    shockwaveDamage = (int)(shockwaveDamage * EnragedDamageFactor);
                                 }
+
+                                for (int i = 0; i < 7; i++)
+                                {
+                                    Vector2 crystalVelocity = npc.SafeDirectionTo(target.Center).RotatedBy(MathHelper.Lerp(-0.77f, 0.77f, i / 6f)) * 17.5f;
+                                    Utilities.NewProjectileBetter(npc.Bottom + Vector2.UnitY * 40f, crystalVelocity, ModContent.ProjectileType<AstralBlueComet>(), missileDamage, 0f);
+                                }
+                                if (lifeRatio < Phase2LifeRatio)
+                                {
+                                    for (int i = 0; i < 8; i++)
+                                    {
+                                        Vector2 missileVelocity = npc.SafeDirectionTo(target.Center).RotatedByRandom(1.2f) * Main.rand.NextFloat(10.5f, 13f);
+                                        Utilities.NewProjectileBetter(npc.Bottom + Vector2.UnitY * 40f, missileVelocity, ModContent.ProjectileType<AstralMissile>(), missileDamage, 0f);
+                                    }
+                                }
+
+                                Utilities.NewProjectileBetter(npc.Bottom + Vector2.UnitY * 40f, Vector2.Zero, ModContent.ProjectileType<StompShockwave>(), shockwaveDamage, 0f);
+                                int stomp = Utilities.NewProjectileBetter(npc.Bottom, Vector2.UnitY, ProjectileID.DD2OgreSmash, 0, 0f, -1, 0f, 1f);
+                                if (Main.projectile.IndexInRange(stomp))
+                                    Main.projectile[stomp].Size = new(npc.width + 120, 50);
                             }
 
-                            Utilities.NewProjectileBetter(npc.Bottom + Vector2.UnitY * 40f, Vector2.Zero, ModContent.ProjectileType<StompShockwave>(), shockwaveDamage, 0f);
+                            target.Infernum_Camera().CurrentScreenShakePower = 12f;
 
                             // Determine whether the attack should be repeated.
                             stompCounter++;
@@ -480,7 +505,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                 bool targetAndCloseAndShouldNotFire = attackTimer < 130f && target.WithinRange(npc.Center, 325f);
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
-                    int missileDamage = 165;
+                    int missileDamage = AstralMissileDamage;
                     Vector2 missileShootVelocity = npc.SafeDirectionTo(target.Center + target.velocity * 15f).RotatedByRandom(0.72f) * Main.rand.NextFloat(11f, 13f);
                     if (enraged)
                     {
@@ -567,14 +592,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             // Release slow spreads of lasers.
             if (attackTimer > laserShootDelay && attackTimer % 25f == 24f)
             {
-                SoundEngine.PlaySound(SoundID.Item33, npc.Center);
+                SoundEngine.PlaySound(InfernumSoundRegistry.AstrumAureusLaserSound, npc.Center);
 
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     for (int i = 0; i < 25; i++)
                     {
                         Vector2 laserShootVelocity = (MathHelper.TwoPi * (i + Main.rand.NextFloat()) / 25f).ToRotationVector2() * Main.rand.NextFloat(0.8f, 1f) * laserSpeed;
-                        Utilities.NewProjectileBetter(npc.Center + laserShootVelocity * 2f, laserShootVelocity, ModContent.ProjectileType<AstralLaserInfernum>(), 165, 0f);
+                        Utilities.NewProjectileBetter(npc.Center + laserShootVelocity * 2f, laserShootVelocity, ModContent.ProjectileType<AstralLaserInfernum>(), AstralLaserDamage, 0f);
                     }
 
                     npc.netUpdate = true;
@@ -583,36 +608,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
 
             DoTileCollisionStuff(npc, target);
             if (attackTimer >= laserShootDelay + 270f)
-                SelectNextAttack(npc);
-        }
-
-        public static void DoAttack_CreateAureusSpawnRing(NPC npc, float lifeRatio, ref float attackTimer, ref float frameType)
-        {
-            frameType = (int)AureusFrameType.Idle;
-
-            int totalPlanetsToSpawn = lifeRatio < Phase3LifeRatio ? 10 : 9;
-            ref float planetsSpawnedCounter = ref npc.Infernum().ExtraAI[0];
-
-            // Slow down horziontally.
-            npc.velocity.X *= 0.9f;
-
-            // Create planets that orbit Aureus and act as explosive meat-shields.
-            if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer >= 10f && planetsSpawnedCounter < totalPlanetsToSpawn)
-            {
-                attackTimer = 0f;
-                planetsSpawnedCounter++;
-
-                float ringAngle = Main.rand.NextFloat(MathHelper.TwoPi);
-                float ringRadius = npc.Size.Length() * 0.2f + Main.rand.NextFloat(100f, 236f);
-                float ringIrregularity = Main.rand.NextFloat(0.5f);
-
-                if (NPC.CountNPCS(ModContent.NPCType<AureusSpawn>()) < 11)
-                    NPC.NewNPC(npc.GetSource_FromAI(), (int)npc.Center.X, (int)npc.Center.Y, ModContent.NPCType<AureusSpawn>(), npc.whoAmI, ringAngle, ringRadius, ringIrregularity);
-                npc.netUpdate = true;
-            }
-
-            // After 30 frames after the above stuff go to the next attack.
-            if (attackTimer >= 30f)
                 SelectNextAttack(npc);
         }
 
@@ -659,7 +654,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             {
                 if (Main.netMode != NetmodeID.MultiplayerClient && attackTimer % cometShootRate == cometShootRate - 1f)
                 {
-                    int cometDamage = 160;
+                    int cometDamage = AstralCometDamage;
                     Vector2 cometSpawnPosition = target.Center + new Vector2(Main.rand.NextFloat(-1050, 1050f), -780f);
                     Vector2 shootDirection = Vector2.UnitY.RotatedBy(rainAngle);
                     Vector2 shootVelocity = shootDirection * 14.5f;
@@ -740,7 +735,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                         int laserDirection = (i == 0).ToDirectionInt();
                         float laserAngle = MathHelper.Pi / OrangeLaserbeam.LaserLifetime * laserDirection * 0.84f;
                         int laserbeamType = i == 0 ? ModContent.ProjectileType<OrangeLaserbeam>() : ModContent.ProjectileType<BlueLaserbeam>();
-                        int laser = Utilities.NewProjectileBetter(npc.Center, Vector2.UnitY, laserbeamType, 280, 0f, -1, laserAngle, npc.whoAmI);
+                        int laser = Utilities.NewProjectileBetter(npc.Center, Vector2.UnitY, laserbeamType, DrillLaserbeamDamage, 0f, -1, laserAngle, npc.whoAmI);
                         if (Main.projectile.IndexInRange(laser))
                         {
                             Main.projectile[i].Infernum().ExtraAI[0] = i;
@@ -753,14 +748,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             // Release slow spreads of lasers after the beams have been released.
             if (attackTimer > laserShootDelay && attackTimer % 18f == 17f && attackTimer < laserShootDelay + OrangeLaserbeam.LaserLifetime)
             {
-                SoundEngine.PlaySound(SoundID.Item33, npc.Center);
+                SoundEngine.PlaySound(InfernumSoundRegistry.AstrumAureusLaserSound with { Volume = 0.6f }, npc.Center);
 
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     for (int i = 0; i < 20; i++)
                     {
-                        Vector2 laserShootVelocity = (MathHelper.TwoPi * (i + Main.rand.NextFloat()) / 20f).ToRotationVector2() * 8f;
-                        Utilities.NewProjectileBetter(npc.Center + laserShootVelocity * 2f, laserShootVelocity, ModContent.ProjectileType<AstralLaserInfernum>(), 165, 0f);
+                        Vector2 laserShootVelocity = (MathHelper.TwoPi * (i + Main.rand.NextFloat()) / 20f).ToRotationVector2() * 9.5f;
+                        Utilities.NewProjectileBetter(npc.Center + laserShootVelocity * 2f, laserShootVelocity, ModContent.ProjectileType<AstralLaserInfernum>(), AstralLaserDamage, 0f);
                     }
 
                     npc.netUpdate = true;
@@ -779,7 +774,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                     {
                         float laserRotation = MathHelper.Pi * laserLifetimeCompletion * OrangeLaserbeam.FullCircleRotationFactor;
                         Vector2 laserShootVelocity = Vector2.UnitY.RotatedByRandom(laserRotation) * Main.rand.NextFloat(9f, 18f);
-                        Utilities.NewProjectileBetter(npc.Center + laserShootVelocity * 2f, laserShootVelocity, ModContent.ProjectileType<AstralLaserInfernum>(), 180, 0f);
+                        Utilities.NewProjectileBetter(npc.Center + laserShootVelocity * 2f, laserShootVelocity, ModContent.ProjectileType<AstralLaserInfernum>(), AstralLaserDamage, 0f);
                     }
                 }
             }
@@ -864,14 +859,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                 attackSelector.Add(AureusAttackType.LeapAtTarget, jumpWeight * 0.7);
             attackSelector.Add(AureusAttackType.RocketBarrage);
 
-            if (lifeRatio >= Phase3LifeRatio)
+            if (lifeRatio >= Phase3LifeRatio && oldAttackState != AureusAttackType.WalkAndShootLasers)
                 attackSelector.Add(AureusAttackType.AstralLaserBursts);
 
-            if (lifeRatio < Phase2LifeRatio)
-                attackSelector.Add(AureusAttackType.CreateAureusSpawnRing, 0.85);
-
             if (lifeRatio < Phase3LifeRatio && !NPC.AnyNPCs(ModContent.NPCType<AureusSpawn>()))
-                attackSelector.Add(AureusAttackType.AstralDrillLaser, 2D);
+                attackSelector.Add(AureusAttackType.AstralDrillLaser, npc.Infernum().ExtraAI[HasDoneDrillLaserYetFlagIndex] == 1f ? 2D : 500D);
 
             int tries = 0;
             do
@@ -881,7 +873,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                 if (tries >= 500)
                     break;
             }
-            while (newAttackState == oldAttackState || (int)newAttackState == (int)npc.Infernum().ExtraAI[7]);
+            while (newAttackState == oldAttackState || (int)newAttackState == (int)npc.Infernum().ExtraAI[SecondToLastAttackStateIndex]);
 
             // Always use a consistent attack after the spawn activation.
             if (oldAttackState == AureusAttackType.SpawnActivation)
@@ -894,18 +886,22 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                 npc.ai[2] = 0f;
             }
 
-            if (npc.Infernum().ExtraAI[5] > 0f)
+            if (npc.Infernum().ExtraAI[NextAttackTypeIndex] > 0f)
             {
-                newAttackState = (AureusAttackType)npc.Infernum().ExtraAI[5];
-                npc.Infernum().ExtraAI[5] = 0f;
+                newAttackState = (AureusAttackType)npc.Infernum().ExtraAI[NextAttackTypeIndex];
+                npc.Infernum().ExtraAI[NextAttackTypeIndex] = 0f;
                 npc.ai[2]--;
             }
+
+            // Set the drill laser flag to true once the attack is performed.
+            if (newAttackState == AureusAttackType.AstralDrillLaser)
+                npc.Infernum().ExtraAI[HasDoneDrillLaserYetFlagIndex] = 1f;
 
             npc.ai[0] = (int)newAttackState;
             npc.ai[1] = 0f;
 
             if (newAttackState != AureusAttackType.Recharge)
-                npc.Infernum().ExtraAI[7] = npc.ai[0];
+                npc.Infernum().ExtraAI[SecondToLastAttackStateIndex] = npc.ai[0];
             for (int i = 0; i < 5; i++)
                 npc.Infernum().ExtraAI[i] = 0f;
 
@@ -1048,7 +1044,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
             {
                 for (int i = 0; i < 6; i++)
                 {
-                    float colorInterpolant = (float)Math.Cos(MathHelper.SmoothStep(0f, MathHelper.TwoPi, i / 6f) + Main.GlobalTimeWrappedHourly * 10f) * 0.5f + 0.5f;
+                    float colorInterpolant = MathF.Cos(MathHelper.SmoothStep(0f, MathHelper.TwoPi, i / 6f) + Main.GlobalTimeWrappedHourly * 10f) * 0.5f + 0.5f;
                     Color backAfterimageColor = Color.Lerp(new Color(109, 242, 196, 0), new Color(255, 119, 102, 0), colorInterpolant);
                     backAfterimageColor *= backAfterimageInterpolant;
                     Vector2 drawOffset = (MathHelper.TwoPi * i / 6f).ToRotationVector2() * backAfterimageInterpolant * 8f;
@@ -1092,8 +1088,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumAureus
                     Vector2 telegraphOrigin = new(line.Width / 2f, line.Height);
                     Vector2 beamScale = new(lineTelegraphInterpolant * 0.5f, 2.4f);
 
-                    // Create bloom on the pupil.
-                    Vector2 bloomSize = new Vector2(30f) / bloomCircle.Size() * (float)Math.Pow(lineTelegraphInterpolant, 2D);
+                    // Create bloom at the start of the telegraph.
+                    Vector2 bloomSize = new Vector2(30f) / bloomCircle.Size() * MathF.Pow(lineTelegraphInterpolant, 2f);
                     Main.spriteBatch.Draw(bloomCircle, drawPosition, null, Color.Turquoise, 0f, bloomCircle.Size() * 0.5f, bloomSize, 0, 0f);
 
                     if (npc.Infernum().ExtraAI[0] >= -100f)

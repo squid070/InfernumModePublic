@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
@@ -28,7 +29,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
             Projectile.hostile = true;
             Projectile.ignoreWater = true;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -43,14 +44,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
 
             // Calculate light power. This checks below the position of the fog to check if this fog is underground.
             // Without this, it may render over the fullblack that the game renders for obscured tiles.
-            float lightPowerBelow = Lighting.GetColor((int)Projectile.Center.X / 16, (int)Projectile.Center.Y / 16 + 6).ToVector3().Length() / (float)Math.Sqrt(3D);
+            float lightPowerBelow = Lighting.GetColor((int)Projectile.Center.X / 16, (int)Projectile.Center.Y / 16 + 6).ToVector3().Length() / MathF.Sqrt(3f);
             LightPower = MathHelper.Lerp(LightPower, lightPowerBelow, 0.15f);
             Projectile.Opacity = Utils.GetLerpValue(500f, 475f, Projectile.timeLeft, true) * Utils.GetLerpValue(0f, 60f, Projectile.timeLeft, true);
             Projectile.rotation += Projectile.velocity.X * 0.004f;
             Projectile.velocity *= 0.985f;
 
             // Release electric sparks.
-            if (Main.rand.NextFloat() < (float)Math.Pow(Projectile.Opacity, 2D) * 0.05f)
+            if (Main.rand.NextFloat() < MathF.Pow(Projectile.Opacity, 2f) * 0.05f)
             {
                 Dust spark = Dust.NewDustPerfect(Projectile.Center + Main.rand.NextVector2Circular(60f, 60f), 226);
                 spark.velocity = Main.rand.NextVector2Circular(7f, 7f);
@@ -59,7 +60,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
                 spark.noGravity = true;
             }
         }
-        
+
         public override bool? CanDamage()/* tModPorter Suggestion: Return null instead of false */ => Projectile.Opacity > 0.6f;
 
         public override bool PreDraw(ref Color lightColor) => false;

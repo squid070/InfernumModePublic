@@ -26,7 +26,7 @@ namespace InfernumMode.Common.InverseKinematics
                 Vector2 currentToEndOffset = originalEndPoint - limbs.Limbs[i].ConnectPoint;
                 Vector2 currentToDestinationOffset = destination - limbs.Limbs[i].ConnectPoint;
                 Vector2 perpendicularDirection = currentToDestinationOffset.RotatedBy(MathHelper.PiOver2);
-                float angularOffset = currentToEndOffset.AngleBetween(currentToDestinationOffset) * (float)Math.Sqrt((i + 1f) / limbs.Limbs.Length);
+                float angularOffset = currentToEndOffset.AngleBetween(currentToDestinationOffset) * MathF.Sqrt((i + 1f) / limbs.Limbs.Length);
 
                 // Determine direction by choosing the angle which approaches the destination faster.
                 float leftAngularOffset = currentToEndOffset.AngleBetween(currentToDestinationOffset - perpendicularDirection);
@@ -47,6 +47,9 @@ namespace InfernumMode.Common.InverseKinematics
                     float behindRotation = (float)limbs.Limbs[i - 1].Rotation;
                     limbs.Limbs[i].Rotation = MathHelper.Clamp((float)limbs.Limbs[i].Rotation, behindRotation - AngularDeviationLenience, behindRotation + AngularDeviationLenience);
                 }
+
+                if (limbs.Limbs[i].Rotation < 0f)
+                    limbs.Limbs[i].Rotation += MathHelper.TwoPi;
             }
         }
     }

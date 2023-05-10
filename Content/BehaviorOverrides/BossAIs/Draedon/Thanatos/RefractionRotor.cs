@@ -1,11 +1,10 @@
 using CalamityMod;
 using CalamityMod.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
 using InfernumMode.Core.GlobalInstances.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
@@ -36,7 +35,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             Projectile.timeLeft = 90;
             Projectile.Opacity = 0f;
             Projectile.hide = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -68,7 +67,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             Texture2D glowmask = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Draedon/Thanatos/RefractionRotorGlowmask").Value;
             Vector2 origin = texture.Size() * 0.5f;
             float pulseInterpolant = Utils.GetLerpValue(60f, 45f, Projectile.timeLeft, true);
-            Color pulseColor = Color.Lerp(Color.White, Color.Red, (float)Math.Sin(Projectile.identity + Main.GlobalTimeWrappedHourly * 9.1f));
+            Color pulseColor = Color.Lerp(Color.White, Color.Red, MathF.Sin(Projectile.identity + Main.GlobalTimeWrappedHourly * 9.1f));
             pulseColor.A = 0;
 
             Color glowmaskColor = Color.Lerp(Color.White, pulseColor, pulseInterpolant);
@@ -90,7 +89,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
                     Vector2 start = Projectile.Center;
                     Vector2 end = start + telegraphDirection * 1450f;
                     float telegraphWidth = pulseInterpolant * Utils.GetLerpValue(0f, 6f, Projectile.timeLeft, true) * 8f;
-                    float telegraphColorInterpolant = ((float)Math.Sin(Projectile.identity + telegraphDirection.ToRotation()) * 0.5f + 0.5f) * 0.65f;
+                    float telegraphColorInterpolant = (MathF.Sin(Projectile.identity + telegraphDirection.ToRotation()) * 0.5f + 0.5f) * 0.65f;
                     Color telegraphColor = Color.Lerp(Color.Red, Color.Wheat, telegraphColorInterpolant) * pulseInterpolant * 0.6f;
 
                     // Use an exo color in the final phase.

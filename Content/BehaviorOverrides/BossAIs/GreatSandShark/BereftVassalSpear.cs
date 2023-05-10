@@ -1,7 +1,6 @@
 using CalamityMod;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.StormWeaver;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -37,6 +36,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             Projectile.penetrate = -1;
             Projectile.scale = 0.8f;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -58,14 +58,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
                 if (Projectile.timeLeft >= 26f)
                     Main.LocalPlayer.Calamity().GeneralScreenShakePower = 6f;
 
-                SoundEngine.PlaySound(CommonCalamitySounds.LargeWeaponFireSound with { Volume = 0.3f }, Projectile.Center);
+                SoundEngine.PlaySound(InfernumSoundRegistry.MyrindaelLightningSound, Projectile.Center);
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 lightningSpawnPosition = Projectile.Center + new Vector2(Main.rand.NextFloatDirection() * 15f, -1700f);
                     if (lightningSpawnPosition.Y <= 640f)
                         lightningSpawnPosition.Y = 640f;
 
-                    Utilities.NewProjectileBetter(lightningSpawnPosition, Vector2.UnitY * 8f, ModContent.ProjectileType<VassalLightning>(), 200, 0f, -1, MathHelper.PiOver2, Main.rand.Next(100));
+                    Utilities.NewProjectileBetter(lightningSpawnPosition, Vector2.UnitY * 8f, ModContent.ProjectileType<VassalLightning>(), BereftVassalComboAttackManager.LightningDamage, 0f, -1, MathHelper.PiOver2, Main.rand.Next(100));
                 }
             }
 
@@ -98,7 +98,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
                         for (int i = 0; i < 8; i++)
                         {
                             Vector2 sparkVelocity = (MathHelper.TwoPi * i / 8f).ToRotationVector2() * 8f;
-                            Utilities.NewProjectileBetter(Projectile.Center, sparkVelocity, ModContent.ProjectileType<WeaverSpark>(), 190, 0f);
+                            Utilities.NewProjectileBetter(Projectile.Center, sparkVelocity, ModContent.ProjectileType<VassalSpark>(), BereftVassalComboAttackManager.SparkDamage, 0f);
                             Utilities.NewProjectileBetter(Projectile.Center, sparkVelocity * 0.01f, ModContent.ProjectileType<SparkTelegraphLine>(), 0, 0f, -1, 0f, 35f);
                         }
                     }

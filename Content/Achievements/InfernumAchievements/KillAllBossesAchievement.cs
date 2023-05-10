@@ -1,4 +1,6 @@
-﻿using CalamityMod.NPCs.AquaticScourge;
+﻿using CalamityMod.Events;
+using CalamityMod.NPCs.AdultEidolonWyrm;
+using CalamityMod.NPCs.AquaticScourge;
 using CalamityMod.NPCs.AstrumAureus;
 using CalamityMod.NPCs.AstrumDeus;
 using CalamityMod.NPCs.BrimstoneElemental;
@@ -9,6 +11,7 @@ using CalamityMod.NPCs.Crabulon;
 using CalamityMod.NPCs.Cryogen;
 using CalamityMod.NPCs.DesertScourge;
 using CalamityMod.NPCs.DevourerofGods;
+using CalamityMod.NPCs.ExoMechs;
 using CalamityMod.NPCs.HiveMind;
 using CalamityMod.NPCs.Leviathan;
 using CalamityMod.NPCs.OldDuke;
@@ -23,16 +26,14 @@ using CalamityMod.NPCs.SlimeGod;
 using CalamityMod.NPCs.StormWeaver;
 using CalamityMod.NPCs.SupremeCalamitas;
 using CalamityMod.NPCs.Yharon;
-using Terraria;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark;
 using System.Collections.Generic;
 using System.Linq;
+using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
-using CalamityMod.NPCs.ExoMechs;
-using CalamityMod.Events;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark;
 
 namespace InfernumMode.Content.Achievements.InfernumAchievements
 {
@@ -86,6 +87,7 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
             ModContent.NPCType<OldDuke>(),
             ModContent.NPCType<DevourerofGodsHead>(),
             ModContent.NPCType<Yharon>(),
+            ModContent.NPCType<AdultEidolonWyrmHead>(),
             ModContent.NPCType<Draedon>(),
             ModContent.NPCType<SupremeCalamitas>(),
         };
@@ -107,6 +109,7 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
             Description = "Rip and tear, until it is done\n[c/777777:Beat every Infernum Boss]";
             TotalCompletion = BossList.Count;
             PositionInMainList = 8;
+            UpdateCheck = AchievementUpdateCheck.NPCKill;
             CreateNewDict();
         }
         public override void Update()
@@ -140,7 +143,7 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
             DoneCompletionEffects = tag.Get<bool>("BossesDoneCompletionEffects");
         }
 
-        public override void ExtraUpdateNPC(int npcIndex)
+        public override void ExtraUpdate(Player player, int npcIndex)
         {
             // Don't count Boss Rush kills.
             if (BossRushEvent.BossRushActive)
@@ -175,7 +178,7 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
                             updatedList = true;
                         }
                     }
-                    else if (ExoMechManagement.ExoMechIDs.Contains(npcID) &&!BossesCompleted[Utilities.GetNPCNameFromID(draedonID)])
+                    else if (ExoMechManagement.ExoMechIDs.Contains(npcID) && !BossesCompleted[Utilities.GetNPCNameFromID(draedonID)])
                     {
                         if (ExoMechManagement.TotalMechs <= 1)
                         {
@@ -183,7 +186,7 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
                             updatedList = true;
                         }
                     }
-                    else if (BossList.Contains(npcID) && !BossesCompleted[Utilities.GetNPCNameFromID(npcID)])
+                    else if (BossList.Contains(npcID) && (!BossesCompleted.ContainsKey(Utilities.GetNPCNameFromID(npcID)) || !BossesCompleted[Utilities.GetNPCNameFromID(npcID)]))
                     {
                         BossesCompleted[Utilities.GetNPCNameFromID(npcID)] = true;
                         updatedList = true;
@@ -196,15 +199,15 @@ namespace InfernumMode.Content.Achievements.InfernumAchievements
 
         public string GetFirstUncompletedBoss()
         {
-            foreach (var item in BossesCompleted)
+            foreach (var bossID in BossList)
             {
-                if (!item.Value)
+                string bossName = Utilities.GetNPCNameFromID(bossID);
+                if (!BossesCompleted.ContainsKey(bossName) || !BossesCompleted[bossName])
                 {
-                    // Due to these originally using the full name, this gets the id, and then regets the name using
+                    // Due to these originally using the full name, this gets the id, and then gets the name using
                     // a different method to avoid changing the saved names in the dict and fucking with data.
                     // This is a bit scuffed.
-                    int id = Utilities.GetNPCIDFromName(item.Key);
-                    return Utilities.GetNPCFullNameFromID(id);
+                    return Utilities.GetNPCFullNameFromID(bossID);
                 }
             }
             return string.Empty;

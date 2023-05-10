@@ -6,21 +6,30 @@ using CalamityMod.NPCs.ExoMechs.Artemis;
 using CalamityMod.NPCs.ExoMechs.Thanatos;
 using CalamityMod.Sounds;
 using CalamityMod.World;
+using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.Sounds;
+using InfernumMode.Content.Achievements;
+using InfernumMode.Content.Achievements.InfernumAchievements;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Content.Credits;
+using InfernumMode.Content.Projectiles.Pets;
+using InfernumMode.Core;
 using InfernumMode.Core.GlobalInstances.Players;
 using InfernumMode.Core.GlobalInstances.Systems;
-using InfernumMode.Core.ILEditingStuff;
 using InfernumMode.Core.Netcode;
 using InfernumMode.Core.Netcode.Packets;
 using InfernumMode.Core.OverridingSystem;
+using InfernumMode.Core.TrackedMusic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System.Linq;
 using Terraria;
 using Terraria.Audio;
+using Terraria.Graphics.Effects;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static CalamityMod.NPCs.ExoMechs.Draedon;
+using static InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ExoMechAIUtilities;
 using DraedonNPC = CalamityMod.NPCs.ExoMechs.Draedon;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
@@ -34,16 +43,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
         public const int PostBattleMusicLength = 5120;
 
         // Projectile damage values.
-        public const int NormalShotDamage = 520;
+        public const int NormalShotDamage = 540;
 
-        public const int StrongerNormalShotDamage = 540;
+        public const int StrongerNormalShotDamage = 560;
+
+        public const int AresEnergySlashDamage = 640;
 
         public const int PowerfulShotDamage = 850;
 
         // Contact damage values.
-        public const int AresChargeContactDamage = 650;
-
-        public const int AresPhotonRipperContactDamage = 600;
+        public const int AresEnergyKatanaContactDamage = 650;
 
         public const int TwinsChargeContactDamage = 600;
 
@@ -103,7 +112,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
             if (isPissed == 1f)
             {
                 npc.ModNPC<DraedonNPC>().ShouldStartStandingUp = true;
-                SoundEngine.PlaySound(CommonCalamitySounds.LaserCannonSound, playerToFollow.Center);
+                SoundEngine.PlaySound(CommonCalamitySounds.LaserCannonSound with { MaxInstances = 45, Volume = 0.15f }, playerToFollow.Center);
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
                     Vector2 laserSpawnPosition = npc.Center - Vector2.UnitY * 80f;
@@ -146,7 +155,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
                 npc.ModNPC.SceneEffectPriority = SceneEffectPriority.BossHigh;
                 if (npc.ModNPC<DraedonNPC>().DefeatTimer <= 0f)
                 {
-                    npc.ModNPC.Music = MusicLoader.GetMusicSlot(InfernumMode.CalamityMod, "Sounds/Music/DraedonAmbience");
+                    npc.ModNPC.Music = MusicLoader.GetMusicSlot(InfernumMode.CalamityMod, "Sounds/Music/DraedonsAmbience");
                     InfernumMode.DraedonThemeTimer = 0f;
                 }
                 else
@@ -191,7 +200,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
                 talkTimer = TalkDelay * 4f - 25f;
                 npc.netUpdate = true;
             }
-            
+
             if (Main.netMode != NetmodeID.MultiplayerClient && talkTimer == TalkDelay)
             {
                 CalamityUtils.DisplayLocalizedText("Mods.CalamityMod.DraedonIntroductionText1", TextColor);
@@ -357,6 +366,100 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
                 npc.ModNPC<DraedonNPC>().DefeatTimer++;
             }
 
+            // Set the screenshader based on the current song section.
+            if (ExoMechIsPresent && Main.netMode != NetmodeID.Server)
+            {
+                if (TrackedMusicManager.TryGetSongInformation(out var songInfo) && songInfo.SongSections.Any(s => s.Key.WithinRange(TrackedMusicManager.SongElapsedTime)))
+                {
+                    if (!InfernumEffectsRegistry.ScreenBorderShader.IsActive() && !InfernumConfig.Instance.ReducedGraphicsConfig)
+                    {
+                        Vector2 focusPoint = Main.screenPosition + new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
+                        Filters.Scene.Activate("InfernumMode:ScreenBorder", focusPoint);
+
+                        // Get the section(s) where the current elapsed time is in.
+                        var section = songInfo.SongSections.Keys.Where(s => s.WithinRange(TrackedMusicManager.SongElapsedTime));
+
+                        // Get the type of section we are in from the first (as it could potentially be more than one) key found above in the Dictonary.
+                        int mechType = 0;
+                        if (songInfo.SongSections.TryGetValue(section.FirstOrDefault(), out int mech))
+                            mechType = mech;
+
+                        float intensity = 0.5f;
+                        float saturation = 1f;
+
+                        // The hue of the colors. These use HSL for needing to sync a single value as opposed to 3.
+                        // These don't really need to be so precise but it is what windows calculator gave me so.
+                        float blue = 0.666666667f;
+                        float green = 0.25f;
+                        float orange = 0.0444444444f;
+                        float rgb = (1 + Main.GlobalTimeWrappedHourly * 0.3f + 35 * 0.54f) % 1f;
+                        float transitionLength = 10f;
+                        ref float currentHue = ref npc.Infernum().ExtraAI[ExoMechManagement.CurrentHueIndex];
+                        ref float previousHue = ref npc.Infernum().ExtraAI[ExoMechManagement.PreviousHueIndex];
+                        ref float hueTimer = ref npc.Infernum().ExtraAI[ExoMechManagement.HueTimerIndex];
+
+                        float timerInterpolant = hueTimer / transitionLength;
+
+                        // Get the hue that should be transitioned to.
+                        var newHue = (ExoMechMusicPhases)mechType switch
+                        {
+                            ExoMechMusicPhases.Thanatos => blue,
+                            ExoMechMusicPhases.Twins => green,
+                            ExoMechMusicPhases.Ares => orange,
+                            ExoMechMusicPhases.AllThree => rgb,
+                            _ => 0f,
+                        };
+
+                        // Transition to the new hue.
+                        if (hueTimer < transitionLength && currentHue != newHue)
+                        {
+                            currentHue = MathHelper.Lerp(previousHue, newHue, timerInterpolant);
+
+                            // If the mech type is draedon, also change the saturation. This is because white has a saturation of 0, while the
+                            // other colors share one of 1.
+                            if ((ExoMechMusicPhases)mechType is ExoMechMusicPhases.Draedon)
+                                saturation = currentHue;
+                            hueTimer++;
+                        }
+                        // When the transition time has elapsed, update the hue variables to the current hue.
+                        else
+                        {
+                            previousHue = newHue;
+                            currentHue = newHue;
+                            // Also keep setting the saturation at 0 if needed.
+                            if ((ExoMechMusicPhases)mechType is ExoMechMusicPhases.Draedon)
+                                saturation = 0f;
+                            // Reset the timer.
+                            hueTimer = 0;
+                        }
+
+                        // The draedon all mechs mech type should have a lower luminosity.
+                        float luminosity = 0.5f;
+                        if ((ExoMechMusicPhases)mechType == ExoMechMusicPhases.AllThree)
+                            luminosity = 0.36f;
+
+                        // Set the shader color, opactiy, image, and intensity.
+                        InfernumEffectsRegistry.ScreenBorderShader.GetShader().UseColor(Main.hslToRgb(currentHue, saturation, luminosity));
+                        InfernumEffectsRegistry.ScreenBorderShader.GetShader().UseOpacity(1f);
+                        InfernumEffectsRegistry.ScreenBorderShader.GetShader().UseImage(ModContent.Request<Texture2D>("CalamityMod/ExtraTextures/GreyscaleGradients/TechyNoise").Value, 0, SamplerState.AnisotropicWrap);
+                        InfernumEffectsRegistry.ScreenBorderShader.GetShader().UseIntensity(intensity);
+                    }
+                }
+
+                // For some reason, screen shaders have a several frames delay after deactivating before they actually vanish. This is fucking annoying.
+                // Setting the shader's opacity to 0 if it should be gone seems to "fix" it, but its still actually being ran so its more of a bandaid fix.
+                else
+                {
+                    if (Main.netMode != NetmodeID.Server)
+                    {
+                        InfernumEffectsRegistry.ScreenBorderShader.GetShader().UseOpacity(0f);
+                        InfernumEffectsRegistry.ScreenBorderShader.GetShader().UseIntensity(0f);
+                    }
+                    // Reset the previous hue.
+                    npc.Infernum().ExtraAI[ExoMechManagement.PreviousHueIndex] = 0;
+                }
+            }
+
             talkTimer++;
             return false;
         }
@@ -417,14 +520,38 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
             }
         }
 
+        public static bool HasEarnedHyperplaneMatrix()
+        {
+            // Check to see if any player has completed the Lab Rat and defeat all bosses achievement.
+            bool allExosCondition = false;
+            bool allBossesCondition = false;
+            for (int i = 0; i < Main.maxPlayers; i++)
+            {
+                if (!Main.player[i].active)
+                    continue;
+
+                Player p = Main.player[i];
+                foreach (var achievement in p.GetModPlayer<AchievementPlayer>().AchievementInstances)
+                {
+                    if (achievement.GetType() == typeof(ExoPathAchievement) && achievement.IsCompleted)
+                        allExosCondition = true;
+                    if (achievement.GetType() == typeof(KillAllBossesAchievement) && achievement.IsCompleted)
+                        allBossesCondition = true;
+                }
+            }
+
+            return allExosCondition && allBossesCondition;
+        }
+
         public static void HandleDefeatStuff(NPC npc, ref float defeatTimer)
         {
             AchievementPlayer.DraedonDefeated = true;
 
             // Become vulnerable after being defeated after a certain point.
             bool hasBeenKilled = npc.localAI[2] == 1f;
+            bool earnedHyperplaneMatrix = HasEarnedHyperplaneMatrix();
             ref float hologramEffectTimer = ref npc.localAI[1];
-            npc.dontTakeDamage = defeatTimer < TalkDelay * 2f + 50f || hasBeenKilled;
+            npc.dontTakeDamage = defeatTimer < TalkDelay * 2f + 50f || hasBeenKilled || earnedHyperplaneMatrix;
             npc.Calamity().CanHaveBossHealthBar = !npc.dontTakeDamage;
             npc.Calamity().ShouldCloseHPBar = hasBeenKilled;
 
@@ -435,7 +562,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
             {
                 hologramEffectTimer = MathHelper.Clamp(hologramEffectTimer - 1f, 0f, HologramFadeinTime);
                 if (hologramEffectTimer <= 0f)
+                {
+                    // Begin the credits if scal is dead.
+                    if (DownedBossSystem.downedCalamitas)
+                        CreditManager.BeginCredits();
                     npc.active = false;
+                }
             }
 
             // Fade back in as a hologram if the player tried to kill Draedon.
@@ -452,28 +584,64 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon
                 npc.ModNPC<DraedonNPC>().ShouldStartStandingUp = true;
 
             if (defeatTimer == DelayBeforeDefeatStandup + 50f)
+            {
                 Utilities.DisplayText("Intriguing. Truly, intriguing.", TextColor);
+            }
 
             if (defeatTimer == DelayBeforeDefeatStandup + TalkDelay + 50f)
-                Utilities.DisplayText("My magnum opera, truly and utterly defeated.", TextColor);
+            {
+                if (earnedHyperplaneMatrix)
+                    Utilities.DisplayText("You have been an excellent test subject.", TextColor);
+                else
+                    Utilities.DisplayText("My magnum opera, truly and utterly defeated.", TextColor);
+            }
 
             if (defeatTimer == DelayBeforeDefeatStandup + TalkDelay * 2f + 50f)
-                Utilities.DisplayText("This outcome was not what I had expected.", TextColor);
+            {
+                if (earnedHyperplaneMatrix)
+                    Utilities.DisplayText("The data I have acquired from your combat has been invaluable.", TextColor);
+                else
+                    Utilities.DisplayText("This outcome was not what I had expected.", TextColor);
+            }
 
             // After this point Draedon becomes vulnerable.
             // He sits back down as well as he thinks for a bit.
             // Killing him will cause gore to appear but also for Draedon to come back as a hologram.
             if (defeatTimer == DelayBeforeDefeatStandup + TalkDelay * 3f + 50f)
-                Utilities.DisplayText("...Excuse my introspection. I must gather my thoughts after that display.", TextColor);
+            {
+                if (earnedHyperplaneMatrix)
+                    Utilities.DisplayText("...Perhaps, I may be able to grant you a reward for your time.", TextColor);
+                else
+                    Utilities.DisplayText("...Excuse my introspection. I must gather my thoughts after that display.", TextColor);
+            }
 
             if (defeatTimer == DelayBeforeDefeatStandup + TalkDelay * 3f + 165f)
-                Utilities.DisplayText("It is perhaps not irrational to infer that you are beyond my reasoning.", TextColor);
+            {
+                if (earnedHyperplaneMatrix)
+                    AchievementPlayer.ExtraUpdateHandler(Main.LocalPlayer, AchievementUpdateCheck.NPCKill, npc.whoAmI);
+                else
+                    Utilities.DisplayText("It is perhaps not irrational to infer that you are beyond my reasoning.", TextColor);
+            }
 
             if (defeatTimer == DelayBeforeDefeatStandup + TalkDelay * 4f + 165f)
-                Utilities.DisplayText("Now.", TextColor);
+            {
+                if (earnedHyperplaneMatrix)
+                    Utilities.DisplayText("My most useful creation. I'm sure you will find some use for it.", TextColor);
+                else
+                    Utilities.DisplayText("Now.", TextColor);
+            }
 
             if (defeatTimer == DelayBeforeDefeatStandup + TalkDelay * 5f + 165f)
-                Utilities.DisplayText("You would wish to reach the Tyrant. I cannot assist you in that.", TextColor);
+            {
+                if (earnedHyperplaneMatrix)
+                {
+                    Utilities.DisplayText("Use it wisely.", TextColorEdgy);
+                    defeatTimer = DelayBeforeDefeatStandup + TalkDelay * 6f + 166f;
+                    npc.netUpdate = true;
+                }
+                else
+                    Utilities.DisplayText("You would wish to reach the Tyrant. I cannot assist you in that.", TextColor);
+            }
 
             if (defeatTimer == DelayBeforeDefeatStandup + TalkDelay * 6f + 165f)
                 Utilities.DisplayText("It is not a matter of spite, for I would wish nothing more than to observe such a conflict.", TextColor);

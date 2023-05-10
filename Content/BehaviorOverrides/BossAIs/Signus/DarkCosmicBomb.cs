@@ -33,6 +33,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Signus
             Projectile.timeLeft = 300;
             Projectile.MaxUpdates = 2;
             Projectile.Opacity = 0f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -52,7 +53,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Signus
             float explosionInterpolant = Utils.GetLerpValue(200f, 35f, Projectile.timeLeft, true) * Utils.GetLerpValue(0f, 45f, Projectile.frameCounter, true);
             float circleFadeinInterpolant = Utils.GetLerpValue(0f, 0.15f, explosionInterpolant, true);
             float pulseInterpolant = Utils.GetLerpValue(0.75f, 0.85f, explosionInterpolant, true);
-            float colorPulse = ((float)Math.Sin(Main.GlobalTimeWrappedHourly * 6.3f + Projectile.identity) * 0.5f + 0.5f) * pulseInterpolant * 0.7f;
+            float colorPulse = (MathF.Sin(Main.GlobalTimeWrappedHourly * 6.3f + Projectile.identity) * 0.5f + 0.5f) * pulseInterpolant * 0.7f;
             lightColor = Color.Lerp(lightColor, Color.White, 0.4f);
             lightColor.A = 128;
             Utilities.DrawAfterimagesCentered(Projectile, lightColor, ProjectileID.Sets.TrailingMode[Projectile.type]);
@@ -88,18 +89,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Signus
                     explosion.ModProjectile<CosmicExplosion>().MaxRadius = ExplosionRadius * 0.7f;
                 });
 
-                Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<CosmicExplosion>(), 400, 0f);
-                
+                Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<CosmicExplosion>(), SignusBehaviorOverride.CosmicExplosionDamage, 0f);
+
                 for (int i = 0; i < 2; i++)
                 {
                     Vector2 shootVelocity = Main.rand.NextVector2CircularEdge(12f, 12f);
-                    Utilities.NewProjectileBetter(Projectile.Center + shootVelocity * 3f, shootVelocity, ModContent.ProjectileType<CosmicKunai>(), 250, 0f);
+                    Utilities.NewProjectileBetter(Projectile.Center + shootVelocity * 3f, shootVelocity, ModContent.ProjectileType<CosmicKunai>(), SignusBehaviorOverride.KunaiDamage, 0f);
                 }
             }
 
             // Do some some mild screen-shake effects to accomodate the explosion.
             // This effect is set instead of added to to ensure separate explosions do not together create an excessive amount of shaking.
-            float screenShakeFactor = Utilities.Remap(Projectile.Distance(Main.LocalPlayer.Center), 2000f, 1300f, 0f, 9.6f);
+            float screenShakeFactor = Utils.Remap(Projectile.Distance(Main.LocalPlayer.Center), 2000f, 1300f, 0f, 9.6f);
             if (Main.LocalPlayer.Calamity().GeneralScreenShakePower < screenShakeFactor)
                 Main.LocalPlayer.Calamity().GeneralScreenShakePower = screenShakeFactor;
         }

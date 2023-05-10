@@ -5,7 +5,6 @@ using InfernumMode.Core.Netcode.Packets;
 using Microsoft.Xna.Framework;
 using SubworldLibrary;
 using Terraria;
-using Terraria.Graphics.Effects;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -18,7 +17,7 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             "While I personally think it isn't worth it, I won't be spiteful about it or work against people who know what they're doing. The boolean property can simply be set to false and" +
             "the effects will be disabled, no annoying label IL needed. -Dominic";
 #pragma warning restore IDE0051 // Remove unused private members
-        
+
         public static bool DisableDifficultyModes
         {
             get;
@@ -34,7 +33,6 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 CalamityWorld.death = true;
 
             // Disable Infernum interactions with FTW/Master because they're just not good and are undeserving of the work it'd take to make Infernum a meaningful experience alongside them.
-            // TODO -- Maybe just make a popup in chat warning the player that they won't actually influence anything so that people won't complain? Would need to talk with the team about that.
             bool stupidDifficultyIsActive = Main.masterMode || Main.getGoodWorld;
             if (WorldSaveSystem.InfernumMode && stupidDifficultyIsActive && DisableDifficultyModes)
             {

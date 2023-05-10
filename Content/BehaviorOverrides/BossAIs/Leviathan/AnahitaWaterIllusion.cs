@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
@@ -34,12 +35,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Leviathan
             Projectile.penetrate = -1;
             Projectile.tileCollide = false;
             Projectile.ignoreWater = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
             // Die if Anahita is not around.
-            if (CalamityGlobalNPC.siren == -1 || ComboAttackManager.FightState == LeviAnahitaFightState.LeviathanAlone)
+            if (CalamityGlobalNPC.siren == -1 || LeviathanComboAttackManager.FightState == LeviAnahitaFightState.LeviathanAlone)
             {
                 Projectile.Kill();
                 return;

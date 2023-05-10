@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using Terraria;
 using Terraria.Graphics.Shaders;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
@@ -54,6 +55,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             Projectile.alpha = 255;
             Projectile.timeLeft = 600;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -131,7 +133,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                 DoGPhase1HeadBehaviorOverride.ChargePortalIndex = -1;
         }
 
-        // TODO -- Potentially try to put the portal drawing code into a utility method of sorts?
         public override bool PreDraw(ref Color lightColor)
         {
             float fade = Utils.GetLerpValue(0f, 35f, Time, true);

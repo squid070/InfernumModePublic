@@ -1,7 +1,7 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
 using Microsoft.Xna.Framework;
 using System;
@@ -39,6 +39,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.tileCollide = false;
             Projectile.timeLeft = 9000;
             Projectile.scale = 0.2f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -53,8 +54,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Player target = Main.player[Player.FindClosest(Projectile.Center, 1, 1)];
             if (Projectile.velocity.Length() > 0.02f)
             {
-                Projectile.velocity = Vector2.Lerp(Projectile.velocity, Projectile.SafeDirectionTo(target.Center) * 6.4f, 0.05f);
-                Projectile.velocity = Projectile.velocity.ClampMagnitude(1f, 15f);
+                float flySpeed = Projectile.Distance(target.Center) * 0.0064f + 5.5f;
+                Projectile.velocity = Vector2.Lerp(Projectile.velocity, Projectile.SafeDirectionTo(target.Center) * flySpeed, 0.05f);
+                Projectile.velocity = Projectile.velocity.ClampMagnitude(1f, 26f);
             }
 
             // Periodically release bursts of plasma bolts.
@@ -71,7 +73,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Time++;
         }
 
-        public float OrbWidthFunction(float completionRatio) => MathHelper.SmoothStep(0f, Radius, (float)Math.Sin(MathHelper.Pi * completionRatio));
+        public float OrbWidthFunction(float completionRatio) => MathHelper.SmoothStep(0f, Radius, MathF.Sin(MathHelper.Pi * completionRatio));
 
         public Color OrbColorFunction(float completionRatio)
         {

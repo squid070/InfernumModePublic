@@ -1,7 +1,8 @@
 using CalamityMod;
 using CalamityMod.Particles;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -38,6 +39,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             Projectile.timeLeft = Lifetime;
             Projectile.alpha = 255;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -131,7 +133,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
         public Color ColorFunction(float completionRatio)
         {
             float opacty = Utils.GetLerpValue(0.92f, 0.6f, completionRatio, true) * MathHelper.Lerp(1f, 0.45f, Projectile.localAI[0]) * Projectile.Opacity;
-            Color color = Color.Lerp(Color.DeepSkyBlue, Color.Turquoise, (float)Math.Abs(Math.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly)) * 0.5f);
+            Color color = Color.Lerp(Color.DeepSkyBlue, Color.Turquoise, Math.Abs(MathF.Sin(completionRatio * MathHelper.Pi + Main.GlobalTimeWrappedHourly)) * 0.5f);
             return color * opacty;
         }
 

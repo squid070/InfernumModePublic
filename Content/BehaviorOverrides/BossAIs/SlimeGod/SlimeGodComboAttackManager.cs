@@ -33,6 +33,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
 
     public static class SlimeGodComboAttackManager
     {
+        public static int GroundSlimeDamage => 95;
+
+        public static int SlimeGlobDamage => 95;
+
         public static int FirstSlimeToSummonIndex => WorldGen.crimson ? CalamityGlobalNPC.slimeGodRed : CalamityGlobalNPC.slimeGodPurple;
 
         public static int SecondSlimeToSummonIndex => WorldGen.crimson ? CalamityGlobalNPC.slimeGodPurple : CalamityGlobalNPC.slimeGodRed;
@@ -248,11 +252,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
                             for (int i = 0; i < globCount; i++)
                             {
                                 Vector2 globVelocity = (MathHelper.TwoPi * i / globCount + shootOffsetAngle).ToRotationVector2() * globSpeed;
-                                Utilities.NewProjectileBetter(npc.Bottom, globVelocity, globID, 90, 0f);
+                                Utilities.NewProjectileBetter(npc.Bottom, globVelocity, globID, SlimeGlobDamage, 0f);
                             }
 
                             // Shoot one glob directly at the target to prevent sitting in place.
-                            Utilities.NewProjectileBetter(npc.Bottom, npc.SafeDirectionTo(target.Center) * globSpeed * 0.8f, globID, 90, 0f);
+                            Utilities.NewProjectileBetter(npc.Bottom, npc.SafeDirectionTo(target.Center) * globSpeed * 0.8f, globID, SlimeGlobDamage, 0f);
                         }
 
                         SoundEngine.PlaySound(SoundID.Item167, npc.Bottom);
@@ -351,7 +355,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
                 slimeColor.A = 135;
                 for (int i = 0; i < 12; i++)
                 {
-                    Dust slime = Dust.NewDustDirect(npc.position + Vector2.UnitX * -20f, npc.width + 40, npc.height, 4, npc.velocity.X, npc.velocity.Y, npc.alpha, slimeColor, 2f);
+                    Dust slime = Dust.NewDustDirect(npc.position + Vector2.UnitX * -20f, npc.width + 40, npc.height, DustID.TintableDust, npc.velocity.X, npc.velocity.Y, npc.alpha, slimeColor, 2f);
                     slime.noGravity = true;
                     slime.velocity *= 0.5f;
                 }
@@ -379,10 +383,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
                         // v = sqrt(R * g), as the solution.
                         // However, to prevent weird looking angles, a clamp is performed to ensure the result stays within natural bounds.
                         float horizontalDistance = Vector2.Distance(shootPosition, shootDestination);
-                        float idealShootSpeed = (float)Math.Sqrt(horizontalDistance * GroundSlimeGlob.Gravity);
+                        float idealShootSpeed = MathF.Sqrt(horizontalDistance * GroundSlimeGlob.Gravity);
                         float slimeShootSpeed = MathHelper.Clamp(idealShootSpeed, 7.6f, 20f);
                         Vector2 slimeShootVelocity = Utilities.GetProjectilePhysicsFiringVelocity(shootPosition, shootDestination, GroundSlimeGlob.Gravity, slimeShootSpeed, out _);
-                        Utilities.NewProjectileBetter(shootPosition, slimeShootVelocity, ModContent.ProjectileType<GroundSlimeGlob>(), 90, 0f, -1, 0f, target.Center.Y);
+                        Utilities.NewProjectileBetter(shootPosition, slimeShootVelocity, ModContent.ProjectileType<GroundSlimeGlob>(), GroundSlimeDamage, 0f, -1, 0f, target.Center.Y);
                     }
 
                     // Shoot accelerating blobs if far away enough to the target.
@@ -396,11 +400,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
                             if (target.Center.X < npc.Center.X)
                                 globVelocity *= -1f;
 
-                            Utilities.NewProjectileBetter(npc.Bottom, globVelocity, globID, 90, 0f);
+                            Utilities.NewProjectileBetter(npc.Bottom, globVelocity, globID, SlimeGlobDamage, 0f);
                         }
 
                         // Shoot one glob directly at the target to prevent sitting in place.
-                        Utilities.NewProjectileBetter(npc.Bottom, npc.SafeDirectionTo(target.Center) * globSpeed * 0.8f, globID, 90, 0f);
+                        Utilities.NewProjectileBetter(npc.Bottom, npc.SafeDirectionTo(target.Center) * globSpeed * 0.8f, globID, SlimeGlobDamage, 0f);
                     }
                 }
             }
@@ -446,7 +450,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
 
                 SoundEngine.PlaySound(new SoundStyle("CalamityMod/Sounds/Custom/SlimeGodPossession"), npc.Center);
                 for (int k = 0; k < 50; k++)
-                    Dust.NewDust(npc.position, npc.width, npc.height, 4, Main.rand.NextFloatDirection() * 3f, -1f, 0, default, 1f);
+                    Dust.NewDust(npc.position, npc.width, npc.height, DustID.TintableDust, Main.rand.NextFloatDirection() * 3f, -1f, 0, default, 1f);
             }
 
             // Circle around the target, sometimes taking time to dash inward at them.
@@ -481,7 +485,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod
                             {
                                 float shootOffsetAngle = MathHelper.Lerp(-0.32f, 0.32f, i / (float)(acceleratingGlobPerShot - 1f));
                                 Vector2 globVelocity = npc.SafeDirectionTo(target.Center).RotatedBy(shootOffsetAngle) * globSpeed;
-                                Utilities.NewProjectileBetter(npc.Bottom, globVelocity, globID, 90, 0f);
+                                Utilities.NewProjectileBetter(npc.Bottom, globVelocity, globID, SlimeGlobDamage, 0f);
                             }
                         }
                     }

@@ -1,18 +1,19 @@
 ﻿using CalamityMod;
 using CalamityMod.CalPlayer;
+using InfernumMode.Assets.Effects;
+using InfernumMode.Content.Projectiles.Wayfinder;
+using InfernumMode.Content.Rarities.InfernumRarities;
+using InfernumMode.Core.GlobalInstances.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
+using System.Collections.Generic;
+using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.GameInput;
 using Terraria.ID;
 using Terraria.ModLoader;
-using System.Linq;
-using System.Collections.Generic;
-using InfernumMode.Content.Projectiles.Wayfinder;
-using InfernumMode.Core.GlobalInstances.Systems;
-using InfernumMode.Assets.Effects;
-using InfernumMode.Content.Rarities.InfernumRarities;
 
 namespace InfernumMode.Content.Items
 {
@@ -111,15 +112,16 @@ namespace InfernumMode.Content.Items
                 Main.spriteBatch.End();
                 Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.UIScaleMatrix);
 
-                DrawData drawData = new(texture, position, Item.GetCurrentFrame(ref Frame, ref FrameCounter, 6, 8, true), drawColor * 0.1f, 0f, origin, scale, SpriteEffects.None, 0);
+                DrawData drawData = new(texture, position, Item.GetCurrentFrame(ref Frame, ref FrameCounter, 6, 8, false), drawColor * 0.1f, 0f, origin, scale, SpriteEffects.None, 0);
                 InfernumEffectsRegistry.RealityTear2Shader.SetShaderTexture(ModContent.Request<Texture2D>("InfernumMode/Assets/ExtraTextures/ScrollingLayers/WayfinderLayer"));
                 InfernumEffectsRegistry.RealityTear2Shader.Apply(drawData);
 
                 drawData.Draw(spriteBatch);
 
                 spriteBatch.End();
-                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.UIScaleMatrix);
-                return false;
+                PlayerInput.SetZoom_UI();
+                Matrix transformMatrix = Main.UIScaleMatrix;
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, transformMatrix);
             }
 
             spriteBatch.Draw(texture, position, Item.GetCurrentFrame(ref Frame, ref FrameCounter, 6, 8), Color.White, 0f, origin, scale, SpriteEffects.None, 0f);

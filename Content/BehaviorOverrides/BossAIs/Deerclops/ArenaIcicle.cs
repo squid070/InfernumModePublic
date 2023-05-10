@@ -28,6 +28,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
             Projectile.timeLeft = 1000000;
             Projectile.hide = true;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -62,7 +63,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
                 MaxCutoffBranchesPerBranch = 2,
                 BaseDirection = MathHelper.Pi * Direction / 9f,
             };
-            Drawer.Draw((Projectile.Center - Main.screenPosition).ToPoint());
+            Drawer.Draw(Projectile.Center.ToPoint(), true);
             return false;
         }
     }

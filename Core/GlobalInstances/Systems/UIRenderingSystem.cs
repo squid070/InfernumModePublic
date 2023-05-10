@@ -1,6 +1,6 @@
 using InfernumMode.Content.Achievements;
-using InfernumMode.Content.Achievements.UI;
 using InfernumMode.Content.BossIntroScreens;
+using InfernumMode.Content.UI;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
@@ -11,6 +11,11 @@ namespace InfernumMode.Core.GlobalInstances.Systems
     public class UIRenderingSystem : ModSystem
     {
         internal static AchievementUIManager achievementUIManager = new();
+
+        internal static WishesUIManager wishesUIManager = new();
+
+        internal static AchievementUIState CurrentAchievementUI = achievementUIManager;
+
         public override void ModifyInterfaceLayers(List<GameInterfaceLayer> layers)
         {
             int mouseIndex = layers.FindIndex(layer => layer.Name == "Vanilla: Mouse Text");
@@ -24,7 +29,11 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 layers.Insert(mouseIndex, new LegacyGameInterfaceLayer("Achievment Completion Animation", () =>
                 {
                     AchievementsNotificationTracker.DrawInGame(Main.spriteBatch);
-                    //AchivementsNotificationTracker.DrawInIngameOptions(Main.spriteBatch);
+                    return true;
+                }, InterfaceScaleType.UI));
+                layers.Insert(mouseIndex, new LegacyGameInterfaceLayer("Guardians Plaque UI", () =>
+                {
+                    GuardiansPlaqueUIManager.Draw(Main.spriteBatch);
                     return true;
                 }, InterfaceScaleType.UI));
             }

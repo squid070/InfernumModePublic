@@ -1,13 +1,13 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -70,6 +70,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             Projectile.timeLeft = Lifetime;
             Projectile.Opacity = 0f;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -137,7 +138,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
         internal Color PrimitiveColorFunction(float completionRatio)
         {
-            float hueOffset = (float)Math.Cos(completionRatio * 12f + Main.GlobalTimeWrappedHourly * 0.8f) * 0.5f + 0.5f;
+            float hueOffset = MathF.Cos(completionRatio * 12f + Main.GlobalTimeWrappedHourly * 0.8f) * 0.5f + 0.5f;
             float opacity = Projectile.Opacity * Utils.GetLerpValue(1f, 0.9f, completionRatio, true) * Utils.GetLerpValue(0f, 0.16f, completionRatio, true);
             Color c = Main.hslToRgb((hueOffset * 0.08f + Hue) % 1f, 1f, 0.7f) * opacity;
             return c;

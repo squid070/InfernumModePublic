@@ -1,14 +1,16 @@
-﻿using Terraria;
-using Terraria.ModLoader;
-using System.Linq;
-using System.Collections.Generic;
+﻿using CalamityMod;
 using CalamityMod.DataStructures;
-using Terraria.Utilities;
 using Microsoft.Xna.Framework;
-using System;
 using Microsoft.Xna.Framework.Graphics;
+using ReLogic.Content;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using Terraria;
 using Terraria.ID;
-using CalamityMod;
+using Terraria.ModLoader;
+using Terraria.Utilities;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
 {
@@ -58,7 +60,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
             }
         }
 
-        internal BasicEffect basicShader = null;
+        internal Point deferredDrawPosition;
+
+        public Point DeferredDrawPosition
+        {
+            get => deferredDrawPosition;
+            set
+            {
+                if (value == Point.Zero)
+                    Debugger.Break();
+                deferredDrawPosition = value;
+            }
+        }
 
         internal Point PreviousPoint;
 
@@ -68,7 +81,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
 
         protected UnifiedRandom RNG = new(0);
 
-        public BasicEffect BasicShader
+        internal static BasicEffect basicShader = null;
+
+        public static BasicEffect BasicShader
         {
             get
             {
@@ -84,7 +99,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
             }
         }
 
-        public static Texture2D IcicleTexture => ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Deerclops/IcicleTexture").Value;
+        private static Texture2D icicleTexture = null;
+
+        public static Texture2D IcicleTexture
+        {
+            get
+            {
+                icicleTexture ??= ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Deerclops/IcicleTexture", AssetRequestMode.ImmediateLoad).Value;
+                return icicleTexture;
+            }
+        }
 
         public int Seed;
 
@@ -115,6 +139,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
         public float BaseDirection;
 
         public int MaxCutoffBranchesPerBranch;
+
+        public Color IcicleColor = Color.White;
 
         public const int ControlPointCountPerBranch = 8;
 
@@ -281,10 +307,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
                     Vector2 bottomRight = bottom - orthogonalDirection * bottomWidth * 0.5f;
 
                     // Calculate lighting colors.
-                    vertices.Add(new VertexPositionColorTexture(new Vector3(topLeft.Floor() + p.ToVector2(), 0f), Color.White, topLeftTexCoord));
-                    vertices.Add(new VertexPositionColorTexture(new Vector3(topRight.Floor() + p.ToVector2(), 0f), Color.White, topRightTexCoord));
-                    vertices.Add(new VertexPositionColorTexture(new Vector3(bottomRight.Floor() + p.ToVector2(), 0f), Color.White, bottomRightTexCoord));
-                    vertices.Add(new VertexPositionColorTexture(new Vector3(bottomLeft.Floor() + p.ToVector2(), 0f), Color.White, bottomLeftTexCoord));
+                    vertices.Add(new VertexPositionColorTexture(new Vector3(topLeft.Floor() + p.ToVector2(), 0f), IcicleColor, topLeftTexCoord));
+                    vertices.Add(new VertexPositionColorTexture(new Vector3(topRight.Floor() + p.ToVector2(), 0f), IcicleColor, topRightTexCoord));
+                    vertices.Add(new VertexPositionColorTexture(new Vector3(bottomRight.Floor() + p.ToVector2(), 0f), IcicleColor, bottomRightTexCoord));
+                    vertices.Add(new VertexPositionColorTexture(new Vector3(bottomLeft.Floor() + p.ToVector2(), 0f), IcicleColor, bottomLeftTexCoord));
 
                     indices.Add((short)(batchIndex * 4));
                     indices.Add((short)(batchIndex * 4 + 1));
@@ -301,19 +327,24 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
             }
         }
 
-        public void Draw(Point p)
+        public void PrepareDeferredDraw(Point p)
+        {
+            DeferredDrawPosition = p;
+        }
+
+        public void Draw(Point p, bool applyShaderManually)
         {
             // Declare the vertex cache.
-            GetVertexData(p, out var vertices, out var indices, out _);
-            vertexCache = vertices.ToArray();
-            indexCache = indices.ToArray();
-            PreviousPoint = p;
+            if (vertexCache.Length <= 0 || Main.GameUpdateCount % 240 == 239)
+            {
+                GetVertexData(p, out var vertices, out var indices, out _);
+                vertexCache = vertices.ToArray();
+                indexCache = indices.ToArray();
+                PreviousPoint = p;
+            }
 
-            // Redefine the perspective matrices of the shader.
-            CalamityUtils.CalculatePerspectiveMatricies(out Matrix effectView, out Matrix effectProjection);
-            BasicShader.Texture = IcicleTexture;
-            BasicShader.View = effectView;
-            BasicShader.Projection = effectProjection;
+            if (applyShaderManually)
+                ApplyShader();
 
             // Draw the tree itself.
             Main.instance.GraphicsDevice.Textures[0] = IcicleTexture;
@@ -365,12 +396,24 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops
                 initialPoints[i] = Vector2.Lerp(start, end, i / (float)(ControlPointCountPerBranch - 1f));
 
             // Create a bend midway.
-            float bendFactor = (float)Math.Pow(RNG.NextFloat(), 0.66) * RNG.NextBool().ToDirectionInt() * BranchMaxBendFactor;
+            float bendFactor = MathF.Pow(RNG.NextFloat(), 0.66f) * RNG.NextBool().ToDirectionInt() * BranchMaxBendFactor;
             bendFactor = MathHelper.Lerp(bendFactor, Math.Sign(bendFactor) * BranchMaxBendFactor, Utils.GetLerpValue(DistanceUsedForBase * 0.4f, DistanceUsedForBase * 0.75f, distanceBetweenPoints, true));
 
             initialPoints[ControlPointCountPerBranch / 2] += orthogonalDirection * RNG.NextFloatDirection() * distanceBetweenPoints * bendFactor;
 
             return new(new(initialPoints), end, distanceBetweenPoints, (end - start).ToRotation(), startWidth, endWidth, previousBranch);
+        }
+
+        public static void ApplyShader()
+        {
+            // Redefine the perspective matrices of the shader.
+            CalamityUtils.CalculatePerspectiveMatricies(out Matrix effectView, out Matrix effectProjection);
+
+            BasicShader.Texture = IcicleTexture;
+            BasicShader.View = effectView;
+            BasicShader.Projection = effectProjection;
+            BasicShader.World = Matrix.CreateTranslation(-Main.screenPosition.X, -Main.screenPosition.Y, 0f);
+            BasicShader.CurrentTechnique.Passes[0].Apply();
         }
     }
 }

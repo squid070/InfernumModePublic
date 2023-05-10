@@ -24,6 +24,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             Projectile.penetrate = -1;
             Projectile.timeLeft = 150;
             Projectile.Opacity = 0f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -49,7 +50,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             for (int i = 0; i < burstCount; i++)
             {
                 Vector2 shootVelocity = (initialAngleOffset + MathHelper.TwoPi * i / burstCount).ToRotationVector2() * burstSpeed;
-                Utilities.NewProjectileBetter(Projectile.Center + shootVelocity, shootVelocity, ModContent.ProjectileType<CursedBullet>(), 80, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center + shootVelocity, shootVelocity, ModContent.ProjectileType<CursedBullet>(), EoWHeadBehaviorOverride.CursedCinderDamage, 0f);
             }
         }
 

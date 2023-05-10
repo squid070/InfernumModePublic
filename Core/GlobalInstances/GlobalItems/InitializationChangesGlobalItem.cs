@@ -11,7 +11,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace InfernumMode.GlobalInstances.GlobalItems
+namespace InfernumMode.Core.GlobalInstances.GlobalItems
 {
     public class InitializationChangesGlobalItem : GlobalItem
     {
@@ -32,6 +32,6 @@ namespace InfernumMode.GlobalInstances.GlobalItems
 
             if (ItemDamageValues.DamageValues.TryGetValue(item.type, out int newDamage))
                 item.damage = newDamage;
-        }        
+        }
     }
 }

@@ -34,6 +34,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             Projectile.penetrate = -1;
             Projectile.extraUpdates = 1;
             Projectile.timeLeft = 960;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -66,7 +67,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             {
                 Vector2 fireballShootVelocity = Projectile.SafeDirectionTo(Destination, Vector2.UnitY) * 4.5f;
 
-                int fireball = Utilities.NewProjectileBetter(Projectile.Center, fireballShootVelocity, ProjectileID.CultistBossFireBall, 195, 0f);
+                int fireball = Utilities.NewProjectileBetter(Projectile.Center, fireballShootVelocity, ProjectileID.CultistBossFireBall, CultistBehaviorOverride.FireballDamage, 0f);
                 if (Main.projectile.IndexInRange(fireball))
                     Main.projectile[fireball].tileCollide = false;
                 Projectile.Kill();

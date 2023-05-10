@@ -9,12 +9,13 @@ namespace InfernumMode.Content.Items.SummonItems
     {
         public override void SetStaticDefaults()
         {
-            SacrificeTotal = 1;
+            SacrificeTotal = 3;
             DisplayName.SetDefault("Radiant Crystal");
             Tooltip.SetDefault("Summons the Empress of Light\n" +
                 "Does not need to be used in the Hallow\n" +
                 "The Empress enrages during daytime\n" +
                 "Not consumable");
+            ItemID.Sets.SortingPriorityBossSpawns[Type] = 14; // Frost Moon
         }
 
         public override void SetDefaults()

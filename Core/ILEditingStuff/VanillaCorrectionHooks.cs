@@ -1,28 +1,41 @@
 using CalamityMod;
 using CalamityMod.Balancing;
+using CalamityMod.BiomeManagers;
+using CalamityMod.CalPlayer;
+using CalamityMod.Items.Weapons.Magic;
 using CalamityMod.NPCs;
+using CalamityMod.NPCs.AquaticScourge;
 using CalamityMod.NPCs.AstrumAureus;
+using CalamityMod.NPCs.CalClone;
 using CalamityMod.NPCs.DesertScourge;
 using CalamityMod.NPCs.ExoMechs;
 using CalamityMod.NPCs.ProfanedGuardians;
 using CalamityMod.NPCs.SlimeGod;
 using CalamityMod.Schematics;
 using CalamityMod.Skies;
+using CalamityMod.Systems;
+using CalamityMod.TileEntities;
 using CalamityMod.World;
 using InfernumMode.Common.Graphics;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.CalamitasShadow;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight;
 using InfernumMode.Content.Subworlds;
 using InfernumMode.Content.Tiles.Relics;
+using InfernumMode.Content.UI;
+using InfernumMode.Content.WorldGeneration;
+using InfernumMode.Core.Balancing;
+using InfernumMode.Core.GlobalInstances.Players;
 using InfernumMode.Core.GlobalInstances.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MonoMod.Utils;
 using ReLogic.Content;
 using SubworldLibrary;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
@@ -31,45 +44,116 @@ using Terraria.GameContent.Drawing;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static CalamityMod.Events.BossRushEvent;
-using static InfernumMode.ILEditingStuff.HookManager;
+using static InfernumMode.Core.ILEditingStuff.HookManager;
 using InfernumBalancingManager = InfernumMode.Core.Balancing.BalancingChangesManager;
 
 namespace InfernumMode.Core.ILEditingStuff
 {
     public class ReplaceGoresHook : IHookEdit
     {
+        internal static List<int> InvalidGoreIDs = new()
+        {
+            // Adult Eidolon Wyrm.
+            InfernumMode.CalamityMod.Find<ModGore>("WyrmAdult").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("WyrmAdult2").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("WyrmAdult3").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("WyrmAdult4").Type,
+
+            // Aquatic Scourge.
+            InfernumMode.CalamityMod.Find<ModGore>("ASBody").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASBody2").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASBody3").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASBody4").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASBodyAlt").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASBodyAlt2").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASBodyAlt3").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASHead").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASTail").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("ASTail2").Type,
+
+            // Calamitas' Shadow.
+            InfernumMode.CalamityMod.Find<ModGore>("Calamitas").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Calamitas2").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Calamitas3").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Calamitas4").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Calamitas5").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Calamitas6").Type,
+
+            // Cataclysm.
+            InfernumMode.CalamityMod.Find<ModGore>("Cataclysm").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Cataclysm2").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Cataclysm3").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Cataclysm4").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Cataclysm5").Type,
+
+            // Catastrophe.
+            InfernumMode.CalamityMod.Find<ModGore>("Catastrophe").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Catastrophe2").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Catastrophe3").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Catastrophe4").Type,
+            InfernumMode.CalamityMod.Find<ModGore>("Catastrophe5").Type,
+
+            // Cultist.
+            GoreID.Cultist1,
+            GoreID.Cultist2,
+            GoreID.CultistBoss1,
+            GoreID.CultistBoss2,
+
+            // Deerclops,
+            GoreID.DeerclopsHead,
+            GoreID.DeerclopsAntler,
+            GoreID.DeerclopsBody,
+            GoreID.DeerclopsLeg,
+
+            // Empress of Light.
+            GoreID.HallowBoss1,
+            GoreID.HallowBoss2,
+            GoreID.HallowBoss3,
+            GoreID.HallowBoss4,
+            GoreID.HallowBoss5,
+            GoreID.HallowBoss6,
+            GoreID.HallowBoss7,
+        };
+
+        internal static Dictionary<int, int> ReplacementTable = new()
+        {
+            // Devourer of Gods.
+            [InfernumMode.CalamityMod.Find<ModGore>("DoGS").Type] = InfernumMode.Instance.Find<ModGore>("DoG1").Type,
+            [InfernumMode.CalamityMod.Find<ModGore>("DoGS2").Type] = InfernumMode.Instance.Find<ModGore>("DoG2").Type,
+            [InfernumMode.CalamityMod.Find<ModGore>("DoGS3").Type] = InfernumMode.Instance.Find<ModGore>("DoG3").Type,
+            [InfernumMode.CalamityMod.Find<ModGore>("DoGS4").Type] = InfernumMode.Instance.Find<ModGore>("DoG4").Type,
+            [InfernumMode.CalamityMod.Find<ModGore>("DoGS5").Type] = InfernumMode.Instance.Find<ModGore>("DoG5").Type,
+            [InfernumMode.CalamityMod.Find<ModGore>("DoGS6").Type] = InfernumMode.Instance.Find<ModGore>("DoG6").Type,
+
+            // Duke Fishron. These IDs do not have a corresponding GoreID constant.
+            [573] = InfernumMode.Instance.Find<ModGore>("DukeFishronGore1").Type,
+            [574] = InfernumMode.Instance.Find<ModGore>("DukeFishronGore3").Type,
+            [575] = InfernumMode.Instance.Find<ModGore>("DukeFishronGore2").Type,
+            [576] = InfernumMode.Instance.Find<ModGore>("DukeFishronGore4").Type,
+        };
+
         internal static int AlterGores(On.Terraria.Gore.orig_NewGore_IEntitySource_Vector2_Vector2_int_float orig, IEntitySource source, Vector2 Position, Vector2 Velocity, int Type, float Scale)
         {
             // Do not spawn gores on the server.
             if (Main.netMode == NetmodeID.Server || Main.gamePaused)
-                return 600;
-
-            if (InfernumMode.CanUseCustomAIs && Type >= GoreID.Cultist1 && Type <= GoreID.CultistBoss2)
-                return Main.maxDust;
-
-            if (InfernumMode.CanUseCustomAIs && Type >= GoreID.HallowBoss1 && Type <= GoreID.HallowBoss7)
-                return Main.maxDust;
-
-            if (InfernumMode.CanUseCustomAIs && Type >= GoreID.DeerclopsHead && Type <= GoreID.DeerclopsLeg)
-                return Main.maxDust;
+                return Main.maxGore;
 
             if (InfernumMode.CanUseCustomAIs)
             {
                 for (int i = 2; i <= 4; i++)
                 {
                     if (Type == InfernumMode.CalamityMod.Find<ModGore>("Hive" + i).Type || Type == InfernumMode.CalamityMod.Find<ModGore>("Hive").Type)
-                        return Main.maxDust;
+                        return Main.maxGore;
+
+                    else if (Type == InfernumMode.CalamityMod.Find<ModGore>("ProfanedGuardianBossA" + i).Type || Type == InfernumMode.CalamityMod.Find<ModGore>("ProfanedGuardianBossA").Type)
+                        return Main.maxGore;
                 }
             }
 
-            if (InfernumMode.CanUseCustomAIs && Type == 573)
-                Type = InfernumMode.Instance.Find<ModGore>("DukeFishronGore1").Type;
-            if (InfernumMode.CanUseCustomAIs && Type == 574)
-                Type = InfernumMode.Instance.Find<ModGore>("DukeFishronGore3").Type;
-            if (InfernumMode.CanUseCustomAIs && Type == 575)
-                Type = InfernumMode.Instance.Find<ModGore>("DukeFishronGore2").Type;
-            if (InfernumMode.CanUseCustomAIs && Type == 576)
-                Type = InfernumMode.Instance.Find<ModGore>("DukeFishronGore4").Type;
+            if (InfernumMode.CanUseCustomAIs && ReplacementTable.TryGetValue(Type, out int replacementGoreID))
+                Type = replacementGoreID;
+            if (InfernumMode.CanUseCustomAIs && InvalidGoreIDs.Contains(Type))
+                return Main.maxGore;
 
             return orig(source, Position, Velocity, Type, Scale);
         }
@@ -134,11 +218,91 @@ namespace InfernumMode.Core.ILEditingStuff
         public void Unload() => PlaceHellLab -= SlideOverHellLab;
     }
 
-    public class DrawLostColosseumBackgroundHook : IHookEdit
+    public class MakeSulphSeaCavesBiggerHook : IHookEdit
     {
+        internal static void MakeCavesBigger1(ILContext il)
+        {
+            ILCursor cursor = new(il);
+
+            for (int i = 0; i < 2; i++)
+            {
+                cursor.GotoNext(MoveType.After, i => i.MatchLdsfld<SulphurousSea>("CheeseCaveCarveOutThresholds"));
+                cursor.Emit(OpCodes.Pop);
+                cursor.EmitDelegate(() => new float[]
+                {
+                    0.13f
+                });
+            }
+
+            cursor.Goto(0);
+            for (int i = 0; i < 2; i++)
+            {
+                cursor.GotoNext(MoveType.After, i => i.MatchLdcR4(SulphurousSea.CheeseCaveMagnification));
+                cursor.Emit(OpCodes.Pop);
+                cursor.EmitDelegate(() => SulphurousSea.CheeseCaveMagnification * 0.3f);
+            }
+        }
+
+        internal static void MakeCavesBigger2(ILContext il)
+        {
+            ILCursor cursor = new(il);
+
+            for (int i = 0; i < 2; i++)
+            {
+                cursor.GotoNext(MoveType.After, i => i.MatchLdsfld<SulphurousSea>("SpaghettiCaveCarveOutThresholds"));
+                cursor.Emit(OpCodes.Pop);
+                cursor.EmitDelegate(() => new float[]
+                {
+                    0.033f,
+                    0.125f
+                });
+            }
+
+            cursor.Goto(0);
+            for (int i = 0; i < 2; i++)
+            {
+                cursor.GotoNext(MoveType.After, i => i.MatchLdcR4(SulphurousSea.SpaghettiCaveMagnification));
+                cursor.Emit(OpCodes.Pop);
+                cursor.EmitDelegate(() => SulphurousSea.SpaghettiCaveMagnification * 0.6f);
+            }
+        }
+
+        public void Load()
+        {
+            GenerateSulphSeaCheeseCaves += MakeCavesBigger1;
+            GenerateSulphSeaSpaghettiCaves += MakeCavesBigger2;
+        }
+
+        public void Unload()
+        {
+            GenerateSulphSeaCheeseCaves -= MakeCavesBigger1;
+            GenerateSulphSeaSpaghettiCaves -= MakeCavesBigger2;
+        }
+    }
+
+    public class ManipulateSunPositionHook : IHookEdit
+    {
+        public static Vector2 SunPosition
+        {
+            get;
+            private set;
+        }
+
+        public static Main.SceneArea SunSceneArea
+        {
+            get;
+            private set;
+        }
+
+        public static bool DisableSunForNextFrame
+        {
+            get;
+            set;
+        }
+
         internal void ForceDrawBlack(On.Terraria.Main.orig_DrawBlack orig, Main self, bool force)
         {
-            orig(self, force || SubworldSystem.IsActive<LostColosseum>());
+            orig(self, force || LostColosseum.WasInColosseumLastFrame || CeaselessDimensionDrawSystem.BackgroundChangeInterpolant > 0f);
         }
 
         internal void ChangeDrawBlackLimit(ILContext il)
@@ -150,6 +314,9 @@ namespace InfernumMode.Core.ILEditingStuff
             c.Emit(OpCodes.Ldloc, 3);
             c.EmitDelegate<Func<float, float>>(lightThreshold =>
             {
+                if (CeaselessDimensionDrawSystem.BackgroundChangeInterpolant > 0f)
+                    return 0.00001f;
+
                 if (SubworldSystem.IsActive<LostColosseum>())
                     return 0.125f;
 
@@ -198,9 +365,14 @@ namespace InfernumMode.Core.ILEditingStuff
 
         private void DrawStrongerSunInColosseum(On.Terraria.Main.orig_DrawSunAndMoon orig, Main self, Main.SceneArea sceneArea, Color moonColor, Color sunColor, float tempMushroomInfluence)
         {
-            // Don't draw the moon if it's in use.
-            if (!Main.dayTime && StolenCelestialObject.MoonIsNotInSky)
-                return;
+            // Don't draw the moon if it's in use, or being drawn seperately.
+            if (!Main.dayTime)
+            {
+                if (StolenCelestialObject.MoonIsNotInSky)
+                    return;
+                else if (!Main.gameMenu && Main.LocalPlayer.GetModPlayer<FlowerOceanPlayer>().VisualsActive)
+                    return;
+            }
 
             // Don't draw the sun if it's in use.
             if (Main.dayTime && StolenCelestialObject.SunIsNotInSky)
@@ -217,15 +389,23 @@ namespace InfernumMode.Core.ILEditingStuff
             float dayCompletion = (float)(Main.time / Main.dayLength);
             float verticalOffsetInterpolant;
             if (dayCompletion < 0.5f)
-                verticalOffsetInterpolant = (float)Math.Pow(1f - dayCompletion * 2f, 2D);
+                verticalOffsetInterpolant = MathF.Pow(1f - dayCompletion * 2f, 2f);
             else
-                verticalOffsetInterpolant = (float)Math.Pow(dayCompletion - 0.5f, 2D) * 4f;
+                verticalOffsetInterpolant = MathF.Pow(dayCompletion - 0.5f, 2f) * 4f;
 
             // Calculate the position of the sun.
             Texture2D sunTexture = TextureAssets.Sun.Value;
             int x = (int)(dayCompletion * sceneArea.totalWidth + sunTexture.Width * 2f) - sunTexture.Width;
             int y = (int)(sceneArea.bgTopY + verticalOffsetInterpolant * 250f + Main.sunModY);
             Vector2 sunPosition = new(x - 108f, y + 180f);
+            SunSceneArea = sceneArea;
+            SunPosition = sunPosition;
+
+            if (DisableSunForNextFrame)
+            {
+                DisableSunForNextFrame = false;
+                return;
+            }
 
             if (!inColosseum)
             {
@@ -255,7 +435,7 @@ namespace InfernumMode.Core.ILEditingStuff
                     Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.BackgroundViewMatrix.EffectMatrix);
 
                     Vector2 origin = backglowTexture.Size() * 0.5f;
-                    Color transColor = Color.Lerp(Color.HotPink, Color.Cyan, (float)Math.Sin(Main.GlobalTimeWrappedHourly * 1.1f) * 0.5f + 0.5f);
+                    Color transColor = Color.Lerp(Color.HotPink, Color.Cyan, MathF.Sin(Main.GlobalTimeWrappedHourly * 1.1f) * 0.5f + 0.5f);
                     Main.spriteBatch.Draw(backglowTexture, sunPosition, null, transColor, 0f, origin, 0.74f, 0, 0f);
                     Main.spriteBatch.End();
                     Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Main.BackgroundViewMatrix.EffectMatrix);
@@ -316,16 +496,22 @@ namespace InfernumMode.Core.ILEditingStuff
 
     public class GetRidOfOnHitDebuffsHook : IHookEdit
     {
+        internal static void EarlyReturn(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.Emit(OpCodes.Ret);
+        }
+
         public void Load()
         {
-            YharonOnHitPlayer += SepulcherOnHitProjectileEffectRemovalHook.EarlyReturn;
-            SCalOnHitPlayer += SepulcherOnHitProjectileEffectRemovalHook.EarlyReturn;
+            YharonOnHitPlayer += EarlyReturn;
+            SCalOnHitPlayer += EarlyReturn;
         }
 
         public void Unload()
         {
-            YharonOnHitPlayer -= SepulcherOnHitProjectileEffectRemovalHook.EarlyReturn;
-            SCalOnHitPlayer -= SepulcherOnHitProjectileEffectRemovalHook.EarlyReturn;
+            YharonOnHitPlayer -= EarlyReturn;
+            SCalOnHitPlayer -= EarlyReturn;
         }
     }
 
@@ -408,9 +594,15 @@ namespace InfernumMode.Core.ILEditingStuff
 
     public class GetRidOfProvidenceLootBoxHook : IHookEdit
     {
-        public void Load() => SpawnProvLootBox += SepulcherOnHitProjectileEffectRemovalHook.EarlyReturn;
+        internal static void EarlyReturn(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.Emit(OpCodes.Ret);
+        }
 
-        public void Unload() => SpawnProvLootBox -= SepulcherOnHitProjectileEffectRemovalHook.EarlyReturn;
+        public void Load() => SpawnProvLootBox += EarlyReturn;
+
+        public void Unload() => SpawnProvLootBox -= EarlyReturn;
     }
 
     public class AddWarningAboutNonExpertOnWorldSelectionHook : IHookEdit
@@ -570,42 +762,13 @@ namespace InfernumMode.Core.ILEditingStuff
         public void Unload() => On.Terraria.GameContent.Drawing.TileDrawing.DrawTiles_EmitParticles -= EmitFireParticles;
     }
 
-    public class LessenDesertTileRequirementsHook : IHookEdit
+    public class ReplaceAbyssWorldgen : IHookEdit
     {
-        internal static void MakeDesertRequirementsMoreLenient(On.Terraria.Player.orig_UpdateBiomes orig, Player self)
-        {
-            orig(self);
-            self.ZoneDesert = Main.SceneMetrics.SandTileCount > 300;
-        }
+        internal static void ChangeAbyssGen(Action orig) => CustomAbyss.Generate();
 
-        public void Load() => On.Terraria.Player.UpdateBiomes += MakeDesertRequirementsMoreLenient;
+        public void Load() => GenerateAbyss += ChangeAbyssGen;
 
-        public void Unload() => On.Terraria.Player.UpdateBiomes -= MakeDesertRequirementsMoreLenient;
-    }
-
-    public class SepulcherOnHitProjectileEffectRemovalHook : IHookEdit
-    {
-        internal static void EarlyReturn(ILContext il)
-        {
-            ILCursor cursor = new(il);
-            cursor.Emit(OpCodes.Ret);
-        }
-
-        public void Load()
-        {
-            SepulcherHeadModifyProjectile += EarlyReturn;
-            SepulcherBodyModifyProjectile += EarlyReturn;
-            SepulcherBody2ModifyProjectile += EarlyReturn;
-            SepulcherTailModifyProjectile += EarlyReturn;
-        }
-
-        public void Unload()
-        {
-            SepulcherHeadModifyProjectile -= EarlyReturn;
-            SepulcherBodyModifyProjectile -= EarlyReturn;
-            SepulcherBody2ModifyProjectile -= EarlyReturn;
-            SepulcherTailModifyProjectile -= EarlyReturn;
-        }
+        public void Unload() => GenerateAbyss -= ChangeAbyssGen;
     }
 
     public class GetRidOfDesertNuisancesHook : IHookEdit
@@ -663,6 +826,169 @@ namespace InfernumMode.Core.ILEditingStuff
         public void Unload() => AresBodyCanHitPlayer -= LetAresHitPlayer;
     }
 
+    public class AdjustAbyssDefinitionHook : IHookEdit
+    {
+        internal bool ChangeAbyssRequirement(AbyssRequirementDelegate orig, Player player, out int playerYTileCoords)
+        {
+            Point point = player.Center.ToTileCoordinates();
+            playerYTileCoords = point.Y;
+
+            // Subworlds do not count as the abyss.
+            if (WeakReferenceSupport.InAnySubworld())
+                return false;
+
+            // Check if the player is in the generous abyss area and has abyss walls behind them to determine if they are in the abyss.
+            bool horizontalCheck;
+            bool verticalCheck = point.Y <= Main.UnderworldLayer - 42 && point.Y > SulphurousSea.YStart + SulphurousSea.BlockDepth - 78;
+            float yCompletion = Utils.GetLerpValue(CustomAbyss.AbyssTop, CustomAbyss.AbyssBottom - 1f, player.Center.Y / 16f, true);
+            int abyssWidth = CustomAbyss.GetWidth(yCompletion, CustomAbyss.MinAbyssWidth, CustomAbyss.MaxAbyssWidth);
+            if (Abyss.AtLeftSideOfWorld)
+                horizontalCheck = point.X < abyssWidth;
+            else
+                horizontalCheck = point.X > Main.maxTilesX - abyssWidth;
+
+            return !player.lavaWet && !player.honeyWet && verticalCheck && horizontalCheck;
+        }
+
+        internal bool ChangeLayer1Requirement(Func<AbyssLayer1Biome, Player, bool> orig, AbyssLayer1Biome self, Player player)
+        {
+            if (WorldSaveSystem.InPostAEWUpdateWorld)
+            {
+                return AbyssLayer1Biome.MeetsBaseAbyssRequirement(player, out int playerYTileCoords) &&
+                    playerYTileCoords <= CustomAbyss.Layer2Top;
+            }
+
+            return orig(self, player);
+        }
+
+        internal bool ChangeLayer2Requirement(Func<AbyssLayer2Biome, Player, bool> orig, AbyssLayer2Biome self, Player player)
+        {
+            if (WorldSaveSystem.InPostAEWUpdateWorld)
+            {
+                return AbyssLayer1Biome.MeetsBaseAbyssRequirement(player, out int playerYTileCoords) &&
+                    playerYTileCoords > CustomAbyss.Layer2Top && playerYTileCoords <= CustomAbyss.Layer3Top;
+            }
+
+            return orig(self, player);
+        }
+
+        internal bool ChangeLayer3Requirement(Func<AbyssLayer3Biome, Player, bool> orig, AbyssLayer3Biome self, Player player)
+        {
+            if (WorldSaveSystem.InPostAEWUpdateWorld)
+            {
+                return AbyssLayer1Biome.MeetsBaseAbyssRequirement(player, out int playerYTileCoords) &&
+                    playerYTileCoords > CustomAbyss.Layer3Top && playerYTileCoords <= CustomAbyss.Layer4Top;
+            }
+
+            return orig(self, player);
+        }
+
+        internal bool ChangeLayer4Requirement(Func<AbyssLayer4Biome, Player, bool> orig, AbyssLayer4Biome self, Player player)
+        {
+            if (WorldSaveSystem.InPostAEWUpdateWorld)
+            {
+                return AbyssLayer1Biome.MeetsBaseAbyssRequirement(player, out int playerYTileCoords) &&
+                    playerYTileCoords > CustomAbyss.Layer4Top && playerYTileCoords <= CustomAbyss.AbyssBottom;
+            }
+
+            return orig(self, player);
+        }
+
+        public void Load()
+        {
+            MeetsBaseAbyssRequirement += ChangeAbyssRequirement;
+            IsAbyssLayer1BiomeActive += ChangeLayer1Requirement;
+            IsAbyssLayer2BiomeActive += ChangeLayer2Requirement;
+            IsAbyssLayer3BiomeActive += ChangeLayer3Requirement;
+            IsAbyssLayer4BiomeActive += ChangeLayer4Requirement;
+        }
+
+        public void Unload()
+        {
+            MeetsBaseAbyssRequirement -= ChangeAbyssRequirement;
+            IsAbyssLayer1BiomeActive -= ChangeLayer1Requirement;
+            IsAbyssLayer2BiomeActive -= ChangeLayer2Requirement;
+            IsAbyssLayer3BiomeActive -= ChangeLayer3Requirement;
+            IsAbyssLayer4BiomeActive -= ChangeLayer4Requirement;
+        }
+    }
+
+    public class MakeMapGlitchInLayer4AbyssHook : IHookEdit
+    {
+        internal void CreateMapGlitchEffect(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            MethodInfo colorFloatMultiply = typeof(Color).GetMethod("op_Multiply", new Type[] { typeof(Color), typeof(float) });
+            ConstructorInfo colorConstructor = typeof(Color).GetConstructor(new Type[] { typeof(int), typeof(int), typeof(int), typeof(int) });
+
+            // ==== APPLY EFFECT TO FULLSCREEN MAP =====
+
+            // Find the map background draw method and use it as a hooking reference.
+            if (!cursor.TryGotoNext(i => i.MatchCall<Main>("DrawMapFullscreenBackground")))
+                return;
+
+            // Go to the next 3 instances of Color.White being loaded and multiply them by the opacity factor.
+            for (int i = 0; i < 3; i++)
+            {
+                if (!cursor.TryGotoNext(MoveType.After, i => i.MatchCall<Color>("get_White")))
+                    continue;
+
+                cursor.EmitDelegate(() => 1f - Main.LocalPlayer.Infernum_Biome().MapObscurityInterpolant);
+                cursor.Emit(OpCodes.Call, colorFloatMultiply);
+            }
+
+            // ==== APPLY EFFECT TO MAP RENDER TARGETS =====
+
+            // Move after the map target color is decided, and multiply the result by the opacity factor/add blackness to it.
+            if (!cursor.TryGotoNext(i => i.MatchLdfld<Main>("mapTarget")))
+                return;
+            if (!cursor.TryGotoNext(MoveType.After, i => i.MatchNewobj(colorConstructor)))
+                return;
+
+            cursor.EmitDelegate((Color c) =>
+            {
+                float obscurityInterpolant = Main.LocalPlayer.Infernum_Biome().MapObscurityInterpolant;
+                if (Main.mapFullscreen)
+                    return c * (1f - obscurityInterpolant);
+
+                return Color.Lerp(c, Color.Black, obscurityInterpolant);
+            });
+        }
+
+        public void Load() => IL.Terraria.Main.DrawMap += CreateMapGlitchEffect;
+
+        public void Unload() => IL.Terraria.Main.DrawMap -= CreateMapGlitchEffect;
+    }
+
+    public class PreventAbyssDungeonInteractionsHook : IHookEdit
+    {
+        internal static void FixAbyssDungeonInteractions(ILContext il)
+        {
+            // Prevent the Dungeon's halls from getting anywhere near the Abyss.
+            var cursor = new ILCursor(il);
+
+            // Forcefully clamp the X position of the new hall end.
+            // This prevents a hall, and as a result, the dungeon, from ever impeding on the Abyss/Sulph Sea.
+            for (int k = 0; k < 2; k++)
+            {
+                if (!cursor.TryGotoNext(MoveType.After, i => i.MatchStloc(6)))
+                    return;
+            }
+
+            cursor.Emit(OpCodes.Ldloc, 6);
+            cursor.EmitDelegate<Func<Vector2, Vector2>>(unclampedValue =>
+            {
+                unclampedValue.X = MathHelper.Clamp(unclampedValue.X, CustomAbyss.MaxAbyssWidth + 25, Main.maxTilesX - CustomAbyss.MaxAbyssWidth - 25);
+                return unclampedValue;
+            });
+            cursor.Emit(OpCodes.Stloc, 6);
+        }
+
+        public void Load() => IL.Terraria.WorldGen.DungeonHalls += FixAbyssDungeonInteractions;
+
+        public void Unload() => IL.Terraria.WorldGen.DungeonHalls -= FixAbyssDungeonInteractions;
+    }
+
     public class ChangeBRSkyColorHook : IHookEdit
     {
         public void Load() => BRSkyColor += ChangeBRSkyColor;
@@ -701,7 +1027,7 @@ namespace InfernumMode.Core.ILEditingStuff
                 Vector2 screenCenter = Main.screenPosition + new Vector2(Main.screenWidth, Main.screenHeight) * 0.5f;
                 screenCenter += new Vector2(Main.screenWidth, Main.screenHeight) * (Main.GameViewMatrix.Zoom - Vector2.One) * 0.5f;
 
-                float scale = MathHelper.Lerp(0.8f, 0.9f, BossRushSky.IncrementalInterest) + (float)Math.Sin(BossRushSky.IdleTimer) * 0.01f;
+                float scale = MathHelper.Lerp(0.8f, 0.9f, BossRushSky.IncrementalInterest) + MathF.Sin(BossRushSky.IdleTimer) * 0.01f;
                 Vector2 drawPosition = (new Vector2(Main.LocalPlayer.Center.X, 1120f) - screenCenter) * 0.097f + screenCenter - Main.screenPosition - Vector2.UnitY * 100f;
                 Texture2D eyeTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Skies/XerocEyeAlt").Value;
                 Color baseColorDraw = Color.Lerp(Color.White, Color.Red, BossRushSky.IncrementalInterest);
@@ -726,11 +1052,38 @@ namespace InfernumMode.Core.ILEditingStuff
         }
     }
 
-    public class DeleteDoGsStupidScreenShaderHook : IHookEdit
+    public class DeleteStupidScreenShadersHook : IHookEdit
     {
-        public void Load() => On.Terraria.Graphics.Effects.FilterManager.CanCapture += NoScreenShader;
+        public void Load()
+        {
+            On.Terraria.Graphics.Effects.FilterManager.CanCapture += NoScreenShader;
+            SCalSkyDraw += ChangeSCalSkyRequirements;
+            CalCloneSkyDraw += ChangeCalCloneSkyRequirements;
+            YharonSkyDraw += ChangeYharonSkyRequirements;
+        }
 
-        public void Unload() => On.Terraria.Graphics.Effects.FilterManager.CanCapture -= NoScreenShader;
+        public void Unload()
+        {
+            On.Terraria.Graphics.Effects.FilterManager.CanCapture -= NoScreenShader;
+            SCalSkyDraw -= ChangeSCalSkyRequirements;
+            CalCloneSkyDraw -= ChangeCalCloneSkyRequirements;
+        }
+
+        private void ChangeSCalSkyRequirements(Action<SCalBackgroundScene, Player, bool> orig, SCalBackgroundScene instance, Player player, bool isActive)
+        {
+            if (InfernumMode.CanUseCustomAIs)
+                return;
+
+            orig(instance, player, isActive);
+        }
+
+        private void ChangeCalCloneSkyRequirements(Action<CalamitasCloneBackgroundScene, Player, bool> orig, CalamitasCloneBackgroundScene instance, Player player, bool isActive)
+        {
+            if (InfernumMode.CanUseCustomAIs)
+                return;
+
+            orig(instance, player, isActive);
+        }
 
         private bool NoScreenShader(On.Terraria.Graphics.Effects.FilterManager.orig_CanCapture orig, Terraria.Graphics.Effects.FilterManager self)
         {
@@ -739,11 +1092,83 @@ namespace InfernumMode.Core.ILEditingStuff
 
             return orig(self);
         }
+
+        private void ChangeYharonSkyRequirements(Action<YharonBackgroundScene, Player, bool> orig, YharonBackgroundScene instance, Player player, bool isActive)
+        {
+            if (InfernumMode.CanUseCustomAIs && !InfernumConfig.Instance.ReducedGraphicsConfig)
+                return;
+
+            orig(instance, player, isActive);
+        }
+    }
+
+    public class AdjustASWaterPoisonTimersHook : IHookEdit
+    {
+        public void Load()
+        {
+            UpdateBadLifeRegen += AdjustTimers;
+        }
+
+        public void Unload()
+        {
+            UpdateBadLifeRegen -= AdjustTimers;
+        }
+
+        private void AdjustTimers(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.EmitDelegate(() =>
+            {
+                if (!MakeSulphSeaWaterEasierToSeeInHook.CanUseHighQualityWater)
+                    WaterClearingBubble.ClaimAllBubbles();
+                if (NPC.AnyNPCs(ModContent.NPCType<AquaticScourgeHead>()) && InfernumMode.CanUseCustomAIs)
+                    Main.LocalPlayer.Calamity().decayEffigy = false;
+            });
+
+            int poisonIncrementIndex = 0;
+            cursor.GotoNext(i => i.MatchLdcR4(1f / CalamityPlayer.SulphSeaWaterSafetyTime));
+            cursor.GotoNext(i => i.MatchStloc(out poisonIncrementIndex));
+
+            // Multiply the poison increment by a predetermined factor during the Aquatic Scourge fight, so that it's more fair overall.
+            cursor.GotoNext(i => i.MatchLdfld<CalamityPlayer>("SulphWaterPoisoningLevel"));
+            cursor.GotoNext(MoveType.After, i => i.MatchLdloc(poisonIncrementIndex));
+
+            cursor.EmitDelegate(() =>
+            {
+                int aquaticScourgeIndex = NPC.FindFirstNPC(ModContent.NPCType<AquaticScourgeHead>());
+                if (aquaticScourgeIndex >= 0 && Main.npc[aquaticScourgeIndex].ai[2] != (int)AquaticScourgeHeadBehaviorOverride.AquaticScourgeAttackType.DeathAnimation && InfernumMode.CanUseCustomAIs)
+                {
+                    NPC scourge = Main.npc[NPC.FindFirstNPC(ModContent.NPCType<AquaticScourgeHead>())];
+                    Player player = Main.LocalPlayer;
+                    float acidVerticalLine = scourge.Infernum().ExtraAI[AquaticScourgeHeadBehaviorOverride.AcidVerticalLineIndex];
+                    if (acidVerticalLine > 0f && player.Top.Y >= acidVerticalLine)
+                        return AquaticScourgeHeadBehaviorOverride.PoisonChargeUpSpeedFactorFinalPhase;
+
+                    return AquaticScourgeHeadBehaviorOverride.PoisonChargeUpSpeedFactor;
+                }
+
+                return 1f;
+            });
+            cursor.Emit(OpCodes.Mul);
+
+            // Redecide poison decrement by a predetermined factor during the Aquatic Scourge fight, so that it's more fair overall.
+            cursor.GotoNext(MoveType.After, i => i.MatchLdcR4(1f / CalamityPlayer.SulphSeaWaterRecoveryTime));
+            cursor.Emit(OpCodes.Pop);
+
+            cursor.EmitDelegate(() =>
+            {
+                int recoveryTime = CalamityPlayer.SulphSeaWaterRecoveryTime;
+                if (NPC.AnyNPCs(ModContent.NPCType<AquaticScourgeHead>()) && InfernumMode.CanUseCustomAIs)
+                    recoveryTime = (int)(recoveryTime / AquaticScourgeHeadBehaviorOverride.PoisonFadeOutSpeedFactor);
+
+                return 1f / recoveryTime;
+            });
+        }
     }
 
     public class MakeDungeonSpawnAtLeftSideHook : IHookEdit
     {
-        // This is so fucking hideous but the alternative is IL editing on anonymous methods.
+        // This is so hideous but the alternative is IL editing on anonymous methods.
         internal static bool ReturnZeroInRandomness = false;
 
         public void Load()
@@ -773,6 +1198,111 @@ namespace InfernumMode.Core.ILEditingStuff
             }
 
             return orig(self, maxValue);
+        }
+    }
+
+    public class AllowTalkingToDraedonHook : IHookEdit
+    {
+        public void Load()
+        {
+            if (DraetingSimSystem.ShouldEnableDraedonDialog)
+            {
+                DrawCodebreakerUI += ChangeTalkCondition;
+                DisplayCodebreakerCommunicationPanel += DrawCustomDialogPanel;
+            }
+        }
+
+        public void Unload()
+        {
+            if (DraetingSimSystem.ShouldEnableDraedonDialog)
+            {
+                DrawCodebreakerUI -= ChangeTalkCondition;
+                DisplayCodebreakerCommunicationPanel -= DrawCustomDialogPanel;
+            }
+        }
+
+        private void ChangeTalkCondition(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.GotoNext(i => i.MatchCallOrCallvirt<TECodebreaker>("get_ReadyToSummonDraedon"));
+
+            for (int i = 0; i < 2; i++)
+                cursor.GotoNext(j => j.MatchStloc(out _));
+
+            cursor.GotoPrev(MoveType.After, i => i.MatchLdcI4(0));
+            cursor.Emit(OpCodes.Pop);
+            cursor.EmitDelegate(() => DownedBossSystem.downedExoMechs.ToInt());
+        }
+
+        private void DrawCustomDialogPanel(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.EmitDelegate(InfernumDraedonDialog.DisplayCommunicationPanel);
+            cursor.Emit(OpCodes.Ret);
+        }
+    }
+
+    public class DrawNightStarsHook : IHookEdit
+    {
+        public void Load() => On.Terraria.Main.DrawStarsInBackground += DrawStarsHook;
+
+        public void Unload() => On.Terraria.Main.DrawStarsInBackground -= DrawStarsHook;
+
+        private void DrawStarsHook(On.Terraria.Main.orig_DrawStarsInBackground orig, Main self, Main.SceneArea sceneArea)
+        {
+            // Do not draw if the flower ocean visuals are active.
+            if (!Main.gameMenu && Main.LocalPlayer.GetModPlayer<FlowerOceanPlayer>().VisualsActive)
+                return;
+
+            orig(self, sceneArea);
+        }
+    }
+
+    public class DisableWaterDrawingDuringAEWHook : IHookEdit
+    {
+        public void Load() => On.Terraria.Main.DrawWaters += DisableWaterDrawing;
+
+        public void Unload() => On.Terraria.Main.DrawWaters -= DisableWaterDrawing;
+
+        private void DisableWaterDrawing(On.Terraria.Main.orig_DrawWaters orig, Main self, bool isBackground)
+        {
+            if (InfernumMode.CanUseCustomAIs && Main.LocalPlayer.Calamity().ZoneAbyssLayer4)
+                return;
+
+            orig(self, isBackground);
+        }
+    }
+
+    public class ChangeCalCloneNameHook : IHookEdit
+    {
+        public void Load() => On.Terraria.NPC.DoDeathEvents_DropBossPotionsAndHearts += ChangeName;
+
+        public void Unload() => On.Terraria.NPC.DoDeathEvents_DropBossPotionsAndHearts -= ChangeName;
+
+        private void ChangeName(On.Terraria.NPC.orig_DoDeathEvents_DropBossPotionsAndHearts orig, NPC npc, ref string typeName)
+        {
+            orig(npc, ref typeName);
+            if (npc.type == ModContent.NPCType<CalamitasClone>() && InfernumMode.CanUseCustomAIs)
+                typeName = $"The {CalamitasShadowBehaviorOverride.CustomName}";
+        }
+    }
+
+    public class MakeEternityOPHook : IHookEdit
+    {
+        public void Load() => EternityHexAI += ChangeDamageValues;
+
+        public void Unload() => EternityHexAI += ChangeDamageValues;
+
+        private void ChangeDamageValues(ILContext il)
+        {
+            ILCursor cursor = new(il);
+
+            while (cursor.TryGotoNext(i => i.MatchCallOrCallvirt<StatModifier>("ApplyTo")))
+            {
+                cursor.GotoNext(MoveType.Before, i => i.MatchLdcR4(out float originalDamage));
+                cursor.Remove();
+                cursor.EmitDelegate(() => (float)ItemDamageValues.DamageValues[ModContent.ItemType<Eternity>()]);
+            }
         }
     }
 }

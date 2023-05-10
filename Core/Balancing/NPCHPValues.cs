@@ -1,5 +1,7 @@
 using CalamityMod;
 using CalamityMod.Events;
+using CalamityMod.NPCs.Abyss;
+using CalamityMod.NPCs.AdultEidolonWyrm;
 using CalamityMod.NPCs.AstrumAureus;
 using CalamityMod.NPCs.AstrumDeus;
 using CalamityMod.NPCs.BrimstoneElemental;
@@ -50,17 +52,17 @@ namespace InfernumMode.Core.Balancing
             [ModContent.NPCType<GiantClam>()] = Main.hardMode ? 16200 : 4100,
             [NPCID.KingSlime] = BossRushEvent.BossRushActive ? 420000 : 4200,
             [NPCID.EyeofCthulhu] = BossRushEvent.BossRushActive ? 770000 : 6100,
-            [NPCID.BrainofCthulhu] = BossRushEvent.BossRushActive ? 689000 : 11089,
-            [ModContent.NPCType<CrabulonBoss>()] = BossRushEvent.BossRushActive ? 1776000 : 12400,
+            [NPCID.BrainofCthulhu] = BossRushEvent.BossRushActive ? 689000 : 9389,
+            [ModContent.NPCType<CrabulonBoss>()] = BossRushEvent.BossRushActive ? 1776000 : 10600,
             [NPCID.EaterofWorldsHead] = BossRushEvent.BossRushActive ? EoWHeadBehaviorOverride.TotalLifeAcrossWormBossRush : EoWHeadBehaviorOverride.TotalLifeAcrossWorm,
             [NPCID.EaterofWorldsBody] = BossRushEvent.BossRushActive ? EoWHeadBehaviorOverride.TotalLifeAcrossWormBossRush : EoWHeadBehaviorOverride.TotalLifeAcrossWorm,
             [NPCID.EaterofWorldsTail] = BossRushEvent.BossRushActive ? EoWHeadBehaviorOverride.TotalLifeAcrossWormBossRush : EoWHeadBehaviorOverride.TotalLifeAcrossWorm,
             [NPCID.DD2DarkMageT1] = 5000,
-            [ModContent.NPCType<HiveMindP1Boss>()] = BossRushEvent.BossRushActive ? 606007 : 9600,
-            [ModContent.NPCType<PerforatorHive>()] = BossRushEvent.BossRushActive ? 420419 : 7265,
-            [ModContent.NPCType<PerforatorHeadSmall>()] = BossRushEvent.BossRushActive ? 239000 : 3000,
-            [ModContent.NPCType<PerforatorHeadMedium>()] = BossRushEvent.BossRushActive ? 330000 : 4335,
-            [ModContent.NPCType<PerforatorHeadLarge>()] = BossRushEvent.BossRushActive ? 296500 : 5500,
+            [ModContent.NPCType<HiveMindP1Boss>()] = BossRushEvent.BossRushActive ? 606007 : 8100,
+            [ModContent.NPCType<PerforatorHive>()] = BossRushEvent.BossRushActive ? 420419 : 9176,
+            [ModContent.NPCType<PerforatorHeadSmall>()] = BossRushEvent.BossRushActive ? 239000 : 2000,
+            [ModContent.NPCType<PerforatorHeadMedium>()] = BossRushEvent.BossRushActive ? 330000 : 2735,
+            [ModContent.NPCType<PerforatorHeadLarge>()] = BossRushEvent.BossRushActive ? 296500 : 3960,
             [NPCID.QueenBee] = BossRushEvent.BossRushActive ? 611100 : 9669,
             [NPCID.Deerclops] = BossRushEvent.BossRushActive ? 927000 : 22844,
             [NPCID.SkeletronHead] = BossRushEvent.BossRushActive ? 2508105 : 13860,
@@ -71,7 +73,7 @@ namespace InfernumMode.Core.Balancing
             [NPCID.WallofFlesh] = BossRushEvent.BossRushActive ? 854000 : 10476,
             [ModContent.NPCType<ThiccWaifu>()] = 18000,
             [NPCID.DD2OgreT2] = 15100,
-            [NPCID.QueenSlimeBoss] = BossRushEvent.BossRushActive ? 840000 : 25940,
+            [NPCID.QueenSlimeBoss] = BossRushEvent.BossRushActive ? 840000 : 30000,
             [NPCID.Spazmatism] = BossRushEvent.BossRushActive ? 833760 : CalculateMechHP(29950),
             [NPCID.Retinazer] = BossRushEvent.BossRushActive ? 840885 : CalculateMechHP(29950),
             [NPCID.SkeletronPrime] = BossRushEvent.BossRushActive ? 989515 : CalculateMechHP(28000),
@@ -80,7 +82,7 @@ namespace InfernumMode.Core.Balancing
             [NPCID.PrimeCannon] = BossRushEvent.BossRushActive ? PrimeHeadBehaviorOverride.BaseCollectiveCannonHPBossRush : CalculateMechHP(PrimeHeadBehaviorOverride.BaseCollectiveCannonHP),
             [NPCID.PrimeLaser] = BossRushEvent.BossRushActive ? PrimeHeadBehaviorOverride.BaseCollectiveCannonHPBossRush : CalculateMechHP(PrimeHeadBehaviorOverride.BaseCollectiveCannonHP),
             [NPCID.TheDestroyer] = BossRushEvent.BossRushActive ? 1110580 : CalculateMechHP(111000),
-            [NPCID.Probe] = BossRushEvent.BossRushActive ? 15000 : CalculateMechHP(170),
+            [NPCID.Probe] = BossRushEvent.BossRushActive ? 30000 : CalculateMechHP(700),
             [ModContent.NPCType<BrimstoneElemental>()] = BossRushEvent.BossRushActive ? 1105000 : 85515,
             [ModContent.NPCType<CalamitasClone>()] = BossRushEvent.BossRushActive ? 485000 : 76250,
             [ModContent.NPCType<Cataclysm>()] = BossRushEvent.BossRushActive ? 193380 : 20600,
@@ -104,6 +106,8 @@ namespace InfernumMode.Core.Balancing
             [NPCID.DukeFishron] = BossRushEvent.BossRushActive ? 1330000 : 100250,
             [NPCID.HallowBoss] = BossRushEvent.BossRushActive ? 2960000 : 220056,
             [ModContent.NPCType<RavagerHead>()] = BossRushEvent.BossRushActive ? -1 : 18000,
+            [ModContent.NPCType<DevilFish>()] = 5000,
+            [ModContent.NPCType<Eidolist>()] = 20000,
             [NPCID.CultistBoss] = BossRushEvent.BossRushActive ? 727272 : 104000,
             [NPCID.AncientCultistSquidhead] = BossRushEvent.BossRushActive ? -1 : 9020,
             [NPCID.CultistDragonHead] = BossRushEvent.BossRushActive ? -1 : 36500,
@@ -112,25 +116,28 @@ namespace InfernumMode.Core.Balancing
             [NPCID.MoonLordHead] = BossRushEvent.BossRushActive ? 661110 : 61000,
             [NPCID.MoonLordCore] = BossRushEvent.BossRushActive ? 1600000 : 135000,
             [ModContent.NPCType<ProfanedGuardianCommander>()] = BossRushEvent.BossRushActive ? 720000 : 132000,
-            [ModContent.NPCType<ProfanedGuardianDefender>()] = BossRushEvent.BossRushActive ? 205000 : 56000,
-            [ModContent.NPCType<ProfanedGuardianHealer>()] = BossRushEvent.BossRushActive ? 205000 : 56000,
+            [ModContent.NPCType<ProfanedGuardianDefender>()] = BossRushEvent.BossRushActive ? 205000 : 80000,
+            [ModContent.NPCType<ProfanedGuardianHealer>()] = BossRushEvent.BossRushActive ? 205000 : 80000,
             [ModContent.NPCType<Bumblefuck>()] = BossRushEvent.BossRushActive ? 860000 : 256000,
             [ModContent.NPCType<Bumblefuck2>()] = BossRushEvent.BossRushActive ? -1 : 14300,
-            [ModContent.NPCType<ProvidenceBoss>()] = BossRushEvent.BossRushActive ? 3900000 : 864000,
+            [ModContent.NPCType<ProfanedRocks>()] = BossRushEvent.BossRushActive ? 7500 : 2300,
+            [ModContent.NPCType<ProvidenceBoss>()] = BossRushEvent.BossRushActive ? 3900000 : 900000,
             [ModContent.NPCType<StormWeaverHead>()] = BossRushEvent.BossRushActive ? 1232100 : 646400,
             [ModContent.NPCType<CeaselessVoid>()] = BossRushEvent.BossRushActive ? -1 : 455525,
+            [ModContent.NPCType<DarkEnergy>()] = BossRushEvent.BossRushActive ? 19000 : 5000,
             [ModContent.NPCType<Signus>()] = BossRushEvent.BossRushActive ? 848210 : 546102,
             [ModContent.NPCType<Polterghast>()] = BossRushEvent.BossRushActive ? 1575910 : 544440,
             [ModContent.NPCType<OldDukeBoss>()] = BossRushEvent.BossRushActive ? 1600000 : 936000,
             [ModContent.NPCType<DevourerofGodsHead>()] = BossRushEvent.BossRushActive ? 2960000 : 1776500,
-            [ModContent.NPCType<Yharon>()] = BossRushEvent.BossRushActive ? 3076000 : 1840000,
+            [ModContent.NPCType<Yharon>()] = BossRushEvent.BossRushActive ? 1618950 : 968420,
+            [ModContent.NPCType<AdultEidolonWyrmHead>()] = 1260750,
             [ModContent.NPCType<ThanatosHead>()] = 2400000,
             [ModContent.NPCType<AresBody>()] = 2250000,
             [ModContent.NPCType<Artemis>()] = 2400000,
             [ModContent.NPCType<Apollo>()] = 2400000,
             [ModContent.NPCType<SupremeCataclysm>()] = 537200,
             [ModContent.NPCType<SupremeCatastrophe>()] = 537200,
-            [ModContent.NPCType<SupremeCalamitas>()] = 3564400,
+            [ModContent.NPCType<SupremeCalamitas>()] = 3141592,
         };
 
         public static int CalculateMechHP(int baseHP)
@@ -144,6 +151,31 @@ namespace InfernumMode.Core.Balancing
                     return (int)(baseHP * 0.9f);
             }
             return baseHP;
+        }
+
+        public static void AdjustMaxHP(NPC npc, ref int maxHP)
+        {
+            // Calculate the amount of extra HP the boss should have based on quantity of players in the world.
+            float hpMultiplier = 1f;
+            float accumulatedFactor = 0.35f;
+            if (Main.netMode != NetmodeID.SinglePlayer)
+            {
+                for (int i = 1; i < (npc.Infernum().TotalPlayersAtStart ?? 1); i++)
+                {
+                    hpMultiplier += accumulatedFactor * 0.5f;
+                    accumulatedFactor += (1f - accumulatedFactor) / 3f;
+                }
+            }
+            if (hpMultiplier > 8f)
+                hpMultiplier = (hpMultiplier * 2f + 8f) / 3f;
+
+            if (hpMultiplier > 1000f)
+                hpMultiplier = 1000f;
+
+            maxHP = (int)(maxHP * hpMultiplier);
+
+            // Add more to the HP if the config says so.
+            maxHP += (int)(maxHP * CalamityConfig.Instance.BossHealthBoost * 0.01);
         }
     }
 }

@@ -1,7 +1,8 @@
 using CalamityMod;
 using CalamityMod.NPCs;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Common.InverseKinematics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -21,6 +22,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
         public LimbCollection Limbs;
 
         public PrimitiveTrailCopy LimbDrawer = null;
+
+        public bool DrawBeforeNPCs => true;
 
         public Player Target => Main.player[NPC.target];
 
@@ -84,7 +87,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
 
             Limbs.Update(Polterghast.Center, NPC.Center);
 
-            bool isBeingControlled = Polterghast.Infernum().ExtraAI[9] == NPC.whoAmI;
+            bool isBeingControlled = Polterghast.Infernum().ExtraAI[PolterghastBehaviorOverride.LegToManuallyControlIndexIndex] == NPC.whoAmI;
             float moveSpeed = 28f + Polterghast.velocity.Length() * 1.2f;
 
             // Reposition and move to the ideal position if not being manually controlled in Polter's AI.
@@ -177,7 +180,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
                 if (farFromOtherLimbs)
                     continue;
 
-                if (WorldGen.SolidTile(limbTilePosition.X, limbTilePosition.Y) || tries >= 17500 && Main.tile[limbTilePosition.X, limbTilePosition.Y].WallType > 0)
+                if (WorldGen.SolidTile(limbTilePosition.X, limbTilePosition.Y) || (tries >= 17500 && Main.tile[limbTilePosition.X, limbTilePosition.Y].WallType > 0))
                 {
                     IdealPosition = endPosition;
                     NPC.netUpdate = true;
@@ -195,8 +198,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
 
         internal float PrimitiveWidthFunction(float completionRatio)
         {
-            float fadeToMax = MathHelper.Lerp(0f, 1f, (float)Math.Sin(MathHelper.Pi * completionRatio) * (NPC.localAI[2] == 1f ? 0.5f : 1f));
-            float pulse = MathHelper.Lerp(-0.4f, 2f, (float)Math.Sin(Main.GlobalTimeWrappedHourly * 4.6f) * 0.5f + 0.5f);
+            float fadeToMax = MathHelper.Lerp(0f, 1f, MathF.Sin(MathHelper.Pi * completionRatio) * (NPC.localAI[2] == 1f ? 0.5f : 1f));
+            float pulse = MathHelper.Lerp(-0.4f, 2f, MathF.Sin(Main.GlobalTimeWrappedHourly * 4.6f) * 0.5f + 0.5f);
             return MathHelper.Lerp(9.5f, 12f + pulse, fadeToMax) * MathHelper.Clamp(Polterghast.scale, 0.75f, 1.5f);
         }
 
@@ -255,7 +258,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
 
                 for (int j = 4; j >= 0; j--)
                 {
-                    InfernumEffectsRegistry.PolterghastEctoplasmVertexShader.UseOpacity((float)Math.Pow(MathHelper.Lerp(0.9f, 0.05f, j / 4f), 4D));
+                    InfernumEffectsRegistry.PolterghastEctoplasmVertexShader.UseOpacity(MathF.Pow(MathHelper.Lerp(0.9f, 0.05f, j / 4f), 4f));
                     InfernumEffectsRegistry.PolterghastEctoplasmVertexShader.UseSaturation(i);
 
                     if (j > 0 && NPC.velocity == Vector2.Zero)

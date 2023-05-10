@@ -3,7 +3,8 @@ using CalamityMod.NPCs.ExoMechs.Artemis;
 using CalamityMod.Projectiles.BaseProjectiles;
 using CalamityMod.Skies;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -62,7 +63,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.tileCollide = false;
             Projectile.timeLeft = 600;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -93,7 +94,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
                 return;
             }
 
-            bool notUsingReleventAttack = Main.npc[OwnerIndex].ai[0] != (int)ApolloBehaviorOverride.TwinsAttackType.ArtemisLaserRay;
+            bool notUsingReleventAttack = Main.npc[OwnerIndex].ai[0] != (int)ApolloBehaviorOverride.TwinsAttackType.ArtemisLaserRay && ExoMechManagement.TotalMechs <= 1;
             if (Main.npc[OwnerIndex].Opacity <= 0f || notUsingReleventAttack)
             {
                 Projectile.Kill();
@@ -105,7 +106,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             if (Main.netMode != NetmodeID.Server && Time % lightningBoltCreateRate == lightningBoltCreateRate - 1f)
                 ExoMechsSky.CreateLightningBolt(6);
 
-            Time = Main.npc[OwnerIndex].ai[1];
+            if (ExoMechManagement.TotalMechs <= 1)
+                Time = Main.npc[OwnerIndex].ai[1];
         }
 
         public override float DetermineLaserLength()
@@ -136,12 +138,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
                 Projectile.frame = (Projectile.frame + 1) % Main.projFrames[Projectile.type];
         }
 
-
         public float LaserWidthFunction(float _) => Projectile.scale * Projectile.width;
 
         public static Color LaserColorFunction(float completionRatio)
         {
-            float colorInterpolant = (float)Math.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 23f) * 0.5f + 0.5f;
+            float colorInterpolant = MathF.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 23f) * 0.5f + 0.5f;
             return Color.Lerp(Color.Orange, Color.Red, colorInterpolant * 0.67f);
         }
 

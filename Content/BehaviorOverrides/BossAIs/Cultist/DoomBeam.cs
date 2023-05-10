@@ -1,12 +1,14 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
@@ -35,7 +37,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             Projectile.timeLeft = Lifetime;
             Projectile.alpha = 255;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -79,8 +81,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             return Collision.CheckAABBvLineCollision(targetHitbox.TopLeft(), targetHitbox.Size(), start, end, width, ref _);
         }
 
-
-
         public float WidthFunction(float completionRatio)
         {
             float squeezeInterpolant = Utils.GetLerpValue(0f, 0.03f, completionRatio, true) * Utils.GetLerpValue(1f, 0.97f, completionRatio, true);
@@ -89,7 +89,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
 
         public Color ColorFunction(float completionRatio)
         {
-            Color color = Color.Lerp(Color.DarkViolet, new(117, 255, 160), (float)Math.Sin(MathHelper.TwoPi * completionRatio * 10f - Main.GlobalTimeWrappedHourly * 1.37f) * 0.5f + 0.5f);
+            Color color = Color.Lerp(Color.DarkViolet, new(117, 255, 160), MathF.Sin(MathHelper.TwoPi * completionRatio * 10f - Main.GlobalTimeWrappedHourly * 1.37f) * 0.5f + 0.5f);
             return color * Projectile.Opacity;
         }
 

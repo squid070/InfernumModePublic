@@ -27,6 +27,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             Projectile.tileCollide = false;
             Projectile.ignoreWater = true;
             Projectile.timeLeft = 200;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -51,7 +52,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             }
             else if (Time < 100f)
             {
-                float movementOffset = (float)Math.Sin(Time / 24f) * 0.02f;
+                float movementOffset = MathF.Sin(Time / 24f) * 0.02f;
                 Projectile.velocity = Projectile.velocity.RotatedBy(movementOffset);
             }
 

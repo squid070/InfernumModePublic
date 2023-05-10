@@ -3,6 +3,7 @@ using InfernumMode.Common.Graphics.Particles;
 using Microsoft.Xna.Framework;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
@@ -29,6 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             Projectile.alpha = 255;
             Projectile.timeLeft = Lifetime;
             Projectile.penetrate = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer) => writer.Write(Projectile.tileCollide);
@@ -71,9 +73,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
 
             for (int j = 0; j < 3; j++)
             {
-                Color fireColor = Color.Lerp(Color.Orange, new Color(255, 231, 108), Main.rand.NextFloat(0.2f, 0.3f));
+                Color fireColor = Color.Lerp(Color.Orange, new Color(255, 231, 108), Main.rand.NextFloat(0.2f, 0.8f));
                 float angularVelocity = Main.rand.NextFloat(0.035f, 0.08f);
-                FireballParticle fire = new(Projectile.Center, Projectile.velocity * 0.8f, fireColor, 10, Main.rand.NextFloat(0.52f, 0.68f) * particleScale, 1f, Main.rand.NextBool().ToDirectionInt() * angularVelocity);
+                FireballParticle fire = new(Projectile.Center, Projectile.velocity * 0.8f, fireColor, 14, Main.rand.NextFloat(0.52f, 0.68f) * particleScale, 1f, true, Main.rand.NextBool().ToDirectionInt() * angularVelocity);
                 GeneralParticleHandler.SpawnParticle(fire);
             }
 

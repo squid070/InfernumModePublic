@@ -1,22 +1,22 @@
 using CalamityMod;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using Terraria;
-using static InfernumMode.ILEditingStuff.HookManager;
-using Microsoft.Xna.Framework.Graphics;
-using Terraria.ModLoader;
-using ReLogic.Content;
-using Microsoft.Xna.Framework;
-using Terraria.UI;
-using System.Collections.Generic;
-using Terraria.Audio;
-using Terraria.ID;
-using Terraria.GameInput;
-using System.Reflection;
-using System;
 using InfernumMode.Content.Achievements;
 using InfernumMode.Core.GlobalInstances.Players;
 using InfernumMode.Core.GlobalInstances.Systems;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using ReLogic.Content;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using Terraria;
+using Terraria.Audio;
+using Terraria.GameInput;
+using Terraria.ID;
+using Terraria.ModLoader;
+using Terraria.UI;
+using static InfernumMode.Core.ILEditingStuff.HookManager;
 
 namespace InfernumMode.Core.ILEditingStuff
 {
@@ -203,7 +203,7 @@ namespace InfernumMode.Core.ILEditingStuff
             Main.inFancyUI = true;
 
             // Set this as the current UI state to draw. This is the custom UIState.
-            Main.InGameUI.SetState(UIRenderingSystem.achievementUIManager);
+            Main.InGameUI.SetState(UIRenderingSystem.CurrentAchievementUI);
         }
     }
 
@@ -227,15 +227,11 @@ namespace InfernumMode.Core.ILEditingStuff
         private void ActiveSound_Update(On.Terraria.Audio.ActiveSound.orig_Update orig, ActiveSound self)
         {
             if (!Program.IsMainThread)
-            {
                 typeof(ActiveSound).GetMethod("RunOnMainThreadAndWait", BindingFlags.Static | BindingFlags.NonPublic).Invoke(self, new object[] { (Action)self.Update });
-            }
             else
             {
                 if (self.Sound == null || self.Sound.IsDisposed)
-                {
                     return;
-                }
 
                 Vector2 screenMiddle = Main.screenPosition + new Vector2(Main.screenWidth / 2, Main.screenHeight / 2);
                 float volumeModifier = 1f;
@@ -263,9 +259,7 @@ namespace InfernumMode.Core.ILEditingStuff
                     case SoundType.Ambient:
                         volumeModifier *= Main.ambientVolume;
                         if (Main.gameInactive)
-                        {
                             volumeModifier = 0f;
-                        }
 
                         break;
                     case SoundType.Music:

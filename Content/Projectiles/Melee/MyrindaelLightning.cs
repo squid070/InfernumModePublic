@@ -1,5 +1,6 @@
 ﻿using CalamityMod;
 using CalamityMod.Items.Weapons.Ranged;
+using InfernumMode.Assets.Sounds;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace InfernumMode.Content.Projectiles.Melee
             Projectile.width = 18;
             Projectile.height = 18;
             Projectile.alpha = 255;
-            Projectile.penetrate = -1;
+            Projectile.penetrate = 5;
             Projectile.ignoreWater = true;
             Projectile.tileCollide = false;
             Projectile.friendly = true;
@@ -82,7 +83,7 @@ namespace InfernumMode.Content.Projectiles.Melee
             // Play a strike sound on the first frame.
             if (!HasPlayedSound)
             {
-                SoundEngine.PlaySound(HeavenlyGale.LightningStrikeSound with { Volume = 0.3f }, Main.player[Projectile.owner].Center);
+                SoundEngine.PlaySound(InfernumSoundRegistry.MyrindaelLightningSound with { Volume = 0.25f }, Main.player[Projectile.owner].Center);
                 HasPlayedSound = true;
             }
 
@@ -139,7 +140,7 @@ namespace InfernumMode.Content.Projectiles.Melee
 
         public Color PrimitiveColorFunction(float completionRatio)
         {
-            float colorInterpolant = (float)Math.Sin(Projectile.identity / 3f + completionRatio * 20f + Main.GlobalTimeWrappedHourly * 1.1f) * 0.5f + 0.5f;
+            float colorInterpolant = MathF.Sin(Projectile.identity / 3f + completionRatio * 20f + Main.GlobalTimeWrappedHourly * 1.1f) * 0.5f + 0.5f;
             Color color = CalamityUtils.MulticolorLerp(colorInterpolant, Color.Blue, Color.SkyBlue, Color.Cyan);
             return color;
         }
@@ -162,8 +163,7 @@ namespace InfernumMode.Content.Projectiles.Melee
 
         public override bool PreDraw(ref Color lightColor)
         {
-            if (LightningDrawer is null)
-                LightningDrawer = new PrimitiveTrail(PrimitiveWidthFunction, PrimitiveColorFunction, PrimitiveTrail.RigidPointRetreivalFunction, GameShaders.Misc["CalamityMod:HeavenlyGaleLightningArc"]);
+            LightningDrawer ??= new PrimitiveTrail(PrimitiveWidthFunction, PrimitiveColorFunction, PrimitiveTrail.RigidPointRetreivalFunction, GameShaders.Misc["CalamityMod:HeavenlyGaleLightningArc"]);
 
             GameShaders.Misc["CalamityMod:HeavenlyGaleLightningArc"].UseImage1("Images/Misc/Perlin");
             GameShaders.Misc["CalamityMod:HeavenlyGaleLightningArc"].Apply();

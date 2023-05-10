@@ -1,6 +1,7 @@
 ﻿using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Content.Projectiles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -43,14 +44,14 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.CloudElemental
             Projectile.timeLeft = 360;
             Projectile.Opacity = 0;
             Projectile.hide = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
         {
             // Calculate light power. This checks below the position of the fog to check if this fog is underground.
             // Without this, it may render over the fullblack that the game renders for obscured tiles.
-            float lightPowerBelow = Lighting.GetColor((int)Projectile.Center.X / 16, (int)Projectile.Center.Y / 16 + 6).ToVector3().Length() / (float)Math.Sqrt(3D);
+            float lightPowerBelow = Lighting.GetColor((int)Projectile.Center.X / 16, (int)Projectile.Center.Y / 16 + 6).ToVector3().Length() / MathF.Sqrt(3f);
             LightPower = MathHelper.Lerp(LightPower, lightPowerBelow, 0.15f);
 
             // Fade in
@@ -95,7 +96,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.CloudElemental
         }
 
         public override bool? CanDamage() => false;
-        
+
         public float WidthFunction(float _) => Projectile.width * Projectile.scale * 0.3f;
 
         public Color ColorFunction(float _)

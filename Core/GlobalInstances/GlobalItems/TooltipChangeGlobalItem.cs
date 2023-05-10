@@ -1,5 +1,7 @@
 using CalamityMod;
 using CalamityMod.Items.SummonItems;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.CalamitasShadow;
+using InfernumMode.Content.Projectiles.Wayfinder;
 using InfernumMode.Content.Subworlds;
 using InfernumMode.Core.GlobalInstances.Systems;
 using Microsoft.Xna.Framework;
@@ -11,7 +13,7 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace InfernumMode.GlobalInstances.GlobalItems
+namespace InfernumMode.Core.GlobalInstances.GlobalItems
 {
     public class TooltipChangeGlobalItem : GlobalItem
     {
@@ -26,25 +28,28 @@ namespace InfernumMode.GlobalInstances.GlobalItems
             [ItemID.BloodySpine] = "Enrages outside of the Crimson\n",
             [ModContent.ItemType<Teratoma>()] = "Enrages outside of the Corruption",
             [ModContent.ItemType<BloodyWormFood>()] = "Enrages outside of the Crimson",
+            [ModContent.ItemType<Seafood>()] = "Enrages outside of the waters of the Sulphurous Sea",
             [ItemID.MechanicalEye] = null,
             [ItemID.MechanicalSkull] = null,
             [ItemID.MechanicalWorm] = null,
             [ItemID.ClothierVoodooDoll] = null,
+            [ModContent.ItemType<Abombination>()] = "Enrages outside of the Underground Jungle",
             [ModContent.ItemType<ExoticPheromones>()] = null,
             [ModContent.ItemType<NecroplasmicBeacon>()] = "Enrages outside of the Underground",
         };
 
         public override void ModifyTooltips(Item item, List<TooltipLine> tooltips)
         {
-            void replaceTooltipText(string tooltipIdentifier, string replacementText)
+            void replaceTooltipText(string tooltipIdentifier, string replacementText, Color? replacementColor = null)
             {
                 var tooltip = tooltips.FirstOrDefault(x => x.Name == tooltipIdentifier && x.Mod == "Terraria");
 
                 // Stop if the tooltip could not be identified.
                 if (tooltip is null)
                     return;
-
+                replacementColor ??= Color.White;
                 tooltip.Text = replacementText;
+                tooltip.OverrideColor = replacementColor;
             }
 
             void addTooltipLineAfterLine(string tooltipIdentifier, TooltipLine line)
@@ -68,8 +73,10 @@ namespace InfernumMode.GlobalInstances.GlobalItems
 
             if (InfernumMode.CanUseCustomAIs && item.type == ModContent.ItemType<ProfanedShard>())
             {
-                string summoningText = "Summons the Profaned Guardians when used in the profaned garden at the far right of the underworld";
-                replaceTooltipText("Tooltip1", summoningText);
+                bool inGarden = Main.LocalPlayer.Infernum_Biome().InProfanedArena;
+                string summoningText = "Summons the Profaned Guardians when used on the cliff in the profaned garden at the far right of the underworld";
+                Color textColor = inGarden ? WayfinderSymbol.Colors[2] : Color.White;
+                replaceTooltipText("Tooltip1", summoningText, textColor);
 
                 // Remove the next line about an enrage condition.
                 tooltips.RemoveAll(x => x.Name == "Tooltip2" && x.Mod == "Terraria");
@@ -79,16 +86,30 @@ namespace InfernumMode.GlobalInstances.GlobalItems
                 {
                     TooltipLine warningTooltip = new(Mod, "Warning",
                         "Your world does not currently have a Profaned Garden. Kill the Moon Lord again to generate it\n" +
-                        "Be sure to grab the Hell schematic first if you do this, as the garden might destroy the lab");
-                    warningTooltip.OverrideColor = Color.Orange;
+                        "Be sure to grab the Hell schematic first if you do this, as the garden might destroy the lab")
+                    {
+                        OverrideColor = Color.Orange
+                    };
                     addTooltipLineAfterLine("Tooltip1", warningTooltip);
                 }
+            }
+
+            if (InfernumMode.CanUseCustomAIs && item.type == ModContent.ItemType<EyeofDesolation>())
+            {
+                string summoningText = $"Summons the {CalamitasShadowBehaviorOverride.CustomName} when used during nighttime";
+                replaceTooltipText("Tooltip1", summoningText);
             }
 
             if (InfernumMode.CanUseCustomAIs && item.type == ModContent.ItemType<ProfanedCore>())
             {
                 string summoningText = "Summons Providence when used at the alter in the profaned temple at the far right of the underworld";
                 replaceTooltipText("Tooltip1", summoningText);
+            }
+
+            if (InfernumMode.CanUseCustomAIs && item.type == ModContent.ItemType<RuneofKos>() && WorldSaveSystem.ForbiddenArchiveCenter.X != 0)
+            {
+                TooltipLine developerLine = new(Mod, "CVWarning", CalamityUtils.ColorMessage("The Ceaseless Void can only be fought in the Archives", Color.Magenta));
+                tooltips.Add(developerLine);
             }
 
             if (InfernumMode.CanUseCustomAIs && item.type == ItemID.LihzahrdPowerCell)
@@ -129,7 +150,7 @@ namespace InfernumMode.GlobalInstances.GlobalItems
                 Color devColor = CalamityUtils.ColorSwap(Color.OrangeRed, Color.DarkRed, 2f);
                 TooltipLine developerLine = new(Mod, "Developer", $"[c/{devColor.Hex3()}:~ Developer Item ~]");
                 tooltips.Add(developerLine);
-            }    
+            }
         }
 
         public static void EditEnrageTooltips(Item item, List<TooltipLine> tooltips)
@@ -149,7 +170,7 @@ namespace InfernumMode.GlobalInstances.GlobalItems
             // Find where the current line terminates following the instance of the word 'enrage'.
             while (enrageTextEnd < enrageTooltip.Text.Length && enrageTooltip.Text[enrageTextEnd] != '\n')
                 enrageTextEnd++;
-            
+
             enrageTooltip.Text = enrageTooltip.Text.Remove(enrageTextStart, Math.Min(enrageTextEnd - enrageTextStart + 1, enrageTooltip.Text.Length));
 
             // If a replacement exists, insert it into the enrage text instead.

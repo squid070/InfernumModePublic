@@ -39,6 +39,9 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.CloudElemental
             npc.knockBackResist = 0;
             npc.damage = BaseContactDamage;
 
+            // Why is this debuff.
+            if (target.HasBuff(BuffID.Electrified))
+                target.ClearBuff(BuffID.Electrified);
 
             // Set variables.
             ref float attackTimer = ref npc.ai[0];
@@ -151,7 +154,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MinibossAIs.CloudElemental
             {
                 // Get the correct velocity for the first lightning.
                 float baseRotation = 2;
-                Vector2 baseVelocity = npc.Center.DirectionTo(target.Center).RotatedBy(-baseRotation * 0.5f);
+                Vector2 baseVelocity = npc.SafeDirectionTo(target.Center).RotatedBy(-baseRotation * 0.5f);
 
                 // Fire the lightning along a spread.
                 for (int i = 0; i <= lightningAmount; i++)

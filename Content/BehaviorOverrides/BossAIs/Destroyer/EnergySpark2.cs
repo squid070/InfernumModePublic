@@ -1,3 +1,4 @@
+using CalamityMod.Sounds;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -23,6 +24,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
             Projectile.timeLeft = 360;
             Projectile.Opacity = 0f;
             Projectile.hide = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -31,7 +33,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
             Projectile.rotation = Projectile.velocity.ToRotation() + MathHelper.PiOver2;
 
             if (Projectile.timeLeft == 330)
-                SoundEngine.PlaySound(SoundID.Item12, Projectile.Center);
+                SoundEngine.PlaySound(CommonCalamitySounds.ExoLaserShootSound with { Volume = 0.5f }, Projectile.Center);
         }
 
         public override Color? GetAlpha(Color lightColor)
@@ -43,7 +45,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
         {
             if (Projectile.timeLeft > 330)
             {
-                float width = (float)Math.Sin(MathHelper.Pi * Utils.GetLerpValue(360f, 330f, Projectile.timeLeft, true)) * 5f + 1f;
+                float width = MathF.Sin(MathHelper.Pi * Utils.GetLerpValue(360f, 330f, Projectile.timeLeft, true)) * 5f + 1f;
                 Vector2 end = Projectile.Center + Projectile.velocity.SafeNormalize(Vector2.Zero) * 5100f;
                 Main.spriteBatch.DrawLineBetter(Projectile.Center, end, Color.Red * 0.4f, width * 1.8f);
                 Main.spriteBatch.DrawLineBetter(Projectile.Center, end, Color.White * 0.6f, width);

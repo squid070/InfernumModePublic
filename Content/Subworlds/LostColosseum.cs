@@ -5,7 +5,6 @@ using CalamityMod.World;
 using InfernumMode.Content.Achievements;
 using InfernumMode.Content.Achievements.InfernumAchievements;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark;
-using InfernumMode.Content.Tiles;
 using InfernumMode.Core.GlobalInstances.Systems;
 using Microsoft.Xna.Framework;
 using SubworldLibrary;
@@ -26,6 +25,8 @@ namespace InfernumMode.Content.Subworlds
     public class LostColosseum : Subworld
     {
         internal static bool VassalWasBeaten = false;
+
+        internal static bool WasInColosseumLastFrame = false;
 
         public static bool HasBereftVassalAppeared
         {

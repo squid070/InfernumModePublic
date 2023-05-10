@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.Utilities;
@@ -15,10 +16,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
 {
     public class CorruptThorn : ModProjectile
     {
-        public ref float MaxPillarHeight => ref Projectile.ai[0];
-        public ref float Time => ref Projectile.ai[1];
         public float CurrentHeight = 0f;
+
+        public ref float MaxPillarHeight => ref Projectile.ai[0];
+
+        public ref float Time => ref Projectile.ai[1];
+
         public const float StartingHeight = 22f;
+
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.VilethornTip}";
+
         public override void SetStaticDefaults() => DisplayName.SetDefault("Corrupt Thorn");
 
         public override void SetDefaults()
@@ -28,8 +35,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             Projectile.ignoreWater = true;
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
-            Projectile.timeLeft = 480;
+            Projectile.timeLeft = 300;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -113,7 +121,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             Vector2 aimDirection = Vector2.UnitY.RotatedBy(Projectile.rotation);
             if (Time < 60f)
             {
-                float telegraphLineWidth = (float)Math.Sin(Time / 60f * MathHelper.Pi) * 3f;
+                float telegraphLineWidth = MathF.Sin(Time / 60f * MathHelper.Pi) * 3f;
                 if (telegraphLineWidth > 2f)
                     telegraphLineWidth = 2f;
                 Main.spriteBatch.DrawLineBetter(Projectile.Top + aimDirection * 10f, Projectile.Top + aimDirection * -MaxPillarHeight, Color.Gray, telegraphLineWidth);
@@ -122,16 +130,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             float tipBottom = 0f;
             Vector2 scale = new(Projectile.scale, 1f);
 
-            DrawVine(Main.spriteBatch, scale, aimDirection, tipTexture, ref tipBottom);
+            DrawVine(scale, aimDirection, tipTexture, ref tipBottom);
 
             Vector2 tipDrawPosition = Projectile.Bottom - aimDirection * (tipBottom + 4f) - Main.screenPosition;
             Main.spriteBatch.Draw(tipTexture, tipDrawPosition, null, Projectile.GetAlpha(Color.White), Projectile.rotation, tipTexture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
             return false;
         }
 
-        public void DrawVine(SpriteBatch spriteBatch, Vector2 scale, Vector2 aimDirection, Texture2D tipTexture, ref float tipBottom)
+        public void DrawVine(Vector2 scale, Vector2 aimDirection, Texture2D tipTexture, ref float tipBottom)
         {
-            Texture2D thornBodyPiece = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/EoW/CorruptThornPiece").Value;
+            Main.instance.LoadProjectile(ProjectileID.VilethornBase);
+            Texture2D thornBodyPiece = TextureAssets.Projectile[ProjectileID.VilethornBase].Value;
 
             UnifiedRandom sideThornRNG = new(Projectile.identity);
             for (int i = thornBodyPiece.Height; i < CurrentHeight + thornBodyPiece.Height; i += thornBodyPiece.Height)
@@ -157,9 +166,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EoW
             }
         }
 
-
-
-        public override bool? CanDamage()/* tModPorter Suggestion: Return null instead of false */ => Time >= 70f;
+        public override bool? CanDamage() => Time >= 70f;
 
         public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
         {

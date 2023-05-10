@@ -38,6 +38,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.timeLeft = 900;
             Projectile.Opacity = 0f;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -81,7 +82,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             float explosionInterpolant = Utils.GetLerpValue(200f, 35f, Projectile.timeLeft, true) * Utils.GetLerpValue(0f, 45f, Projectile.frameCounter, true);
             float circleFadeinInterpolant = Utils.GetLerpValue(0f, 0.15f, explosionInterpolant, true);
             float pulseInterpolant = Utils.GetLerpValue(0.75f, 0.85f, explosionInterpolant, true);
-            float colorPulse = ((float)Math.Sin(Main.GlobalTimeWrappedHourly * 6.3f + Projectile.identity) * 0.5f + 0.5f) * pulseInterpolant;
+            float colorPulse = (MathF.Sin(Main.GlobalTimeWrappedHourly * 6.3f + Projectile.identity) * 0.5f + 0.5f) * pulseInterpolant;
             if (explosionInterpolant > 0f)
             {
                 Texture2D explosionTelegraphTexture = InfernumTextureRegistry.HollowCircleSoftEdge.Value;
@@ -100,21 +101,21 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                 {
                     explosion.ModProjectile<DemonicExplosion>().MaxRadius = ExplosionRadius * 0.7f;
                 });
-                Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<DemonicExplosion>(), 660, 0f);
+                Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<DemonicExplosion>(), SupremeCalamitasBehaviorOverride.DemonicExplosionDamage, 0f);
 
                 if (ExplodeIntoDarts)
                 {
                     for (int i = 0; i < 6; i++)
                     {
                         Vector2 dartVelocity = (MathHelper.TwoPi * i / 6f).ToRotationVector2() * 7.4f;
-                        Utilities.NewProjectileBetter(Projectile.Center, dartVelocity, ModContent.ProjectileType<BrimstoneBarrage>(), 500, 0f);
+                        Utilities.NewProjectileBetter(Projectile.Center, dartVelocity, ModContent.ProjectileType<BrimstoneBarrage>(), SupremeCalamitasBehaviorOverride.BrimstoneDartDamage, 0f);
                     }
                 }
             }
 
             // Do some some mild screen-shake effects to accomodate the explosion.
             // This effect is set instead of added to to ensure separate explosions do not together create an excessive amount of shaking.
-            float screenShakeFactor = Utilities.Remap(Projectile.Distance(Main.LocalPlayer.Center), 2000f, 1300f, 0f, 11f);
+            float screenShakeFactor = Utils.Remap(Projectile.Distance(Main.LocalPlayer.Center), 2000f, 1300f, 0f, 11f);
             if (Main.LocalPlayer.Calamity().GeneralScreenShakePower < screenShakeFactor)
                 Main.LocalPlayer.Calamity().GeneralScreenShakePower = screenShakeFactor;
         }

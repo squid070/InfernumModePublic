@@ -1,10 +1,11 @@
 using CalamityMod;
 using CalamityMod.Buffs.DamageOverTime;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Content.BossIntroScreens;
-using InfernumMode.Content.Projectiles;
+using InfernumMode.Content.Projectiles.Pets;
 using InfernumMode.Content.Tiles;
+using InfernumMode.Content.WorldGeneration;
 using InfernumMode.Core;
+using InfernumMode.Core.GlobalInstances;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
@@ -40,11 +41,34 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             VoidAccretionDisk
         }
 
+        public static int FireballDamage => 215;
+
+        public static int LunarFireballDamage => 215;
+
+        public static int PhantasmalBoltDamage => 215;
+
+        public static int PhantasmalEyeDamage => 215;
+
+        public static int LunarAsteroidDamage => 220;
+
+        public static int PhantasmalSphereDamage => 220;
+
+        public static int PhantasmalDeathrayDamage => 325;
+
+        public static int BlackHoleDamage => 350;
+
+        public static int PhantasmalBoltEnragedDamage => 500;
+
         public const int ArenaWidth = 200;
+
         public const int ArenaHeight = 150;
+
         public const float BaseFlySpeedFactor = 6f;
+
         public const float Phase2LifeRatio = 0.65f;
+
         public const float Phase3LifeRatio = 0.33333f;
+
         public static readonly Color OverallTint = new(7, 81, 81);
 
         public static bool IsEnraged
@@ -115,6 +139,30 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             Phase2LifeRatio,
             Phase3LifeRatio
         };
+
+        public override void Load()
+        {
+            GlobalNPCOverrides.OnKillEvent += GenerateProfanedTempleIfNecessary;
+            GlobalNPCOverrides.StrikeNPCEvent += HandleMLBodyPhaseTriggers;
+        }
+
+        private void GenerateProfanedTempleIfNecessary(NPC npc)
+        {
+            // Create a profaned temple after the moon lord is killed if it doesn't exist yet, for backwards world compatibility reasons.
+            if (npc.type == NPCID.MoonLordCore && !WorldSaveSystem.HasGeneratedProfanedShrine && !WeakReferenceSupport.InAnySubworld())
+            {
+                Utilities.DisplayText("A profaned shrine has erupted from the ashes at the underworld's edge!", Color.Orange);
+                ProfanedGarden.Generate(new(), new(new()));
+                WorldSaveSystem.HasGeneratedProfanedShrine = true;
+            }
+        }
+
+        private bool HandleMLBodyPhaseTriggers(NPC npc, ref double damage, int realDamage, int defense, ref float knockback, int hitDirection, ref bool crit)
+        {
+            if (npc.type is NPCID.MoonLordHand or NPCID.MoonLordHead)
+                HandleBodyPartDeathTriggers(npc, realDamage);
+            return true;
+        }
 
         public override bool PreAI(NPC npc)
         {
@@ -242,7 +290,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             despawnTimer = 0f;
 
             MoonLordAttackState currentAttack = (MoonLordAttackState)(int)attackState;
-            
+
             switch (currentAttack)
             {
                 case MoonLordAttackState.SpawnEffects:
@@ -316,14 +364,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
         public static void DoBehavior_SpawnEffects(NPC npc, ref float attackTimer)
         {
-            // Don't do damage during spawn effects.
+            // Don't take damage during spawn effects.
             npc.dontTakeDamage = true;
 
             // Roar after a bit of time has passed.
             if (attackTimer == 30f)
                 SoundEngine.PlaySound(SoundID.Zombie92, npc.Center);
-            
-            if (attackTimer >= 35f)
+
+            if (attackTimer >= 125f)
                 SelectNextAttack(npc);
         }
 
@@ -393,7 +441,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 HatGirl.SayThingWhileOwnerIsAlive(target, "The Moon Lord seems angry! Try to dodge the side projectiles, and don't touch that black hole!");
 
                 if (Main.netMode != NetmodeID.MultiplayerClient)
-                    Utilities.NewProjectileBetter(npc.Center, Vector2.Zero, ModContent.ProjectileType<VoidBlackHole>(), 300, 0f, -1, 0f, npc.whoAmI);
+                    Utilities.NewProjectileBetter(npc.Center, Vector2.Zero, ModContent.ProjectileType<VoidBlackHole>(), BlackHoleDamage, 0f, -1, 0f, npc.whoAmI);
             }
 
             if (attackTimer >= 540f)
@@ -402,7 +450,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
         public static void DoBehavior_IdleHover(NPC npc, Player target, ref float attackTimer)
         {
-            float verticalOffset = MathHelper.Lerp(0f, 45f, (float)Math.Cos(attackTimer / 32f) * 0.5f + 0.5f);
+            float verticalOffset = MathHelper.Lerp(0f, 45f, MathF.Cos(attackTimer / 32f) * 0.5f + 0.5f);
             Vector2 hoverDestination = target.Center - Vector2.UnitY * verticalOffset;
             Vector2 idealVelocity = npc.SafeDirectionTo(hoverDestination) * BaseFlySpeedFactor * 0.75f;
             npc.SimpleFlyMovement(idealVelocity, BaseFlySpeedFactor / 20f);
@@ -440,6 +488,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                     MoonLordAttackState.PhantasmalDance,
                     MoonLordAttackState.PhantasmalRush,
                     MoonLordAttackState.PhantasmalBarrage,
+                    MoonLordAttackState.ExplodingConstellations,
                 };
 
                 if (lifeRatio < Phase2LifeRatio)
@@ -453,7 +502,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                         MoonLordAttackState.PhantasmalDance,
                         MoonLordAttackState.PhantasmalWrath,
                         MoonLordAttackState.PhantasmalBarrage,
-                        MoonLordAttackState.ExplodingConstellations,
                         MoonLordAttackState.PhantasmalWrath,
                     };
                 }
@@ -500,7 +548,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 ModContent.ProjectileType<LunarFireball>(),
                 ModContent.ProjectileType<LunarFlare>(),
                 ModContent.ProjectileType<LunarFlareTelegraph>(),
-                ModContent.ProjectileType<NebulaCloud>(),
                 ModContent.ProjectileType<PhantasmalDeathray>(),
                 ModContent.ProjectileType<PhantasmalOrb>(),
                 ModContent.ProjectileType<StardustConstellation>(),
@@ -535,6 +582,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
         public override bool PreDraw(NPC npc, SpriteBatch spriteBatch, Color lightColor)
         {
+            // Hideous code from vanilla. Don't mind it too much.
             Texture2D coreTexture = TextureAssets.Npc[npc.type].Value;
             Texture2D coreOutlineTexture = TextureAssets.Extra[16].Value;
             Texture2D forearmTexture = TextureAssets.Extra[14].Value;
@@ -561,7 +609,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 {
                     Vector2 shoulderPosition = center + new Vector2(220f, -60f) * directionThing;
                     Vector2 shoulderOffset = (Main.npc[armIndex].Center + new Vector2(0f, 76f) - shoulderPosition) * 0.5f;
-                    float rotationalOffset = (float)Math.Acos(MathHelper.Clamp(shoulderOffset.Length() / 340f, 0f, 1f)) * -directionThing.X;
+                    float rotationalOffset = MathF.Acos(MathHelper.Clamp(shoulderOffset.Length() / 340f, 0f, 1f)) * -directionThing.X;
                     float forearmRotation = shoulderOffset.ToRotation() - rotationalOffset - MathHelper.PiOver2;
                     SpriteEffects direction = !leftArm ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
                     Vector2 forearmOrigin = new(76f, 66f);
@@ -588,11 +636,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             };
             yield return n =>
             {
-                if (HatGirlTipsManager.ShouldUseJokeText)
+                if (TipsManager.ShouldUseJokeText)
                     return "Squib emoji";
                 return string.Empty;
             };
-            yield return n => "Those eyeballs perform attacks that require a lot of weaving! Make sure to not panic when they happen!";
         }
     }
 }

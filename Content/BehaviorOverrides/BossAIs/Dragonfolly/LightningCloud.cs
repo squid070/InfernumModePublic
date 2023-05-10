@@ -27,8 +27,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dragonfolly
             Projectile.width = Projectile.height = 64;
             Projectile.hostile = false;
             Projectile.friendly = false;
-            Projectile.tileCollide = true;
+            Projectile.tileCollide = false;
             Projectile.timeLeft = 45;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer) => writer.Write(AngularOffset);
@@ -37,7 +38,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dragonfolly
 
         public override void AI()
         {
-            Projectile.scale = (float)Math.Sin(MathHelper.Pi * Projectile.timeLeft / 45f);
+            Projectile.scale = MathF.Sin(MathHelper.Pi * Projectile.timeLeft / 45f);
             for (int i = 0; i < 16; i++)
             {
                 Dust redLightning = Dust.NewDustPerfect(Projectile.Center, 60, Main.rand.NextVector2Circular(3f, 3f));
@@ -68,7 +69,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dragonfolly
                 Vector2 spawnPosition = Projectile.Center + Vector2.UnitX * Main.rand.NextFloat(-10f, 10f);
                 spawnPosition -= offsetDirection * 2500f;
 
-                Utilities.NewProjectileBetter(spawnPosition, offsetDirection * 12f, ModContent.ProjectileType<TwinsRedLightning>(), 260, 0f, -1, offsetDirection.ToRotation(), Main.rand.Next(100));
+                Utilities.NewProjectileBetter(spawnPosition, offsetDirection * 12f, ModContent.ProjectileType<TwinsRedLightning>(), DragonfollyBehaviorOverride.RedLightningDamage, 0f, -1, offsetDirection.ToRotation(), Main.rand.Next(100));
             }
         }
     }

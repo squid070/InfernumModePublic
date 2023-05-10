@@ -1,5 +1,5 @@
 using CalamityMod;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using System;
 using System.IO;
@@ -47,6 +47,7 @@ namespace InfernumMode.Common.BaseEntities
             Projectile.hostile = true;
             Projectile.extraUpdates = 20;
             Projectile.timeLeft = Projectile.extraUpdates * Lifetime;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)

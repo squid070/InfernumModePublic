@@ -1,7 +1,8 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -53,6 +54,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             Projectile.netImportant = true;
             Projectile.scale = 0.4f;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -80,7 +82,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
         internal Color PrimitiveColorFunction(float completionRatio)
         {
-            float hue = (Projectile.ai[1] + (float)Math.Sin(Main.GlobalTimeWrappedHourly * 12.2f) * 0.04f) % 1f;
+            float hue = (Projectile.ai[1] + MathF.Sin(Main.GlobalTimeWrappedHourly * 12.2f) * 0.04f) % 1f;
             float opacity = Projectile.Opacity * Utils.GetLerpValue(0.97f, 0.9f, completionRatio, true);
             Color c = Main.hslToRgb(hue, 1f, 0.7f) * opacity;
             c.A /= 16;

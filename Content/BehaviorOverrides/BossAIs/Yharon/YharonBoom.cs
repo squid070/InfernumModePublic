@@ -59,6 +59,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             Projectile.usesLocalNPCImmunity = true;
             Projectile.localNPCHitCooldown = 10;
             Projectile.scale = 0.001f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -68,7 +69,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
                 MaxRadius = Main.rand.NextFloat(2000f, 4000f);
                 Projectile.localAI[0] = 1f;
             }
-            Main.LocalPlayer.Infernum_Camera().CurrentScreenShakePower = (float)Math.Sin(MathHelper.Pi * Projectile.timeLeft / Lifetime) * 10f;
+            Main.LocalPlayer.Infernum_Camera().CurrentScreenShakePower = MathF.Sin(MathHelper.Pi * Projectile.timeLeft / Lifetime) * 10f;
 
             Lighting.AddLight(Projectile.Center, 0.2f, 0.1f, 0f);
             Radius = MathHelper.Lerp(Radius, MaxRadius, 0.15f);
@@ -90,14 +91,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
 
         public override bool PreDraw(ref Color lightColor)
         {
-            Main.spriteBatch.EnterShaderRegion();
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
 
             float pulseCompletionRatio = Utils.GetLerpValue(Lifetime, 0f, Projectile.timeLeft, true);
             Vector2 scale = new(1.5f, 1f);
             DrawData drawData = new(ModContent.Request<Texture2D>("Terraria/Images/Misc/Perlin").Value,
                 Projectile.Center - Main.screenPosition + Projectile.Size * scale * 0.5f,
                 new Rectangle(0, 0, Projectile.width, Projectile.height),
-                new Color(new Vector4(1f - (float)Math.Sqrt(pulseCompletionRatio))) * 0.7f * Projectile.Opacity,
+                new Color(new Vector4(1f - MathF.Sqrt(pulseCompletionRatio))) * 0.7f * Projectile.Opacity,
                 Projectile.rotation,
                 Projectile.Size,
                 scale,

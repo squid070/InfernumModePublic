@@ -1,7 +1,7 @@
 ﻿using CalamityMod;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Content.Items.Weapons.Melee;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -74,7 +74,7 @@ namespace InfernumMode.Content.Projectiles.Melee
             {
                 Projectile.Center = Owner.MountedCenter;
                 Projectile.velocity = Vector2.Zero;
-                Projectile.rotation = (float)Math.Pow(SpinCompletion, 1.62) * MathHelper.Pi * SpinDirection * 6f + InitialDirection - MathHelper.PiOver4 + MathHelper.Pi;
+                Projectile.rotation = MathF.Pow(SpinCompletion, 1.62f) * MathHelper.Pi * SpinDirection * 6f + InitialDirection - MathHelper.PiOver4 + MathHelper.Pi;
 
                 // Spin the player's front arm.
                 Owner.SetCompositeArmFront(true, Player.CompositeArmStretchAmount.Full, Projectile.rotation - MathHelper.Pi + MathHelper.PiOver4);
@@ -142,7 +142,7 @@ namespace InfernumMode.Content.Projectiles.Melee
 
             // Create lightning from the sky.
             SoundEngine.PlaySound(InfernumSoundRegistry.MyrindaelHitSound, Projectile.Center);
-            SoundEngine.PlaySound(CommonCalamitySounds.LargeWeaponFireSound with { Volume = 0.04f }, Projectile.Center);
+            SoundEngine.PlaySound(InfernumSoundRegistry.MyrindaelLightningSound with { Volume = 0.06f }, Projectile.Center);
             if (Main.myPlayer == Projectile.owner)
             {
                 for (int i = 0; i < 6; i++)
@@ -180,7 +180,7 @@ namespace InfernumMode.Content.Projectiles.Melee
             return width;
         }
 
-        public Color PierceColorFunction(float completionRatio) => Color.Lime * (float)Math.Pow(Utils.GetLerpValue(0f, 0.1f, completionRatio, true), 2.4) * Projectile.Opacity;
+        public Color PierceColorFunction(float completionRatio) => Color.Lime * MathF.Pow(Utils.GetLerpValue(0f, 0.1f, completionRatio, true), 2.4f) * Projectile.Opacity;
 
         public void DrawTrail()
         {

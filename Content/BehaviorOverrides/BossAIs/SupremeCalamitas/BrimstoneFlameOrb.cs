@@ -1,8 +1,10 @@
 using CalamityMod;
+using CalamityMod.NPCs;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -49,6 +51,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.tileCollide = false;
             Projectile.timeLeft = 9000;
             Projectile.scale = 0.2f;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -75,18 +78,20 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                 for (int i = 0; i < LaserCount; i++)
                 {
                     Vector2 laserDirection = (MathHelper.TwoPi * i / LaserCount + 0.8f).ToRotationVector2();
-                    Utilities.NewProjectileBetter(Projectile.Center, laserDirection, ModContent.ProjectileType<FlameOverloadBeam>(), 900, 0f, -1, Owner.whoAmI);
+                    Utilities.NewProjectileBetter(Projectile.Center, laserDirection, ModContent.ProjectileType<FlameOverloadBeam>(), SupremeCalamitasBehaviorOverride.FlameOverloadBeamDamage, 0f, -1, Owner.whoAmI);
                 }
             }
 
             Time++;
         }
 
-        public float OrbWidthFunction(float completionRatio) => MathHelper.SmoothStep(0f, Radius, (float)Math.Sin(MathHelper.Pi * completionRatio));
+        public float OrbWidthFunction(float completionRatio) => MathHelper.SmoothStep(0f, Radius, MathF.Sin(MathHelper.Pi * completionRatio));
 
         public Color OrbColorFunction(float completionRatio)
         {
             Color c = Color.Lerp(Color.Yellow, Color.Red, MathHelper.Lerp(0.2f, 0.8f, Projectile.localAI[0] % 1f));
+            if (CalamityGlobalNPC.SCal == CalamityGlobalNPC.SCalLament)
+                c = Color.Lerp(c, Color.DeepSkyBlue, 0.65f);
             c = Color.Lerp(c, Color.White, completionRatio * 0.5f);
             c.A = 0;
             return c;
@@ -106,8 +111,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                     Vector2 laserDirection = (MathHelper.TwoPi * i / LaserCount + 0.8f).ToRotationVector2();
                     Vector2 start = Projectile.Center;
                     Vector2 end = Projectile.Center + laserDirection * 4200f;
-                    Color telegraphColor = Color.Orange * (float)Math.Pow(TelegraphInterpolant, 0.67);
-                    Main.spriteBatch.DrawLineBetter(start, end, telegraphColor, telegraphWidth);
+                    Color telegraphColor = Color.Orange;
+                    if (CalamityGlobalNPC.SCal == CalamityGlobalNPC.SCalLament)
+                        telegraphColor = Color.Lerp(telegraphColor, Color.DeepSkyBlue, 0.65f);
+                    Main.spriteBatch.DrawLineBetter(start, end, telegraphColor * MathF.Pow(TelegraphInterpolant, 0.67f), telegraphWidth);
                 }
             }
             return false;
@@ -119,14 +126,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                 return;
 
             FireDrawer ??= new PrimitiveTrailCopy(OrbWidthFunction, OrbColorFunction, null, true, InfernumEffectsRegistry.PrismaticRayVertexShader);
-            InfernumEffectsRegistry.PrismaticRayVertexShader.UseOpacity(0.25f);
+            InfernumEffectsRegistry.PrismaticRayVertexShader.UseOpacity(0.05f);
             InfernumEffectsRegistry.PrismaticRayVertexShader.UseImage1("Images/Misc/Perlin");
             Main.instance.GraphicsDevice.Textures[2] = InfernumTextureRegistry.StreakSolid.Value;
 
             List<float> rotationPoints = new();
             List<Vector2> drawPoints = new();
 
-            spriteBatch.EnterShaderRegion();
             for (float offsetAngle = -MathHelper.PiOver2; offsetAngle <= MathHelper.PiOver2; offsetAngle += MathHelper.Pi / 30f)
             {
                 Projectile.localAI[0] = MathHelper.Clamp((offsetAngle + MathHelper.PiOver2) / MathHelper.Pi, 0f, 1f);
@@ -144,7 +150,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 
                 FireDrawer.DrawPixelated(drawPoints, -Main.screenPosition, 39);
             }
-            spriteBatch.ExitShaderRegion();
         }
 
         public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox) => Utilities.CircularCollision(Projectile.Center, targetHitbox, Radius * 0.85f);

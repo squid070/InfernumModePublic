@@ -1,7 +1,8 @@
 using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -54,6 +55,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             Projectile.hide = true;
             Projectile.netImportant = true;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -82,7 +84,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
             // Spin the laserbeam.
             float deviationAngle = (Time * MathHelper.TwoPi / 40f + LaserbeamIDRatio * SpinRate) / (LaserCount * SpinRate) * MathHelper.TwoPi;
-            float sinusoidYOffset = (float)Math.Cos(deviationAngle) * AngularOffset;
+            float sinusoidYOffset = MathF.Cos(deviationAngle) * AngularOffset;
             Projectile.velocity = Vector2.UnitY.RotatedBy(sinusoidYOffset) * VerticalSpinDirection;
 
             // Update the laser length.
@@ -100,7 +102,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
         {
             float opacity = Projectile.Opacity * Utils.GetLerpValue(0.97f, 0.9f, completionRatio, true) *
                 Utils.GetLerpValue(0f, MathHelper.Clamp(15f / LaserLength, 0f, 0.5f), completionRatio, true) *
-                (float)Math.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3D);
+                MathF.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3f);
             Color c = Main.hslToRgb((completionRatio * 8f + Main.GlobalTimeWrappedHourly * 0.5f + Projectile.identity * 0.3156f) % 1f, 1f, 0.7f) * opacity;
             c.A = 0;
 

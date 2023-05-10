@@ -112,7 +112,8 @@ namespace InfernumMode.Content.Skies
             // Draw nebulous gas behind everything if Deus is below a certain life threshold.
             if (nebulaTimer > 0f)
             {
-                Main.spriteBatch.SetBlendState(BlendState.Additive);
+                spriteBatch.End();
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Utilities.GetCustomSkyBackgroundMatrix());
                 for (int i = 0; i < 185; i++)
                 {
                     Texture2D gasTexture = ModContent.Request<Texture2D>($"InfernumMode/Assets/ExtraTextures/GreyscaleObjects/NebulaGas{(i % 2 == 0 ? "1" : "2")}").Value;
@@ -125,7 +126,8 @@ namespace InfernumMode.Content.Skies
 
                     Main.spriteBatch.Draw(gasTexture, drawPosition, null, drawColor, rotation, gasTexture.Size() * 0.5f, scale, SpriteEffects.None, 0f);
                 }
-                Main.spriteBatch.ResetBlendState();
+                spriteBatch.End();
+                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.None, Main.Rasterizer, null, Utilities.GetCustomSkyBackgroundMatrix());
             }
 
             int startingDrawIndex = -1;
@@ -158,8 +160,8 @@ namespace InfernumMode.Content.Skies
                 if (rectangle.Contains((int)drawPosition.X, (int)drawPosition.Y))
                 {
                     // Handle alpha pulsing. This is what allows the stars to appear, disappear, and reappear.
-                    float opacity = (float)Math.Sin((Stars[j].AlphaFrequency * Main.GlobalTimeWrappedHourly + Stars[j].AlphaPhaseShift) * Stars[j].AlphaAmplitude + Stars[j].AlphaAmplitude);
-                    float minorFade = (float)Math.Sin(Stars[j].AlphaFrequency * Main.GlobalTimeWrappedHourly * 5f + Stars[j].AlphaPhaseShift) * 0.1f - 0.1f;
+                    float opacity = MathF.Sin((Stars[j].AlphaFrequency * Main.GlobalTimeWrappedHourly + Stars[j].AlphaPhaseShift) * Stars[j].AlphaAmplitude + Stars[j].AlphaAmplitude);
+                    float minorFade = MathF.Sin(Stars[j].AlphaFrequency * Main.GlobalTimeWrappedHourly * 5f + Stars[j].AlphaPhaseShift) * 0.1f - 0.1f;
                     minorFade = MathHelper.Clamp(minorFade, 0f, 1f);
                     opacity = MathHelper.Clamp(opacity, 0f, 1f);
 

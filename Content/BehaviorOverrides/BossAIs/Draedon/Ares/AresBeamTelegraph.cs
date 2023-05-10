@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
@@ -11,7 +12,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
         public override string Texture => "CalamityMod/Projectiles/InvisibleProj";
 
         public NPC ThingToAttachTo => Main.npc.IndexInRange((int)Projectile.ai[0]) ? Main.npc[(int)Projectile.ai[0]] : null;
-        
+
         public float ConvergenceRatio => MathHelper.SmoothStep(0f, 1f, Utils.GetLerpValue(Lifetime * 0.2f, Lifetime * 0.66f, Time, true));
 
         public ref float StartingRotationalOffset => ref Projectile.ai[1];
@@ -36,6 +37,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             Projectile.alpha = 255;
             Projectile.penetrate = -1;
             Projectile.timeLeft = Lifetime;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)

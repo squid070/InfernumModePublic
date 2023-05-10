@@ -22,6 +22,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 480;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -52,7 +53,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                 return;
 
             Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<SuicideBomberDemonExplosion>(), 0, 0f);
-            Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<SuicideBomberDemonHostile>(), 650, 0f);
+            Utilities.NewProjectileBetter(Projectile.Center, Vector2.Zero, ModContent.ProjectileType<SuicideBomberDemonHostile>(), SupremeCalamitasBehaviorOverride.SuicideBomberDemonDamage, 0f);
         }
 
         public override Color? GetAlpha(Color lightColor) => Color.White * Projectile.Opacity;

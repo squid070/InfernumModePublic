@@ -1,7 +1,7 @@
 ﻿using CalamityMod;
 using InfernumMode;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Utilities;
@@ -166,7 +166,7 @@ namespace InfernumMode.Content.Projectiles.Wayfinder
                 rayAnimationCompletion *= rayExpandFactor;
 
                 ulong seed = (ulong)(i + 1) * 3141592uL;
-                float rayDirection = MathHelper.TwoPi * i / 8f + (float)Math.Sin(Main.GlobalTimeWrappedHourly * (i + 1f) * 0.3f) * 0.51f;
+                float rayDirection = MathHelper.TwoPi * i / 8f + MathF.Sin(Main.GlobalTimeWrappedHourly * (i + 1f) * 0.3f) * 0.51f;
                 rayDirection += Main.GlobalTimeWrappedHourly * 0.48f;
                 DrawLightRay(seed, rayDirection, rayAnimationCompletion, Projectile.Center);
             }
@@ -192,7 +192,7 @@ namespace InfernumMode.Content.Projectiles.Wayfinder
             {
                 Texture2D bloomCircle = ModContent.Request<Texture2D>("CalamityMod/NPCs/ExoMechs/Thanatos/THanosAura").Value;
                 Vector2 drawPosition = Projectile.Center - Main.screenPosition;
-                Vector2 bloomSize = new Vector2(200f) / bloomCircle.Size() * (float)Math.Pow(bloomInterpolant, 2D);
+                Vector2 bloomSize = new Vector2(200f) / bloomCircle.Size() * MathF.Pow(bloomInterpolant, 2f);
                 bloomSize *= 1f + (rayExpandFactor - 1f) * 2f;
 
                 Main.spriteBatch.Draw(bloomCircle, drawPosition, null, Color.Orange * bloomInterpolant, 0f, bloomCircle.Size() * 0.5f, bloomSize, 0, 0f);

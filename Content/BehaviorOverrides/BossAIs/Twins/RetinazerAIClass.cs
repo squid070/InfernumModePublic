@@ -2,7 +2,7 @@ using CalamityMod;
 using CalamityMod.Events;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,6 +10,7 @@ using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
+using static InfernumMode.Content.BehaviorOverrides.BossAIs.Twins.TwinsAttackSynchronizer;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
 {
@@ -19,8 +20,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
 
         public override int? NPCIDToDeferToForTips => NPCID.Spazmatism;
 
+        public override float[] PhaseLifeRatioThresholds => new float[]
+        {
+            Phase2LifeRatioThreshold,
+            Phase3LifeRatioThreshold
+        };
+
         #region AI
-        public override bool PreAI(NPC npc) => TwinsAttackSynchronizer.DoAI(npc);
+        public override bool PreAI(NPC npc) => DoAI(npc);
         #endregion AI
 
         #region Frames and Drawcode
@@ -44,6 +51,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
         {
             // Draw even if offscreen, to ensure that the telegraph is seen.
             NPCID.Sets.MustAlwaysDraw[npc.type] = true;
+
+            // Reset afterimage lengths.
+            NPCID.Sets.TrailingMode[npc.type] = 3;
+            NPCID.Sets.TrailCacheLength[npc.type] = 7;
+            if (npc.oldPos.Length != NPCID.Sets.TrailCacheLength[npc.type])
+            {
+                npc.oldPos = new Vector2[NPCID.Sets.TrailCacheLength[npc.type]];
+                npc.oldRot = new float[NPCID.Sets.TrailCacheLength[npc.type]];
+            }
 
             Texture2D texture = TextureAssets.Npc[npc.type].Value;
 
@@ -78,6 +94,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
                 Main.spriteBatch.Draw(texture, drawPosition - Main.screenPosition, npc.frame, npc.GetAlpha(drawColor), rotation, origin, npc.scale, SpriteEffects.None, 0f);
             }
 
+            // Draw afterimages if necessary. This must be drawn before the main instance is.
+            float afterimageInterpolant = npc.Infernum().ExtraAI[AfterimageDrawInterpolantIndex];
+            if (afterimageInterpolant > 0f)
+            {
+                for (int i = npc.oldPos.Length - 1; i >= 1; i--)
+                {
+                    Color afterimageColor = lightColor * (1f - i / (float)npc.oldPos.Length) * 0.6f;
+                    Vector2 afterimageDrawPosition = Vector2.Lerp(npc.oldPos[i] + npc.Size * 0.5f, npc.Center, 1f - afterimageInterpolant);
+                    drawInstance(afterimageDrawPosition, afterimageColor, npc.oldRot[i]);
+                }
+            }
+
             // Draw more instances with increasingly powerful additive blending to create a glow effect.
             int totalInstancesToDraw = 1;
             Color color = lightColor;
@@ -97,12 +125,21 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
             for (int i = 0; i < totalInstancesToDraw; i++)
             {
                 Vector2 drawOffset = (MathHelper.TwoPi * i / totalInstancesToDraw).ToRotationVector2() * 3f;
-                drawOffset *= MathHelper.Lerp(0.85f, 1.2f, (float)Math.Sin(MathHelper.TwoPi * i / totalInstancesToDraw + Main.GlobalTimeWrappedHourly * 3f) * 0.5f + 0.5f);
+                drawOffset *= MathHelper.Lerp(0.85f, 1.2f, MathF.Sin(MathHelper.TwoPi * i / totalInstancesToDraw + Main.GlobalTimeWrappedHourly * 3f) * 0.5f + 0.5f);
                 drawInstance(npc.Center + drawOffset, color, npc.rotation);
             }
 
-            float telegraphDirection = npc.Infernum().ExtraAI[14];
-            float telegraphOpacity = npc.Infernum().ExtraAI[15];
+            ref float telegraphDirection = ref npc.Infernum().ExtraAI[RetinazerTelegraphDirectionIndex];
+            ref float telegraphOpacity = ref npc.Infernum().ExtraAI[RetinazerTelegraphOpacityIndex];
+            bool validTelegraphAttack = InFinalPhase || CurrentAttackState == TwinsAttackState.FlamethrowerBurst;
+            if (CurrentAttackState == TwinsAttackState.DeathAnimation && !InFinalPhase)
+                telegraphOpacity = 0f;
+            if (!validTelegraphAttack)
+            {
+                telegraphOpacity = MathHelper.Clamp(telegraphOpacity - 0.1f, 0f, 1f);
+                telegraphDirection = npc.rotation + MathHelper.PiOver2;
+            }
+
             if (telegraphOpacity > 0f)
             {
                 Main.spriteBatch.SetBlendState(BlendState.Additive);
@@ -110,12 +147,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
                 Texture2D laserTelegraph = InfernumTextureRegistry.BloomLineSmall.Value;
 
                 Vector2 origin = laserTelegraph.Size() * new Vector2(0.5f, 0f);
-                Vector2 scaleInner = new(telegraphOpacity * 0.3f, AimedDeathray.LaserLengthConst / laserTelegraph.Height);
+                Vector2 scaleInner = new(telegraphOpacity * 0.3f, RetinazerAimedDeathray.LaserLengthConst / laserTelegraph.Height);
                 Vector2 scaleOuter = scaleInner * new Vector2(2.2f, 1f);
 
                 Color colorOuter = Color.Lerp(Color.Red, Color.White, 0.32f);
                 Color colorInner = Color.Lerp(colorOuter, Color.White, 0.75f);
-                Vector2 telegraphStart = npc.Center + (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * npc.scale * 64f;
+                Vector2 telegraphStart = npc.Center + (npc.rotation + MathHelper.PiOver2).ToRotationVector2() * npc.scale * 88f;
 
                 Main.EntitySpriteDraw(laserTelegraph, telegraphStart - Main.screenPosition, null, colorOuter, telegraphDirection - MathHelper.PiOver2, origin, scaleOuter, SpriteEffects.None, 0);
                 Main.EntitySpriteDraw(laserTelegraph, telegraphStart - Main.screenPosition, null, colorInner, telegraphDirection - MathHelper.PiOver2, origin, scaleInner, SpriteEffects.None, 0);

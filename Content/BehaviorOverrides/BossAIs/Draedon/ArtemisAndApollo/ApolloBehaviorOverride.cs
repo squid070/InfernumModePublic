@@ -8,12 +8,19 @@ using CalamityMod.Particles;
 using CalamityMod.Projectiles.Boss;
 using CalamityMod.Skies;
 using CalamityMod.Sounds;
-using InfernumMode.BehaviorOverrides.BossAIs.Draedon.ComboAttacks;
+using InfernumMode;
+using InfernumMode.Assets.ExtraTextures;
+using InfernumMode.Assets.Sounds;
+using InfernumMode.Common.Graphics;
 using InfernumMode.Common.Graphics.Particles;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ComboAttacks;
+using InfernumMode.Core.GlobalInstances.Systems;
+using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
@@ -21,16 +28,9 @@ using Terraria.GameContent;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
 using Terraria.ModLoader;
+using static InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.DraedonBehaviorOverride;
 using AresPlasmaFireballInfernum = InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares.AresPlasmaFireball;
 using DraedonNPC = CalamityMod.NPCs.ExoMechs.Draedon;
-using static InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.DraedonBehaviorOverride;
-using InfernumMode.Core.OverridingSystem;
-using InfernumMode.Assets.Sounds;
-using InfernumMode.Assets.ExtraTextures;
-using InfernumMode;
-using InfernumMode.Core.GlobalInstances.Systems;
-using System.IO;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApollo
 {
@@ -58,7 +58,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             ExoMechManagement.Phase3LifeRatio,
             ExoMechManagement.Phase4LifeRatio
         };
-        
+
         #region Netcode Syncs
 
         public override void SendExtraData(NPC npc, ModPacket writer) => writer.Write(npc.Opacity);
@@ -508,7 +508,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             int artemisLaserbeamCountPerBurst = 8;
             int delayBetweenLaserbeams = 5;
             int artemisFastRedirectTime = 42;
-            int totalLaserBurstCount = 4;
+            int totalLaserBurstCount = 3;
             int apolloFireballReleaseRate = 13;
             float apolloFireballExplosionRadius = 360f;
             float apolloPlasmaFireballSpeed = 18f;
@@ -555,7 +555,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             ref float apolloFlameSpinDirection = ref npc.Infernum().ExtraAI[20];
 
             // Provide the target infinite flight time.
-            target.wingTime = target.wingTimeMax;
+            if (npc.type == ModContent.NPCType<Apollo>())
+                target.DoInfiniteFlightCheck(Color.ForestGreen);
 
             if (npc.type == ModContent.NPCType<Apollo>() && CalamityGlobalNPC.draedonExoMechTwinRed >= 0)
             {
@@ -769,6 +770,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
                 {
                     npc.velocity = npc.SafeDirectionTo(target.Center) * flamethrowerFlySpeed;
                     Utilities.CreateShockwave(npc.Center - npc.velocity * 4f);
+                    ScreenEffectSystem.SetBlurEffect(npc.Center, 0.3f, 45);
+                    target.Infernum_Camera().CurrentScreenShakePower = 3f;
+
                     ExoMechsSky.CreateLightningBolt(25);
 
                     SoundEngine.PlaySound(SoundID.DD2_BetsyFlameBreath with { Volume = 1.5f }, target.Center);
@@ -975,6 +979,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
 
                         SoundEngine.PlaySound(CommonCalamitySounds.ELRFireSound, npc.Center);
                         Utilities.CreateShockwave(npc.Center, 4, 15, 192f);
+                        ScreenEffectSystem.SetFlashEffect(npc.Center, 1f, 45);
+                        target.Infernum_Camera().CurrentScreenShakePower = 3f;
 
                         npc.velocity = npc.SafeDirectionTo(target.Center + target.velocity * chargePredictiveness) * chargeSpeed;
 
@@ -1039,7 +1045,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
                 return;
             }
 
-            int shootDelay = ArtemisLaserbeamTelegraph.TrueLifetime + 4; // 40
+            int shootDelay = ArtemisLaserbeamTelegraph.TrueLifetime + 4;
             float spinRadius = 640f;
             float spinArc = MathHelper.Pi * 1.1f;
 
@@ -1115,6 +1121,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
                         }
                     }
 
+                    // Initialize Artemis' spin direction.
                     if (spinDirection == 0f)
                     {
                         float angularOffset = MathHelper.WrapAngle(npc.AngleTo(target.Center) - npc.rotation + MathHelper.PiOver2);
@@ -1155,7 +1162,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
 
                     for (int i = 0; i < 2; i++)
                     {
-                        ElectricSpark electricSpark = new(npc.Center + Main.rand.NextVector2Circular(5, 5), npc.Center.DirectionTo(new Vector2(spinningPointX, spinningPointY)).RotatedByRandom(MathHelper.TwoPi) * 60 * Main.rand.NextFloat(0.9f, 1.1f), Color.Orange, Color.Gold, Main.rand.NextFloat(1.3f, 1.5f), 60);
+                        ElectricSpark electricSpark = new(npc.Center + Main.rand.NextVector2Circular(5, 5), npc.SafeDirectionTo(new Vector2(spinningPointX, spinningPointY)).RotatedByRandom(MathHelper.TwoPi) * Main.rand.NextFloat(0.9f, 1.1f) * 60f, Color.Orange, Color.Gold, Main.rand.NextFloat(1.3f, 1.5f), 60);
                         GeneralParticleHandler.SpawnParticle(electricSpark);
                     }
 
@@ -1418,6 +1425,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
                 // Have Artemis sweep around.
                 if (attackTimer >= laserbeamTelegraphTime)
                 {
+                    target.Infernum_Camera().CurrentScreenShakePower = 2f;
                     frame += 10f;
                     float spinAngle = (attackTimer - laserbeamTelegraphTime) / laserbeamSweepTime * spinArc * -spinDirection;
                     npc.velocity = Vector2.Zero;
@@ -1475,7 +1483,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
                     enrageTimer = 900f;
                     npc.netUpdate = true;
 
-                    // Play the impending death sounds.
+                    // Play the impending death sound.
                     SoundEngine.PlaySound(InfernumSoundRegistry.ExoMechImpendingDeathSound, target.Center);
 
                     // Have Draedon comment on the player's attempts to escape.
@@ -1570,7 +1578,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
                     // Make the orb grow.
                     if (isApollo)
                     {
-                        float orbGrowInterpolant = (float)Math.Pow(Utils.GetLerpValue(0f, orbGrowTime, attackTimer, true), 2.3);
+                        float orbGrowInterpolant = MathF.Pow(Utils.GetLerpValue(0f, orbGrowTime, attackTimer, true), 2.3f);
                         deathOrbRadius = MathHelper.Lerp(1f, orbMaxRadius, orbGrowInterpolant);
                     }
 
@@ -1885,7 +1893,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
         {
             Color startingColor = new(34, 40, 48);
             Color endColor = new(40, 160, 32);
-            return Color.Lerp(startingColor, endColor, (float)Math.Pow(completionRatio, 1.5D)) * npc.Opacity;
+            return Color.Lerp(startingColor, endColor, MathF.Pow(completionRatio, 1.5f)) * npc.Opacity;
         }
 
         public override bool PreDraw(NPC npc, SpriteBatch spriteBatch, Color lightColor)
@@ -2000,7 +2008,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
 
                     // Add a sinusoidal offset that goes based on time and completion ratio to create a waving-flag-like effect.
                     // This is dampened for the first few points to prevent weird offsets. It is also dampened by high velocity.
-                    float sinusoidalRotationOffset = (float)Math.Sin(ribbonCompletionRatio * 2.22f + Main.GlobalTimeWrappedHourly * 3.4f) * 1.36f;
+                    float sinusoidalRotationOffset = MathF.Sin(ribbonCompletionRatio * 2.22f + Main.GlobalTimeWrappedHourly * 3.4f) * 1.36f;
                     float sinusoidalRotationOffsetFactor = Utils.GetLerpValue(0f, 0.37f, ribbonCompletionRatio, true) * direction * 24f;
                     sinusoidalRotationOffsetFactor *= Utils.GetLerpValue(24f, 16f, npc.velocity.Length(), true);
 
@@ -2019,7 +2027,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
 
             Main.spriteBatch.EnterShaderRegion();
 
-            ExoMechAIUtilities.DrawFinalPhaseGlow(Main.spriteBatch, npc, texture, center, frame, origin);
+            ExoMechAIUtilities.DrawFinalPhaseGlow(npc, texture, center, frame, origin);
             drawInstance(Vector2.Zero, baseInstanceColor);
 
             if (instanceCount > 1)
@@ -2110,7 +2118,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
         #region Tips
         public override IEnumerable<Func<NPC, string>> GetTips()
         {
-            yield return n => "The Exo-Twins are magnificently in-sync, try finding a rythem to outsmart them!";
+            yield return n => "The Exo-Twins are magnificently in-sync, try finding a rhythm to outsmart them?";
         }
         #endregion Tips
     }

@@ -33,21 +33,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
             }
         }
 
-        public override void PerformAttackBehaviors(NPC npc, PrimeAttackType attackState, Player target, float attackTimer, bool pissed, Vector2 cannonDirection)
+        public override void PerformAttackBehaviors(NPC npc, PrimeAttackType attackState, Player target, float attackTimer, Vector2 cannonDirection)
         {
             int shootRate = 26;
             float missileSpeed = 13.5f;
 
-            if (npc.life < npc.lifeMax * Phase2LifeRatio && !pissed)
+            if (npc.life < npc.lifeMax * Phase2LifeRatio)
             {
                 shootRate -= 4;
                 missileSpeed += 3f;
-            }
-
-            if (pissed)
-            {
-                shootRate -= 9;
-                missileSpeed += 7f;
             }
 
             // Release missiles.
@@ -57,7 +51,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Prime
 
                 Utilities.CreateFireExplosion(npc.TopLeft + cannonDirection * 60f, npc.Size, cannonDirection * 5f);
                 if (Main.netMode != NetmodeID.MultiplayerClient)
-                    Utilities.NewProjectileBetter(npc.Center + cannonDirection * npc.width * npc.scale * 0.4f, cannonDirection * missileSpeed, ModContent.ProjectileType<PrimeMissile>(), 140, 0f);
+                    Utilities.NewProjectileBetter(npc.Center + cannonDirection * npc.width * npc.scale * 0.4f, cannonDirection * missileSpeed, ModContent.ProjectileType<PrimeMissile>(), MissileDamage, 0f);
             }
         }
     }

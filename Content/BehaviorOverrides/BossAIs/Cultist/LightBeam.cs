@@ -1,8 +1,8 @@
 using CalamityMod;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
@@ -31,6 +31,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             Projectile.penetrate = -1;
             Projectile.timeLeft = Lifetime;
             Projectile.alpha = 255;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

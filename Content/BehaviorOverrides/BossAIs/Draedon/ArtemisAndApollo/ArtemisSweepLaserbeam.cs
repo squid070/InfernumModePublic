@@ -2,7 +2,8 @@
 using CalamityMod.NPCs.ExoMechs.Artemis;
 using CalamityMod.Projectiles.BaseProjectiles;
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
@@ -33,7 +34,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
 
         public const float MaxLaserRayConst = 6000f;
 
-        public override float MaxScale => 1f;
+        public override float MaxScale => 1.5f;
         public override float MaxLaserLength => MaxLaserRayConst;
         public override float Lifetime => LifetimeConst;
         public override Color LaserOverlayColor => new(250, 180, 100, 100);
@@ -62,7 +63,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.penetrate = -1;
             Projectile.tileCollide = false;
             Projectile.timeLeft = 600;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -126,7 +127,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
 
         public static Color LaserColorFunction(float completionRatio)
         {
-            float colorInterpolant = (float)Math.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 23f) * 0.5f + 0.5f;
+            float colorInterpolant = MathF.Sin(Main.GlobalTimeWrappedHourly * -3.2f + completionRatio * 23f) * 0.5f + 0.5f;
             return Color.Lerp(Color.Orange, Color.Red, colorInterpolant * 0.67f);
         }
 

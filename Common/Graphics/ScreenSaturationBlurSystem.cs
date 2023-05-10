@@ -1,11 +1,19 @@
 using CalamityMod;
+using CalamityMod.NPCs.AdultEidolonWyrm;
 using InfernumMode.Assets.Effects;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.AdultEidolonWyrm;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Deerclops;
 using InfernumMode.Content.Tiles;
+using InfernumMode.Content.Tiles.Abyss;
 using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.Graphics.Effects;
@@ -31,25 +39,25 @@ namespace InfernumMode.Common.Graphics
             private set;
         }
 
-        public static RenderTarget2D BloomTarget
+        public static ManagedRenderTarget BloomTarget
         {
             get;
             private set;
         }
 
-        public static RenderTarget2D FinalScreenTarget
+        public static ManagedRenderTarget FinalScreenTarget
         {
             get;
             private set;
         }
 
-        public static RenderTarget2D DownscaledBloomTarget
+        public static ManagedRenderTarget DownscaledBloomTarget
         {
             get;
             private set;
         }
 
-        public static RenderTarget2D TemporaryAuxillaryTarget
+        public static ManagedRenderTarget TemporaryAuxillaryTarget
         {
             get;
             private set;
@@ -69,81 +77,134 @@ namespace InfernumMode.Common.Graphics
 
         public static float DownscaleFactor => 32f;
 
-        public static float BlurBrightnessFactor => 4.5f;
+        public static float BlurBrightnessFactor => 60f;
 
-        public static float BlurBrightnessExponent => 1.93f;
+        public static float BlurBrightnessExponent => 4.3f;
 
-        public static float BlurSaturationBiasInterpolant => 0.3f;
+        public static float BlurSaturationBiasInterpolant => 0.15f;
 
         public override void OnModLoad()
         {
-            On.Terraria.Main.Draw += HandleDrawMainThreadQueue;
-            On.Terraria.Main.SetDisplayMode += ResetSaturationMapSize;
+            // Initialize target defintions.
+            BloomTarget = new(true, RenderTargetManager.CreateScreenSizedTarget);
+            FinalScreenTarget = new(true, RenderTargetManager.CreateScreenSizedTarget);
+            DownscaledBloomTarget = new(true, new((width, height) =>
+            {
+                return new(Main.instance.GraphicsDevice, (int)(width / DownscaleFactor), (int)(height / DownscaleFactor), true, SurfaceFormat.Color, DepthFormat.Depth24, 8, RenderTargetUsage.DiscardContents);
+            }));
+            TemporaryAuxillaryTarget = new(true, RenderTargetManager.CreateScreenSizedTarget);
+
+            Main.OnPreDraw += HandleDrawMainThreadQueue;
             On.Terraria.Graphics.Effects.FilterManager.EndCapture += GetFinalScreenShader;
+
+            Main.QueueMainThreadAction(() =>
+            {
+                IL.Terraria.Main.DoDraw += LetEffectsDrawOnBudgetLightSettings;
+            });
             Main.OnPreDraw += PrepareBlurEffects;
         }
 
-        private void HandleDrawMainThreadQueue(On.Terraria.Main.orig_Draw orig, Main self, GameTime gameTime)
+        public override void OnModUnload()
         {
-            while (DrawActionQueue.TryDequeue(out Action a))
-                a();
-            
-            orig(self, gameTime);
+            Main.OnPreDraw -= HandleDrawMainThreadQueue;
+            Main.OnPreDraw -= PrepareBlurEffects;
         }
 
-        private void GetFinalScreenShader(On.Terraria.Graphics.Effects.FilterManager.orig_EndCapture orig, FilterManager self, RenderTarget2D finalTexture, RenderTarget2D screenTarget1, RenderTarget2D screenTarget2, Color clearColor)
+        private void LetEffectsDrawOnBudgetLightSettings(ILContext il)
+        {
+            ILCursor c = new(il);
+
+            int localIndex = 0;
+            c.GotoNext(i => i.MatchCallOrCallvirt<FilterManager>("BeginCapture"));
+            c.GotoPrev(MoveType.After, i => i.MatchStloc(out localIndex));
+
+            c.Emit(OpCodes.Ldloc, localIndex);
+            c.EmitDelegate(() =>
+            {
+                bool fightingAEW = NPC.AnyNPCs(ModContent.NPCType<AdultEidolonWyrmHead>()) && InfernumMode.CanUseCustomAIs;
+                bool shadowProjectilesExist = ShadowIllusionDrawSystem.ShadowProjectilesExist;
+                bool secondaryCondition = fightingAEW || shadowProjectilesExist;
+                return secondaryCondition && !Main.mapFullscreen;
+            });
+            c.Emit(OpCodes.Or);
+            c.Emit(OpCodes.Stloc, localIndex);
+        }
+
+        private void HandleDrawMainThreadQueue(GameTime gameTime)
+        {
+            while (DrawActionQueue is not null && DrawActionQueue.TryDequeue(out Action a))
+                a();
+        }
+
+        internal static void GetFinalScreenShader(On.Terraria.Graphics.Effects.FilterManager.orig_EndCapture orig, FilterManager self, RenderTarget2D finalTexture, RenderTarget2D screenTarget1, RenderTarget2D screenTarget2, Color clearColor)
         {
             // Copy the contents of the screen target in the final screen target.
-            Main.instance.GraphicsDevice.SetRenderTarget(FinalScreenTarget);
-            Main.instance.GraphicsDevice.Clear(Color.Transparent);
+            FinalScreenTarget.Target.SwapToRenderTarget();
             Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
             Main.spriteBatch.Draw(screenTarget1, Vector2.Zero, Color.White);
             Main.spriteBatch.End();
 
-            Main.instance.GraphicsDevice.SetRenderTarget(null);
-
-            orig(self, finalTexture, screenTarget1, screenTarget2, clearColor);
-
-            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.Default, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
-
-            // WHAT THE FUCK NO ABORT ABORT ABORT
-            if (ThingsToDrawOnTopOfBlur.Count >= 10000 || Main.mapFullscreen)
-                ThingsToDrawOnTopOfBlur.Clear();
-
-            while (ThingsToDrawOnTopOfBlur.Count > 0)
-            {
-                ThingsToDrawOnTopOfBlur[0].Draw(Main.spriteBatch);
-                ThingsToDrawOnTopOfBlur.RemoveAt(0);
-            }
-
             ColosseumPortal.PortalCache.RemoveAll(p => CalamityUtils.ParanoidTileRetrieval(p.X, p.Y).TileType != ModContent.TileType<ColosseumPortal>());
             foreach (Point p in ColosseumPortal.PortalCache)
                 ColosseumPortal.DrawSpecialEffects(p.ToWorldCoordinates());
-            
+            Main.instance.GraphicsDevice.SetRenderTarget(null);
+
+            orig(self, finalTexture, Intensity > 0f ? screenTarget1 : FinalScreenTarget.Target, screenTarget2, clearColor);
+
+            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.Default, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+
+            AEWHeadBehaviorOverride.TryToDrawAbyssalBlackHole();
+            ThingsToDrawOnTopOfBlur.EmptyDrawCache();
+
+            if (Main.GameUpdateCount % 10 == 0)
+                LargeLumenylCrystal.DefineCrystalDrawers();
+
+            IcicleDrawer.ApplyShader();
+            foreach (Point p in LargeLumenylCrystal.CrystalCache.Keys)
+            {
+                IcicleDrawer crystal = LargeLumenylCrystal.CrystalCache[p];
+                crystal.Draw((p.ToWorldCoordinates(8f, 0f) + Vector2.UnitY.RotatedBy(crystal.BaseDirection) * 10f).ToPoint(), false);
+            }
+
+            // Regularly reset the crystal cache.
+            if (Main.GameUpdateCount % 120 == 119)
+                LargeLumenylCrystal.CrystalCache.Clear();
+
+            DrawAdditiveCache();
+            DrawEntityTargets();
+            DrawAboveWaterProjectiles();
             Main.spriteBatch.End();
+            if (NPC.AnyNPCs(ModContent.NPCType<AdultEidolonWyrmHead>()) && Lighting.NotRetro)
+                Main.PlayerRenderer.DrawPlayers(Main.Camera, Main.player.Where(p => p.active && !p.dead && p.Calamity().ZoneAbyssLayer4));
         }
 
-        internal static void ResetSaturationMapSize(On.Terraria.Main.orig_SetDisplayMode orig, int width, int height, bool fullscreen)
+        internal static void DrawAdditiveCache()
         {
-            if (BloomTarget is not null && width == BloomTarget.Width && height == BloomTarget.Height)
-                return;
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.Default, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+            ThingsToDrawOnTopOfBlurAdditive.EmptyDrawCache();
+        }
 
-            // Free GPU resources for the old targets.
-            DrawActionQueue.Enqueue(() =>
+        internal static void DrawEntityTargets()
+        {
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, Main.DefaultSamplerState, DepthStencilState.Default, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+            AEWShadowFormDrawSystem.DrawTarget();
+            ShadowIllusionDrawSystem.DrawTarget();
+
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Main.DefaultSamplerState, DepthStencilState.Default, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+            StormWeaverDrawSystem.DrawTarget();
+
+            for (int i = 0; i < AEWShadowFormDrawSystem.AEWEyesDrawCache.Count; i++)
             {
-                BloomTarget?.Dispose();
-                FinalScreenTarget?.Dispose();
-                DownscaledBloomTarget?.Dispose();
-                TemporaryAuxillaryTarget?.Dispose();
+                AEWShadowFormDrawSystem.AEWEyesDrawCache[i] = AEWShadowFormDrawSystem.AEWEyesDrawCache[i] with
+                {
+                    position = AEWShadowFormDrawSystem.AEWEyesDrawCache[i].position + Main.screenPosition - Main.screenLastPosition
+                };
+            }
 
-                // Recreate targets.
-                BloomTarget = new(Main.instance.GraphicsDevice, width, height, true, SurfaceFormat.Color, DepthFormat.Depth24, 8, RenderTargetUsage.DiscardContents);
-                FinalScreenTarget = new(Main.instance.GraphicsDevice, width, height, true, SurfaceFormat.Color, DepthFormat.Depth24, 8, RenderTargetUsage.DiscardContents);
-                DownscaledBloomTarget = new(Main.instance.GraphicsDevice, (int)(width / DownscaleFactor), (int)(height / DownscaleFactor), true, SurfaceFormat.Color, DepthFormat.Depth24, 8, RenderTargetUsage.DiscardContents);
-                TemporaryAuxillaryTarget = new(Main.instance.GraphicsDevice, width, height, true, SurfaceFormat.Color, DepthFormat.Depth24, 8, RenderTargetUsage.DiscardContents);
-            });
-
-            orig(width, height, fullscreen);
+            AEWShadowFormDrawSystem.AEWEyesDrawCache.EmptyDrawCache();
         }
 
         internal static void PrepareBlurEffects(GameTime obj)
@@ -154,22 +215,23 @@ namespace InfernumMode.Common.Graphics
             else
                 return;
 
-            if (InfernumConfig.Instance.SaturationBloomIntensity <= 0f || Main.gameMenu || DownscaledBloomTarget.IsDisposed || !Lighting.NotRetro)
+            if (InfernumConfig.Instance is null || InfernumConfig.Instance.SaturationBloomIntensity <= 0f || Main.gameMenu || !Lighting.NotRetro || DownscaledBloomTarget.IsDisposed)
                 return;
 
             // Get the downscaled texture.
-            Main.instance.GraphicsDevice.SetRenderTarget(DownscaledBloomTarget);
+            Main.instance.GraphicsDevice.SetRenderTarget(DownscaledBloomTarget.Target);
             Main.instance.GraphicsDevice.Clear(Color.Transparent);
             Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.Default, Main.Rasterizer);
-            Main.spriteBatch.Draw(FinalScreenTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f / DownscaleFactor, 0, 0f);
+            Main.spriteBatch.Draw(FinalScreenTarget.Target, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f / DownscaleFactor, 0, 0f);
             Main.spriteBatch.End();
 
             // Upscale the texture again.
-            Main.instance.GraphicsDevice.SetRenderTarget(BloomTarget);
+            Main.instance.GraphicsDevice.SetRenderTarget(BloomTarget.Target);
             Main.instance.GraphicsDevice.Clear(Color.Transparent);
             Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.Default, Main.Rasterizer);
-            Main.spriteBatch.Draw(DownscaledBloomTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, DownscaleFactor, 0, 0f);
+            Main.spriteBatch.Draw(DownscaledBloomTarget.Target, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, DownscaleFactor, 0, 0f);
 
+            Main.spriteBatch.ExitShaderRegion();
             while (ThingsToBeManuallyBlurred.Count > 0)
             {
                 ThingsToBeManuallyBlurred[0].Draw(Main.spriteBatch);
@@ -182,20 +244,20 @@ namespace InfernumMode.Common.Graphics
             string blurPassName = UseFastBlurPass ? "DownsampleFastPass" : "DownsamplePass";
             for (int i = 0; i < TotalBlurIterations; i++)
             {
-                Main.instance.GraphicsDevice.SetRenderTarget(TemporaryAuxillaryTarget);
+                Main.instance.GraphicsDevice.SetRenderTarget(TemporaryAuxillaryTarget.Target);
                 Main.instance.GraphicsDevice.Clear(Color.Transparent);
 
                 Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.AnisotropicClamp, DepthStencilState.Default, Main.Rasterizer);
 
                 var shader = InfernumEffectsRegistry.ScreenSaturationBlurScreenShader.GetShader().Shader;
-                shader.Parameters["uImageSize1"].SetValue(BloomTarget.Size());
+                shader.Parameters["uImageSize1"].SetValue(BloomTarget.Target.Size());
                 shader.Parameters["blurMaxOffset"].SetValue(136f);
                 shader.CurrentTechnique.Passes[blurPassName].Apply();
 
-                Main.spriteBatch.Draw(BloomTarget, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, 0, 0f);
+                Main.spriteBatch.Draw(BloomTarget.Target, Vector2.Zero, null, Color.White, 0f, Vector2.Zero, 1f, 0, 0f);
                 Main.spriteBatch.End();
 
-                BloomTarget.CopyContentsFrom(TemporaryAuxillaryTarget);
+                BloomTarget.Target.CopyContentsFrom(TemporaryAuxillaryTarget.Target);
             }
         }
 

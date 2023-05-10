@@ -2,7 +2,8 @@ using CalamityMod;
 using CalamityMod.NPCs;
 using CalamityMod.Particles.Metaballs;
 using CalamityMod.Projectiles.Magic;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -40,6 +41,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.hide = true;
             Projectile.timeLeft = 7200;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer) => writer.Write(Projectile.rotation);
@@ -110,10 +112,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 
         private Color PrimitiveColorFunction(float completionRatio)
         {
-            Color vibrantColor = Color.Lerp(Color.Blue, Color.Red, (float)Math.Cos(Main.GlobalTimeWrappedHourly * 0.67f - completionRatio / LaserLength * 29f) * 0.5f + 0.5f);
+            Color vibrantColor = Color.Lerp(Color.Blue, Color.Red, MathF.Cos(Main.GlobalTimeWrappedHourly * 0.67f - completionRatio / LaserLength * 29f) * 0.5f + 0.5f);
             float opacity = Projectile.Opacity * Utils.GetLerpValue(0.97f, 0.9f, completionRatio, true) *
                 Utils.GetLerpValue(0f, MathHelper.Clamp(15f / LaserLength, 0f, 0.5f), completionRatio, true) *
-                (float)Math.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3D);
+                MathF.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3f);
             return Color.Lerp(vibrantColor, Color.White, 0.3f) * opacity * 2f;
         }
 

@@ -32,6 +32,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             Projectile.tileCollide = false;
             Projectile.timeLeft = 360;
             Projectile.alpha = 255;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -67,7 +68,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
                 Color backlightColor = Projectile.GetAlpha(mainBackColor) * Lighting.Brightness((int)(Projectile.Center.X / 16f), (int)(Projectile.Center.Y / 16f)) * 0.65f;
                 Main.spriteBatch.Draw(texture, drawPosition + drawOffset, frame, backlightColor, Projectile.rotation, origin, Projectile.scale, SpriteEffects.None, 0f);
             }
-            Main.spriteBatch.Draw(texture, drawPosition, frame, Projectile.GetAlpha((GlowBlue ? Color.Cyan: lightColor)), Projectile.rotation, origin, Projectile.scale, SpriteEffects.None, 0f);
+            Main.spriteBatch.Draw(texture, drawPosition, frame, Projectile.GetAlpha((GlowBlue ? Color.Cyan : lightColor)), Projectile.rotation, origin, Projectile.scale, SpriteEffects.None, 0f);
             return false;
         }
     }

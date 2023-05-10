@@ -25,6 +25,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             Projectile.Opacity = 0f;
             Projectile.penetrate = -1;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -44,7 +45,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist
             }
             if (canRotate)
             {
-                float offsetInterpolant = (float)Math.Cos(Projectile.whoAmI % 6f / 6f + Projectile.position.X / 320f + Projectile.position.Y / 160f);
+                float offsetInterpolant = MathF.Cos(Projectile.whoAmI % 6f / 6f + Projectile.position.X / 320f + Projectile.position.Y / 160f);
                 Projectile.velocity = Projectile.velocity.RotatedBy(MathHelper.Pi * offsetInterpolant / 120f) * 0.98f;
             }
 

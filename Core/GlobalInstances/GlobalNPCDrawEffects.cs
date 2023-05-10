@@ -1,14 +1,14 @@
 using CalamityMod;
-using CalamityMod.NPCs.Cryogen;
+using CalamityMod.NPCs;
+using CalamityMod.NPCs.CalClone;
 using CalamityMod.NPCs.DevourerofGods;
 using CalamityMod.NPCs.ExoMechs.Thanatos;
-using CalamityMod.NPCs.Leviathan;
 using CalamityMod.NPCs.Polterghast;
-using CalamityMod.NPCs.Signus;
-using CalamityMod.NPCs.SupremeCalamitas;
-using CalamityMod.NPCs.Yharon;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.CalamitasShadow;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.DoG;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord;
+using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,10 +20,8 @@ using Terraria.ModLoader;
 
 namespace InfernumMode.Core.GlobalInstances
 {
-    public class GlobalNPCDrawEffects : GlobalNPC
+    public partial class GlobalNPCOverrides : GlobalNPC
     {
-        public override bool InstancePerEntity => true;
-
         #region Get Alpha
         public override Color? GetAlpha(NPC npc, Color drawColor)
         {
@@ -31,7 +29,7 @@ namespace InfernumMode.Core.GlobalInstances
             if (npc.type is NPCID.MoonLordHand or NPCID.MoonLordHead or NPCID.MoonLordCore)
             {
                 if (InfernumMode.CanUseCustomAIs)
-                    return MoonLordCoreBehaviorOverride.OverallTint;
+                    return Color.Lerp(drawColor, MoonLordCoreBehaviorOverride.OverallTint with { A = 187 } * 1.35f, 0.75f) * npc.Opacity;
             }
 
             if (npc.type == ModContent.NPCType<ThanatosHead>() ||
@@ -54,50 +52,7 @@ namespace InfernumMode.Core.GlobalInstances
             if (!InfernumMode.CanUseCustomAIs)
                 return;
 
-            bool isDoG = npc.type == ModContent.NPCType<DevourerofGodsHead>() || npc.type == ModContent.NPCType<DevourerofGodsBody>() || npc.type == ModContent.NPCType<DevourerofGodsTail>();
-            if (isDoG)
-            {
-                if (npc.Opacity <= 0.02f)
-                {
-                    index = -1;
-                    return;
-                }
-
-                bool inPhase2 = DoGPhase2HeadBehaviorOverride.InPhase2;
-                if (npc.type == ModContent.NPCType<DevourerofGodsHead>())
-                    index = inPhase2 ? DevourerofGodsHead.phase2IconIndex : DevourerofGodsHead.phase1IconIndex;
-                else if (npc.type == ModContent.NPCType<DevourerofGodsBody>())
-                    index = inPhase2 ? DevourerofGodsBody.phase2IconIndex : -1;
-                else if (npc.type == ModContent.NPCType<DevourerofGodsTail>())
-                    index = inPhase2 ? DevourerofGodsTail.phase2IconIndex : DevourerofGodsTail.phase1IconIndex;
-            }
-
-            // Make Anahita completely invisible on the map when sufficiently faded out.
-            if (npc.type == ModContent.NPCType<Anahita>() && npc.Opacity < 0.1f)
-                index = -1;
-
-            // Make Signus completely invisible on the map.
-            if (npc.type == ModContent.NPCType<Signus>())
-                index = -1;
-
-            // Prevent Yharon from showing himself amongst his illusions in Subphase 10.
-            if (npc.type == ModContent.NPCType<Yharon>())
-            {
-                if (npc.life / (float)npc.lifeMax <= 0.05f && npc.Infernum().ExtraAI[2] == 1f)
-                    index = -1;
-            }
-
-            // Have Cryogen use a custom map icon.
-            if (npc.type == ModContent.NPCType<Cryogen>())
-                index = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/Cryogen/CryogenMapIcon");
-
-            // Have Dreadnautilus use a custom map icon.
-            if (npc.type == NPCID.BloodNautilus)
-                index = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/Dreadnautilus/DreadnautilusMapIcon");
-
-            // Have Sepulcher use a custom map icon.
-            if (npc.type == ModContent.NPCType<SepulcherHead>())
-                index = ModContent.GetModBossHeadSlot("InfernumMode/Content/BehaviorOverrides/BossAIs/SupremeCalamitas/SepulcherMapIcon");
+            BossHeadSlotEvent?.Invoke(npc, ref index);
         }
 
         public override void BossHeadRotation(NPC npc, ref float rotation)
@@ -113,6 +68,15 @@ namespace InfernumMode.Core.GlobalInstances
                 rotation = npc.rotation;
         }
 
+        public override void BossHeadSpriteEffects(NPC npc, ref SpriteEffects spriteEffects)
+        {
+            if (!InfernumMode.CanUseCustomAIs)
+                return;
+
+            if (npc.type == ModContent.NPCType<CalamitasClone>() || npc.type == ModContent.NPCType<Cataclysm>() || npc.type == ModContent.NPCType<Catastrophe>())
+                spriteEffects = npc.spriteDirection == -1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+        }
+
         #endregion
 
         #region Manual Drawing
@@ -124,7 +88,7 @@ namespace InfernumMode.Core.GlobalInstances
                 if (isDoG && npc.alpha >= 252)
                     return false;
 
-                if (OverridingListManager.InfernumPreDrawOverrideList.ContainsKey(npc.type))
+                if (OverridingListManager.InfernumPreDrawOverrideList.TryGetValue(npc.type, out OverridingListManager.NPCPreDrawDelegate value))
                 {
                     if (Main.LocalPlayer.Calamity().trippy)
                     {
@@ -160,7 +124,7 @@ namespace InfernumMode.Core.GlobalInstances
                             Main.spriteBatch.Draw(TextureAssets.Npc[npc.type].Value, drawPosition, npc.frame, shroomColor, npc.rotation, origin, npc.scale, direction, 0f);
                         }
                     }
-                    return OverridingListManager.InfernumPreDrawOverrideList[npc.type].Invoke(npc, Main.spriteBatch, drawColor);
+                    return value.Invoke(npc, Main.spriteBatch, drawColor);
                 }
             }
             return base.PreDraw(npc, Main.spriteBatch, screenPos, drawColor);
@@ -180,6 +144,10 @@ namespace InfernumMode.Core.GlobalInstances
             if (isDoG && npc.alpha >= 252)
                 return false;
 
+            // Don't draw HP bars if Ares is in the background.
+            if (npc.realLife == CalamityGlobalNPC.draedonExoMechPrime && CalamityGlobalNPC.draedonExoMechPrime >= 0 && Math.Abs(Main.npc[CalamityGlobalNPC.draedonExoMechPrime].ai[2]) >= 0.25f)
+                return false;
+
             if (npc.type == NPCID.EaterofWorldsBody)
                 return false;
 
@@ -188,12 +156,42 @@ namespace InfernumMode.Core.GlobalInstances
 
         #endregion
 
+        #region Layering Manipulation
+        public override void DrawBehind(NPC npc, int index)
+        {
+            if (!InfernumMode.CanUseCustomAIs)
+                return;
+
+            bool isAres = npc.whoAmI == CalamityGlobalNPC.draedonExoMechPrime || npc.realLife == CalamityGlobalNPC.draedonExoMechPrime;
+            if (isAres && CalamityGlobalNPC.draedonExoMechPrime >= 0 && AresBodyBehaviorOverride.ShouldDrawBehindTiles && npc.hide)
+            {
+                Main.instance.DrawCacheNPCProjectiles.Remove(index);
+                ScreenOverlaysSystem.DrawCacheBeforeBlack.Add(index);
+            }
+        }
+        #endregion Layering Manipulation
+
         #region Frame Manipulation
         public override void FindFrame(NPC npc, int frameHeight)
         {
-            if (OverridingListManager.InfernumFrameOverrideList.ContainsKey(npc.type) && InfernumMode.CanUseCustomAIs && !npc.IsABestiaryIconDummy)
-                OverridingListManager.InfernumFrameOverrideList[npc.type].Invoke(npc, frameHeight);
+            if (OverridingListManager.InfernumFrameOverrideList.TryGetValue(npc.type, out OverridingListManager.NPCFindFrameDelegate value) && InfernumMode.CanUseCustomAIs && !npc.IsABestiaryIconDummy)
+                value.Invoke(npc, frameHeight);
         }
         #endregion
+
+        #region Name Manipulation
+        public override void ModifyTypeName(NPC npc, ref string typeName)
+        {
+            if (!InfernumMode.CanUseCustomAIs)
+                return;
+
+            if (npc.type == ModContent.NPCType<CalamitasClone>())
+                typeName = $"The {CalamitasShadowBehaviorOverride.CustomName}";
+            if (npc.type == ModContent.NPCType<Cataclysm>())
+                typeName = CalamitasShadowBehaviorOverride.CustomNameCataclysm;
+            if (npc.type == ModContent.NPCType<Catastrophe>())
+                typeName = CalamitasShadowBehaviorOverride.CustomNameCatastrophe;
+        }
+        #endregion Name Manipulation
     }
 }

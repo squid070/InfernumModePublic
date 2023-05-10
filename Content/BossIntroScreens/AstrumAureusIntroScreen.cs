@@ -19,14 +19,14 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool TextShouldBeCentered => true;
 
-        // This is no credit. Your idea has been STOLEN!
+        // There is no credit. Your idea has been STOLEN!
         public override string TextToDisplay => "The Infected Stomper\nAstrum Aureus";
 
         public override Effect ShaderToApplyToLetters => InfernumEffectsRegistry.MechsIntroLetterShader.Shader;
 
         public override void PrepareShader(Effect shader)
         {
-            Color gleamColor = Color.Lerp(new Color(255, 164, 94), new Color(109, 242, 196), (float)Math.Cos(Main.GlobalTimeWrappedHourly * 6f) * 0.5f + 0.5f);
+            Color gleamColor = Color.Lerp(new Color(255, 164, 94), new Color(109, 242, 196), MathF.Cos(Main.GlobalTimeWrappedHourly * 6f) * 0.5f + 0.5f);
             shader.Parameters["uColor"].SetValue(gleamColor.ToVector3());
             shader.GraphicsDevice.Textures[1] = InfernumTextureRegistry.DiagonalGleam.Value;
         }

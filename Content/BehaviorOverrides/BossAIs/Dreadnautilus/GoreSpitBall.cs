@@ -9,6 +9,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
     public class GoreSpitBall : ModProjectile
     {
         public Player Target => Main.player[Projectile.owner];
+
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.DripplerFlail}";
+
         public override void SetStaticDefaults() => DisplayName.SetDefault("Gore Spit Ball");
 
         public override void SetDefaults()
@@ -18,6 +21,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
             Projectile.timeLeft = 100;
             Projectile.tileCollide = true;
             Projectile.ignoreWater = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -49,7 +53,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Dreadnautilus
                 float aimAtTargetInterpolant = Utils.Remap(Target.velocity.Length(), 6f, 0.4f, 0.4f, 0.95f);
                 Vector2 spikeVelocity = (MathHelper.TwoPi * i / 2f).ToRotationVector2();
                 spikeVelocity = Vector2.Lerp(spikeVelocity, Projectile.SafeDirectionTo(Target.Center), aimAtTargetInterpolant).SafeNormalize(Vector2.UnitY) * 6f;
-                Projectile.NewProjectile(Projectile.GetSource_FromAI(), Projectile.Center, spikeVelocity, ModContent.ProjectileType<GoreSpike>(), Projectile.damage, 0f, Projectile.owner);
+                Utilities.NewProjectileBetter(Projectile.Center, spikeVelocity, ModContent.ProjectileType<GoreSpike>(), DreadnautilusBehaviorOverride.GoreSpikeDamage, 0f, Projectile.owner);
             }
         }
     }

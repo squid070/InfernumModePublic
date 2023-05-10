@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
@@ -9,6 +10,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
     public class EoCTooth2 : ModProjectile
     {
         public Player Target => Main.player[(int)Projectile.ai[0]];
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Tooth");
@@ -23,7 +25,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
             Projectile.alpha = 255;
             Projectile.penetrate = -1;
             Projectile.timeLeft = 600;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -48,11 +50,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EyeOfCthulhu
             }
             Main.spriteBatch.Draw(texture, drawPosition, null, Projectile.GetAlpha(lightColor), Projectile.rotation, origin, Projectile.scale, 0, 0f);
             return false;
-        }
-
-        public override void ModifyHitPlayer(Player target, ref int damage, ref bool crit)
-        {
-
         }
     }
 }

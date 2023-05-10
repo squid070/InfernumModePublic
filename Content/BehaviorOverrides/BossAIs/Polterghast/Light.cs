@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
@@ -22,6 +23,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             Projectile.ignoreWater = true;
             Projectile.timeLeft = 40;
             Projectile.penetrate = -1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI() => Time++;

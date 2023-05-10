@@ -1,14 +1,12 @@
-﻿using InfernumMode.Content.Rarities.InfernumRarities;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Terraria;
 
 namespace InfernumMode.Content.Rarities.Sparkles
 {
     public class RelicSparkle : RaritySparkle
     {
-        public RelicSparkle(SparkleType type, int lifetime, float scale, float initialRotation, float rotationSpeed, Vector2 position, Vector2 velocity)
+        public RelicSparkle(int lifetime, float scale, float initialRotation, float rotationSpeed, Vector2 position, Vector2 velocity)
         {
-            Type = type;
             Lifetime = lifetime;
             Scale = 0;
             MaxScale = scale;

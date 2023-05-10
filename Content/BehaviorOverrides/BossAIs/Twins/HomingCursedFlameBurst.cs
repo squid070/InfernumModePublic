@@ -1,5 +1,6 @@
 using InfernumMode.Assets.Effects;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Interfaces;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -36,12 +37,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
             Projectile.tileCollide = false;
             Projectile.penetrate = -1;
             Projectile.timeLeft = Lifetime;
-            CooldownSlot = 1;
         }
 
         public override void AI()
         {
-            Projectile.Opacity = (float)Math.Sin(Projectile.timeLeft / (float)Lifetime * MathHelper.Pi) * 5f;
+            Projectile.Opacity = MathF.Sin(Projectile.timeLeft / (float)Lifetime * MathHelper.Pi) * 5f;
             if (Projectile.Opacity > 1f)
                 Projectile.Opacity = 1f;
 
@@ -86,14 +86,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
 
         public float WidthFunction(float completionRatio)
         {
-            float squeezeInterpolant = (float)Math.Pow(Utils.GetLerpValue(0f, 0.27f, completionRatio, true), 0.4f) * Utils.GetLerpValue(1f, 0.86f, completionRatio, true);
+            float squeezeInterpolant = MathF.Pow(Utils.GetLerpValue(0f, 0.27f, completionRatio, true), 0.4f) * Utils.GetLerpValue(1f, 0.86f, completionRatio, true);
             return MathHelper.SmoothStep(3f, Projectile.width, squeezeInterpolant) * Projectile.Opacity;
         }
 
         public Color ColorFunction(float completionRatio)
         {
-            Color color = Color.Lerp(Color.GreenYellow, Color.White, (float)Math.Pow(completionRatio, 2D));
-            color *= 1f - 0.67f * (float)Math.Pow(completionRatio, 3D);
+            Color color = Color.Lerp(Color.GreenYellow, Color.White, MathF.Pow(completionRatio, 2f));
+            color *= 1f - 0.67f * MathF.Pow(completionRatio, 3f);
             return color * Projectile.Opacity;
         }
 

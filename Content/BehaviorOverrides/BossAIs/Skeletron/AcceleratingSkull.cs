@@ -12,6 +12,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Skeletron
 
         public ref float Time => ref Projectile.ai[1];
 
+        public override string Texture => $"Terraria/Images/Projectile_{ProjectileID.Skull}";
+
         public override void SetStaticDefaults()
         {
             DisplayName.SetDefault("Skull");
@@ -30,6 +32,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Skeletron
             Projectile.penetrate = -1;
             Projectile.timeLeft = 300;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()

@@ -35,7 +35,7 @@ namespace InfernumMode.Content.Items.Weapons.Melee
 
         public override void SetDefaults()
         {
-            Item.damage = 105;
+            Item.damage = 110;
             Item.knockBack = 4.5f;
             Item.DamageType = DamageClass.Melee;
             Item.useAnimation = Item.useTime = 32;
@@ -83,7 +83,7 @@ namespace InfernumMode.Content.Items.Weapons.Melee
                 return false;
             }
 
-            Projectile.NewProjectile(source, position, velocity.SafeNormalize(Vector2.UnitY), type, damage, knockback, player.whoAmI);
+            Projectile.NewProjectile(source, position, velocity.SafeNormalize(Vector2.UnitY), type, (int)(damage * 1.1f), knockback, player.whoAmI);
             return false;
         }
 

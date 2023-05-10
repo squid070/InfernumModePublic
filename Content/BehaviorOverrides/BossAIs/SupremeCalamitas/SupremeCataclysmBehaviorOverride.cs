@@ -62,7 +62,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             ref float firingFromRight = ref npc.Infernum().ExtraAI[6];
 
             // Die if the either brother is missing.
-            if (cataclysmIndex == -1 || catastropheIndex == -1 || !NPC.AnyNPCs(ModContent.NPCType<SCalNPC>()))
+            if (cataclysmIndex == -1 || catastropheIndex == -1 || !NPC.AnyNPCs(ModContent.NPCType<SCalNPC>()) || npc.life < npc.lifeMax * 0.01f)
             {
                 npc.life = 0;
                 npc.HitEffect();
@@ -159,8 +159,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             int shootTime = 420;
             int soulShootRate = 55;
             int soulCount = 9;
-            int projectileFireThreshold = isCataclysm ? 75 : 60;
-            float regularShotSpeed = 11f;
+            int projectileFireThreshold = isCataclysm ? 105 : 85;
+            float regularShotSpeed = 9.5f;
             float lifeRatio = npc.life / (float)npc.lifeMax;
             float shootIncrement = MathHelper.Lerp(1.85f, 3.1f, 1f - lifeRatio);
             if (lifeRatio < 0.5f)
@@ -178,7 +178,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             currentFrame = (int)SCalBrotherAnimationType.AttackAnimation;
 
             float acceleration = 0.95f;
-            float sinusoidalOffset = (float)Math.Sin(attackTimer * MathHelper.TwoPi / shootTime) * (!isCataclysm).ToDirectionInt() * 400f;
+            float sinusoidalOffset = MathF.Sin(attackTimer * MathHelper.TwoPi / shootTime) * (!isCataclysm).ToDirectionInt() * 400f;
             Vector2 hoverDestination = target.Center + new Vector2(isCataclysm.ToDirectionInt() * -720f, sinusoidalOffset);
             if (attackTimer < 72f)
                 npc.Center = Vector2.Lerp(npc.Center, hoverDestination, 0.018f).MoveTowards(hoverDestination, 1f);
@@ -202,7 +202,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                 }
 
                 if (Main.netMode != NetmodeID.MultiplayerClient)
-                    Utilities.NewProjectileBetter(projectileSpawnPosition, Vector2.UnitX * npc.spriteDirection * regularShotSpeed, type, 550, 0f, -1, 0f, firingFromRight);
+                    Utilities.NewProjectileBetter(projectileSpawnPosition, Vector2.UnitX * npc.spriteDirection * regularShotSpeed, type, SupremeCalamitasBehaviorOverride.BrothersProjectileDamage, 0f, -1, 0f, firingFromRight);
 
                 firingFromRight = firingFromRight == 0f ? 1f : 0f;
             }
@@ -215,8 +215,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                 {
                     for (int i = 0; i < soulCount; i++)
                     {
-                        Vector2 soulVelocity = (MathHelper.TwoPi * i / soulCount).ToRotationVector2() * 10f;
-                        Utilities.NewProjectileBetter(npc.Center, soulVelocity, ModContent.ProjectileType<LostSoulProj>(), 550, 0f);
+                        Vector2 soulVelocity = (MathHelper.TwoPi * i / soulCount).ToRotationVector2() * 8.5f;
+                        Utilities.NewProjectileBetter(npc.Center, soulVelocity, ModContent.ProjectileType<LostSoulProj>(), SupremeCalamitasBehaviorOverride.BrothersProjectileDamage, 0f);
                     }
                 }
             }
@@ -322,7 +322,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                             firingFromRight = firingFromRight == 0f ? 1f : 0f;
                         }
 
-                        Utilities.NewProjectileBetter(projectileSpawnPosition, shootVelocity, projectileType, 500, 0f);
+                        Utilities.NewProjectileBetter(projectileSpawnPosition, shootVelocity, projectileType, SupremeCalamitasBehaviorOverride.BrothersProjectileDamage, 0f);
                         attackSpecificTimer = 0f;
                         npc.netUpdate = true;
                     }
@@ -385,7 +385,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
                     for (int i = 0; i < soulCount; i++)
                     {
                         Vector2 soulVelocity = (MathHelper.TwoPi * i / soulCount).ToRotationVector2() * 10f;
-                        Utilities.NewProjectileBetter(npc.Center, soulVelocity, ModContent.ProjectileType<LostSoulProj>(), 550, 0f);
+                        Utilities.NewProjectileBetter(npc.Center, soulVelocity, ModContent.ProjectileType<LostSoulProj>(), SupremeCalamitasBehaviorOverride.BrothersProjectileDamage, 0f);
                     }
                 }
 

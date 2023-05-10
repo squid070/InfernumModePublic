@@ -1,5 +1,6 @@
 using CalamityMod;
 using CalamityMod.Projectiles.Boss;
+using CalamityMod.Sounds;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares;
 using Microsoft.Xna.Framework;
 using System.IO;
@@ -39,7 +40,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.Opacity = 0f;
             Projectile.timeLeft = 48;
             Projectile.Infernum().FadesAwayWhenManuallyKilled = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -125,7 +126,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
             Projectile.Center = Projectile.position;
             Projectile.Damage();
 
-            SoundEngine.PlaySound(SoundID.Item93, Projectile.Center);
+            SoundEngine.PlaySound(CommonCalamitySounds.ExoPlasmaExplosionSound, Projectile.Center);
 
             // Explode into plasma.
             if (Main.netMode != NetmodeID.MultiplayerClient)

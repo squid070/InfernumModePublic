@@ -12,7 +12,7 @@ namespace InfernumMode.Content.BossIntroScreens
     {
         public override TextColorData TextColor => new(_ =>
         {
-            float colorFadeInterpolant = (float)Math.Sin(AnimationCompletion * MathHelper.Pi * 3f) * 0.5f + 0.5f;
+            float colorFadeInterpolant = MathF.Sin(AnimationCompletion * MathHelper.Pi * 3f) * 0.5f + 0.5f;
             if (ProvidenceBehaviorOverride.IsEnraged)
                 return Color.Lerp(new Color(107, 218, 255), new Color(79, 255, 158), colorFadeInterpolant);
             return Color.Lerp(new Color(255, 147, 35), new Color(255, 246, 120), AnimationCompletion);
@@ -20,9 +20,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool TextShouldBeCentered => true;
 
-        public override bool ShouldCoverScreen => true;
-
-        public override Color ScreenCoverColor => Color.White;
+        public override bool ShouldCoverScreen => false;
 
         public override string TextToDisplay
         {

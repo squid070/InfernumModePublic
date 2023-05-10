@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using Terraria;
 using Terraria.GameContent;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
@@ -43,7 +44,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
         {
             // Equations for a generalized form of an asteroid.
             int n = PointsInStar - 1;
-            Vector2 starOffset = new Vector2((float)Math.Sin(offsetAngle) * n - (float)Math.Sin(offsetAngle * n), (float)Math.Cos(offsetAngle) * n + (float)Math.Cos(offsetAngle * n)) * RadiusOfConstellation;
+            Vector2 starOffset = new Vector2(MathF.Sin(offsetAngle) * n - MathF.Sin(offsetAngle * n), MathF.Cos(offsetAngle) * n + MathF.Cos(offsetAngle * n)) * RadiusOfConstellation;
             starOffset /= PointsInStar;
             starOffset.Y *= -1f;
             return origin + starOffset.RotatedBy(spinAngle);
@@ -61,6 +62,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             Projectile.timeLeft = Lifetime;
             Projectile.scale = 0.001f;
             Projectile.hide = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -112,7 +114,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
             c1 = Color.Lerp(c1, new(117, 255, 160), FadeToDarkGodColors);
             c2 = Color.Lerp(c2, new(88, 55, 172), FadeToDarkGodColors);
 
-            float hue = (float)Math.Sin(MathHelper.Pi * ColorSpectrumHue + Main.GlobalTimeWrappedHourly * 3f) * 0.5f + 0.5f;
+            float hue = MathF.Sin(MathHelper.Pi * ColorSpectrumHue + Main.GlobalTimeWrappedHourly * 3f) * 0.5f + 0.5f;
             Color sparkleColor = CalamityUtils.MulticolorLerp(hue, c1, c2) * Projectile.Opacity * 0.84f;
             sparkleColor *= MathHelper.Lerp(1f, 1.5f, Utils.GetLerpValue(Lifetime * 0.5f - 15f, Lifetime * 0.5f + 15f, Time, true));
             Vector2 origin = sparkleTexture.Size() / 2f;

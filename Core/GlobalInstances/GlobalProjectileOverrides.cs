@@ -25,7 +25,11 @@ namespace InfernumMode.Core.GlobalInstances
 {
     public class GlobalProjectileOverrides : GlobalProjectile
     {
+        public bool FrameOneModifiersDone = false;
+
         public bool FadesAwayWhenManuallyKilled;
+
+        public bool DrawAsShadow;
 
         public int FadeAwayTimer;
 
@@ -39,14 +43,12 @@ namespace InfernumMode.Core.GlobalInstances
         {
             // Allow Infernum projectiles to draw offscreen by default.
             // TODO -- This is pretty far from ideal. While it may be a bit unpleasant projectiles should really be manually evaluated in terms of whether this is necessary.
-            // Applying this effect universally is just asking for edge cases that cause performance issues, such as Providence's ground/ceiling spears.
+            // Applying this effect universally is just asking for edge cases that cause performance issues, such as Providence's old ground/ceiling spears.
             if (projectile.ModProjectile?.Mod.Name == Mod.Name)
                 ProjectileID.Sets.DrawScreenCheckFluff[projectile.type] = 20000;
 
             for (int i = 0; i < ExtraAI.Length; i++)
-            {
                 ExtraAI[i] = 0f;
-            }
             if (InfernumMode.CanUseCustomAIs && projectile.type == ModContent.ProjectileType<HolyAura>())
                 projectile.timeLeft = ProvidenceBehaviorOverride.AuraTime;
         }
@@ -87,8 +89,8 @@ namespace InfernumMode.Core.GlobalInstances
                 if (projectile.type == ModContent.ProjectileType<TrilobiteSpike>())
                     projectile.ModProjectile.CooldownSlot = 1;
 
-                if (OverridingListManager.InfernumProjectilePreAIOverrideList.ContainsKey(projectile.type))
-                    return (bool)OverridingListManager.InfernumProjectilePreAIOverrideList[projectile.type].DynamicInvoke(projectile);
+                if (OverridingListManager.InfernumProjectilePreAIOverrideList.TryGetValue(projectile.type, out Delegate value))
+                    return (bool)value.DynamicInvoke(projectile);
             }
 
             // No tombs.
@@ -137,11 +139,11 @@ namespace InfernumMode.Core.GlobalInstances
 
                 for (int i = 0; i < totalAurasToDraw; i++)
                 {
-                    float oscillatingTime = (float)Math.Cos(clampedTime * MathHelper.TwoPi + i / 2f);
+                    float oscillatingTime = MathF.Cos(clampedTime * MathHelper.TwoPi + i / 2f);
 
                     posX[i] = oscillatingTime * (xPosOffset - i * 3f);
 
-                    posY[i] = (float)Math.Sin(clampedTime * MathHelper.TwoPi + MathHelper.Pi / 3f + i) * yPosOffset;
+                    posY[i] = MathF.Sin(clampedTime * MathHelper.TwoPi + MathHelper.Pi / 3f + i) * yPosOffset;
                     posY[i] -= i * 3f;
 
                     hue[i] = i / (float)totalAurasToDraw * 2f % 1f;
@@ -215,10 +217,10 @@ namespace InfernumMode.Core.GlobalInstances
                             frame, shroomColor, projectile.rotation, origin, projectile.scale, direction, 0);
                     }
                 }
-                if (OverridingListManager.InfernumProjectilePreDrawOverrideList.ContainsKey(projectile.type))
-                    return (bool)OverridingListManager.InfernumProjectilePreDrawOverrideList[projectile.type].DynamicInvoke(projectile, Main.spriteBatch, lightColor);
+                if (OverridingListManager.InfernumProjectilePreDrawOverrideList.TryGetValue(projectile.type, out Delegate value))
+                    return (bool)value.DynamicInvoke(projectile, Main.spriteBatch, lightColor);
             }
-            return base.PreDraw(projectile, ref lightColor);
+            return true;
         }
 
         public override bool PreKill(Projectile projectile, int timeLeft)
@@ -267,11 +269,11 @@ namespace InfernumMode.Core.GlobalInstances
                     if (p is null || !p.active)
                         continue;
 
-                    int rock = Item.NewItem(p.GetSource_Misc("CalamityMod_BossRushRock"), (int)p.position.X, (int)p.position.Y, p.width, p.height, ModContent.ItemType<DemonicChaliceOfInfernum>());
+                    int notRock = Item.NewItem(p.GetSource_Misc("CalamityMod_BossRushRock"), (int)p.position.X, (int)p.position.Y, p.width, p.height, ModContent.ItemType<DemonicChaliceOfInfernum>());
                     if (Main.netMode == NetmodeID.Server)
                     {
-                        Main.timeItemSlotCannotBeReusedFor[rock] = 54000;
-                        NetMessage.SendData(MessageID.InstancedItem, i, -1, null, rock);
+                        Main.timeItemSlotCannotBeReusedFor[notRock] = 54000;
+                        NetMessage.SendData(MessageID.InstancedItem, i, -1, null, notRock);
                     }
                 }
             }
@@ -316,9 +318,9 @@ namespace InfernumMode.Core.GlobalInstances
             if (InfernumMode.CanUseCustomAIs)
             {
                 if (projectile.type == ProjectileID.PhantasmalSphere)
-                    return projectile.Infernum().ExtraAI[0] > 40f;
+                    return projectile.Infernum().ExtraAI[0] >= 25f;
                 if (projectile.type == ProjectileID.PhantasmalBolt)
-                    return projectile.Infernum().ExtraAI[0] > 40f;
+                    return projectile.Infernum().ExtraAI[0] >= 40f;
             }
 
             // Prevent projectiles that are fading away from doing damage.

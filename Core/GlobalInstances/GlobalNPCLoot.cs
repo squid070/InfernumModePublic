@@ -1,6 +1,8 @@
 using CalamityMod;
 using CalamityMod.Items.Accessories;
 using CalamityMod.Items.Materials;
+using CalamityMod.Items.SummonItems;
+using CalamityMod.NPCs.AdultEidolonWyrm;
 using CalamityMod.NPCs.AquaticScourge;
 using CalamityMod.NPCs.AstrumAureus;
 using CalamityMod.NPCs.AstrumDeus;
@@ -15,8 +17,10 @@ using CalamityMod.NPCs.DevourerofGods;
 using CalamityMod.NPCs.ExoMechs.Apollo;
 using CalamityMod.NPCs.ExoMechs.Ares;
 using CalamityMod.NPCs.ExoMechs.Thanatos;
+using CalamityMod.NPCs.GreatSandShark;
 using CalamityMod.NPCs.HiveMind;
 using CalamityMod.NPCs.Leviathan;
+using CalamityMod.NPCs.NormalNPCs;
 using CalamityMod.NPCs.OldDuke;
 using CalamityMod.NPCs.Perforator;
 using CalamityMod.NPCs.PlaguebringerGoliath;
@@ -31,14 +35,20 @@ using CalamityMod.NPCs.SunkenSea;
 using CalamityMod.NPCs.SupremeCalamitas;
 using CalamityMod.NPCs.Yharon;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.EoW;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark;
+using InfernumMode.Content.Items.Dyes;
 using InfernumMode.Content.Items.Relics;
+using InfernumMode.Content.Items.SummonItems;
+using InfernumMode.Content.Items.Weapons.Magic;
+using InfernumMode.Core.OverridingSystem;
 using Terraria;
 using Terraria.GameContent.ItemDropRules;
 using Terraria.ID;
 using Terraria.ModLoader;
+using OldDukeNPC = CalamityMod.NPCs.OldDuke.OldDuke;
 
-namespace InfernumMode.GlobalInstances
+namespace InfernumMode.Core.GlobalInstances
 {
     public partial class GlobalNPCOverrides : GlobalNPC
     {
@@ -129,7 +139,7 @@ namespace InfernumMode.GlobalInstances
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<BrimstoneElementalRelic>());
 
             if (npc.type == ModContent.NPCType<CalamitasClone>())
-                npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<CalamitasCloneRelic>());
+                npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<ForgottenShadowOfCalamitasRelic>());
 
             if (npc.type == NPCID.Plantera)
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<PlanteraRelic>());
@@ -182,6 +192,7 @@ namespace InfernumMode.GlobalInstances
 
             if (npc.type == ModContent.NPCType<Providence>())
             {
+                npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs && !Main.dayTime, ModContent.ItemType<ProfanedCrystalDye>(), 1, 4, 5);
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<ProvidenceRelic>());
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<ElysianAegis>());
             }
@@ -205,7 +216,26 @@ namespace InfernumMode.GlobalInstances
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<DevourerOfGodsRelic>());
 
             if (npc.type == ModContent.NPCType<Yharon>())
+            {
+                // UNLIMITED CHICKEN NUGGET
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<YharonRelic>());
+                npcLoot.Add(new DropOneByOne(ItemID.ChickenNugget, new DropOneByOne.Parameters()
+                {
+                    ChanceNumerator = 1,
+                    ChanceDenominator = 1,
+                    MinimumStackPerChunkBase = 10,
+                    MaximumStackPerChunkBase = 15,
+                    MinimumItemDropsCount = 600,
+                    MaximumItemDropsCount = 700
+                }));
+            }
+
+            if (npc.type == ModContent.NPCType<AdultEidolonWyrmHead>())
+            {
+                npcLoot.Add(ModContent.ItemType<EvokingSearune>());
+                npcLoot.Add(ModContent.ItemType<IllusionersReverie>());
+                npcLoot.Add(ModContent.ItemType<EyeOfMadness>());
+            }
 
             bool isExoMech = npc.type == ModContent.NPCType<ThanatosHead>() || npc.type == ModContent.NPCType<Apollo>() || npc.type == ModContent.NPCType<AresBody>();
             if (isExoMech)
@@ -213,6 +243,52 @@ namespace InfernumMode.GlobalInstances
 
             if (npc.type == ModContent.NPCType<SupremeCalamitas>())
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<SupremeCalamitasRelic>());
+
+            // Make Eidolists always drop the tablet.
+            if (npc.type == ModContent.NPCType<Eidolist>())
+                npcLoot.Add(ModContent.ItemType<EidolonTablet>());
+        }
+
+        public override bool PreKill(NPC npc)
+        {
+            if (!InfernumMode.CanUseCustomAIs)
+                return base.PreKill(npc);
+
+            if (npc.type == NPCID.EaterofWorldsHead && OverridingListManager.Registered(npc.type))
+                return EoWHeadBehaviorOverride.PerformDeathEffect(npc);
+
+            if (npc.type == ModContent.NPCType<OldDukeNPC>() && OverridingListManager.Registered(npc.type))
+                CalamityMod.CalamityMod.StopRain();
+
+            int apolloID = ModContent.NPCType<Apollo>();
+            int thanatosID = ModContent.NPCType<ThanatosHead>();
+            int aresID = ModContent.NPCType<AresBody>();
+            int totalExoMechs = 0;
+            for (int i = 0; i < Main.maxNPCs; i++)
+            {
+                if (Main.npc[i].type != apolloID && Main.npc[i].type != thanatosID && Main.npc[i].type != aresID)
+                    continue;
+                if (!Main.npc[i].active)
+                    continue;
+
+                totalExoMechs++;
+            }
+            if (totalExoMechs >= 2 && Utilities.IsExoMech(npc) && OverridingListManager.Registered<Apollo>())
+                return false;
+
+            // Prevent wandering eye fishes from dropping loot if they were spawned by a dreadnautilus.
+            if (npc.type == NPCID.EyeballFlyingFish && NPC.AnyNPCs(NPCID.BloodNautilus))
+                DropHelper.BlockDrops(ItemID.ChumBucket, ItemID.VampireFrogStaff, ItemID.BloodFishingRod, ItemID.BloodRainBow, ItemID.MoneyTrough, ItemID.BloodMoonStarter);
+
+            // Ensure that the great sand shark drops its items on top of the player. The reason for this is because if it releases items inside of blocks they will
+            // be completely unobtainable, due to the Colosseum subworld not being mineable.
+            if (npc.type == ModContent.NPCType<GreatSandShark>())
+            {
+                npc.damage = 0;
+                npc.Center = Main.player[npc.target].Center;
+            }
+
+            return base.PreKill(npc);
         }
     }
 }

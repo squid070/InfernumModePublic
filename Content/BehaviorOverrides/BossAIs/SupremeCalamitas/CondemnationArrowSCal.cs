@@ -1,5 +1,5 @@
 using CalamityMod;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
@@ -30,7 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.penetrate = -1;
             Projectile.timeLeft = 80;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void AI()
@@ -43,6 +43,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Projectile.velocity *= 1.025f;
             Time++;
         }
+
+        public override Color? GetAlpha(Color lightColor) => Color.White * Projectile.Opacity;
 
         public override void Kill(int timeLeft)
         {

@@ -1,5 +1,5 @@
 using CalamityMod;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -14,8 +14,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
 {
     public class RedLightning : ModProjectile
     {
-        internal PrimitiveTrailCopy LightningDrawer;
-
         public const float LightningTurnRandomnessFactor = 1.35f;
         public ref float InitialVelocityAngle => ref Projectile.ai[0];
         // Technically not a ratio, and more of a seed, but it is used in a 0-2pi squash
@@ -44,15 +42,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
             Projectile.extraUpdates = 20;
             Projectile.timeLeft = 36 * Projectile.extraUpdates;
             Projectile.Calamity().DealsDefenseDamage = true;
+            CooldownSlot = ImmunityCooldownID.Bosses;
 
             // Readjust the velocity magnitude the moment this projectile is created
             // to make velocity setting outside the scope of this projectile less irritating
             // to consider alongside extraUpdate multipliers.
             // Also set the initial angle.
             if (Projectile.velocity != Vector2.Zero)
-            {
                 Projectile.velocity /= Projectile.extraUpdates;
-            }
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -73,7 +70,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
             // which allows random turning to occur.
             Projectile.frameCounter++;
 
-            Projectile.scale = (float)Math.Sin(MathHelper.Pi * Projectile.timeLeft / (36f * (Projectile.MaxUpdates - 1))) * 4f;
+            Projectile.scale = MathF.Sin(MathHelper.Pi * Projectile.timeLeft / (36f * (Projectile.MaxUpdates - 1))) * 4f;
             if (Projectile.scale > 1f)
                 Projectile.scale = 1f;
 
@@ -131,18 +128,21 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Twins
         #region Drawing
         internal float WidthFunction(float completionRatio)
         {
-            float baseWidth = MathHelper.Lerp(2f, 4.5f, (float)Math.Sin(MathHelper.Pi * 4f * completionRatio) * 0.5f + 0.5f) * Projectile.scale;
-            return baseWidth * (float)Math.Sin(MathHelper.Pi * completionRatio);
+            float baseWidth = MathHelper.Lerp(2f, 4.5f, MathF.Sin(MathHelper.Pi * 4f * completionRatio) * 0.5f + 0.5f) * Projectile.scale;
+            return baseWidth * MathF.Sin(MathHelper.Pi * completionRatio);
         }
         internal Color ColorFunction(float completionRatio)
         {
-            Color baseColor = Color.Lerp(Color.Red, Color.Orange, (float)Math.Sin(MathHelper.TwoPi * completionRatio + Main.GlobalTimeWrappedHourly * 4f) * 0.5f + 0.5f);
-            return Color.Lerp(baseColor, Color.DarkRed, ((float)Math.Sin(MathHelper.Pi * completionRatio + Main.GlobalTimeWrappedHourly * 4f) * 0.5f + 0.5f) * 0.8f);
+            Color baseColor = Color.Lerp(Color.Red, Color.Orange, MathF.Sin(MathHelper.TwoPi * completionRatio + Main.GlobalTimeWrappedHourly * 4f) * 0.5f + 0.5f);
+            return Color.Lerp(baseColor, Color.DarkRed, (MathF.Sin(MathHelper.Pi * completionRatio + Main.GlobalTimeWrappedHourly * 4f) * 0.5f + 0.5f) * 0.8f);
         }
+
         public override bool PreDraw(ref Color lightColor)
         {
-            LightningDrawer ??= new PrimitiveTrailCopy(WidthFunction, ColorFunction, null, false);
-            LightningDrawer.Draw(Projectile.oldPos, Projectile.Size * 0.5f - Main.screenPosition, 3);
+            if (!PrimitiveBatchingSystem.BatchIsRegistered<RedLightning>())
+                PrimitiveBatchingSystem.PrepareBatch<RedLightning>(new(WidthFunction, ColorFunction, null, false));
+
+            PrimitiveBatchingSystem.PrepareVertices<RedLightning>(Projectile.oldPos, Projectile.Size * 0.5f - Main.screenPosition, 12);
             return false;
         }
         #endregion

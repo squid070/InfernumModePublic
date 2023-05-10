@@ -43,7 +43,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             Projectile.extraUpdates = 1;
             Projectile.timeLeft = 600;
             Projectile.Calamity().DealsDefenseDamage = true;
-            CooldownSlot = 1;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -162,7 +162,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             Vector2 scaleOuter = scaleInner * new Vector2(1f, 3f);
 
             Color colorOuter = Color.Lerp(Color.OrangeRed, Color.Red, TelegraphDelay / TelegraphTotalTime * 2f % 1f * 0.4f);
-            Color colorInner = Color.Lerp(colorOuter, Color.White, 0.75f);
+            Color colorInner = Color.Lerp(colorOuter, Color.White, 0.4f);
 
             colorInner.A = 0;
             colorOuter.A = 0;

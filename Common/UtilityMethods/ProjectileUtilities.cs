@@ -29,12 +29,12 @@ namespace InfernumMode
         /// <summary>
         /// Returns all projectiles present of a specific type.
         /// </summary>
-        /// <param name="desiredType">The projectile type to check for.</param>
-        public static IEnumerable<Projectile> AllProjectilesByID(int desiredType)
+        /// <param name="desiredTypes">The projectile type to check for.</param>
+        public static IEnumerable<Projectile> AllProjectilesByID(params int[] desiredTypes)
         {
             for (int i = 0; i < Main.maxProjectiles; i++)
             {
-                if (Main.projectile[i].active && Main.projectile[i].type == desiredType)
+                if (Main.projectile[i].active && desiredTypes.Contains(Main.projectile[i].type))
                     yield return Main.projectile[i];
             }
         }
@@ -125,16 +125,17 @@ namespace InfernumMode
             Vector2 drawPosition = projectile.Center - Main.screenPosition;
             Vector2 origin = frame.Value.Size() * 0.5f;
             Color backAfterimageColor = backglowColor * projectile.Opacity;
+            SpriteEffects direction = projectile.spriteDirection == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
             for (int i = 0; i < 10; i++)
             {
                 Vector2 drawOffset = (MathHelper.TwoPi * i / 10f).ToRotationVector2() * backglowArea;
-                Main.spriteBatch.Draw(texture, drawPosition + drawOffset, frame, backAfterimageColor, projectile.rotation, origin, projectile.scale, 0, 0f);
+                Main.spriteBatch.Draw(texture, drawPosition + drawOffset, frame, backAfterimageColor, projectile.rotation, origin, projectile.scale, direction, 0f);
             }
         }
 
-        public static void DrawProjectileWithBackglowTemp(this Projectile projectile, Color backglowColor, Color lightColor, float backglowArea, Rectangle? frame = null)
+        public static void DrawProjectileWithBackglowTemp(this Projectile projectile, Color backglowColor, Color lightColor, float backglowArea, Rectangle? frame = null, Texture2D texture = null)
         {
-            Texture2D texture = TextureAssets.Projectile[projectile.type].Value;
+            texture ??= TextureAssets.Projectile[projectile.type].Value;
 
             // Use a fallback for the frame.
             frame ??= texture.Frame(1, Main.projFrames[projectile.type], 0, projectile.frame);
@@ -143,7 +144,8 @@ namespace InfernumMode
             Vector2 origin = frame.Value.Size() * 0.5f;
 
             DrawBackglow(projectile, backglowColor, backglowArea, frame);
-            Main.spriteBatch.Draw(texture, drawPosition, frame, projectile.GetAlpha(lightColor), projectile.rotation, origin, projectile.scale, 0, 0f);
+            SpriteEffects direction = projectile.spriteDirection == 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
+            Main.spriteBatch.Draw(texture, drawPosition, frame, projectile.GetAlpha(lightColor), projectile.rotation, origin, projectile.scale, direction, 0f);
         }
 
         public static Projectile FindProjectileByIdentity(int identity, int ownerIndex)

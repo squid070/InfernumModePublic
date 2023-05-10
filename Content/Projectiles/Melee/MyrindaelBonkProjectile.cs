@@ -2,7 +2,7 @@
 using CalamityMod.Particles;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Content.Items.Weapons.Melee;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -22,7 +22,9 @@ namespace InfernumMode.Content.Projectiles.Melee
 
         public Player Owner => Main.player[Projectile.owner];
 
-        public float LungeProgression => Time / Myrindael.LungeTime;
+        public float LungeProgression => Utils.GetLerpValue(0f, Myrindael.LungeTime, Time, true);
+
+        public const int CooldownTime = 30;
 
         public ref float Time => ref Projectile.ai[0];
 
@@ -42,7 +44,7 @@ namespace InfernumMode.Content.Projectiles.Melee
             Projectile.DamageType = DamageClass.Melee;
             Projectile.tileCollide = false;
             Projectile.ignoreWater = true;
-            Projectile.timeLeft = Myrindael.LungeTime;
+            Projectile.timeLeft = Myrindael.LungeTime + CooldownTime;
             Projectile.penetrate = -1;
             Projectile.usesLocalNPCImmunity = true;
             Projectile.localNPCHitCooldown = 18;
@@ -64,7 +66,7 @@ namespace InfernumMode.Content.Projectiles.Melee
             // Stick to the owner.
             Projectile.Center = Owner.MountedCenter;
 
-            float angularVelocity = MathHelper.Pi * (float)Math.Pow(LungeProgression, 3D) * 0.024f;
+            float angularVelocity = MathHelper.Pi * MathF.Pow(LungeProgression, 3f) * 0.024f;
             float currentRotation = Projectile.velocity.ToRotation();
             float idealRotation = Owner.MountedCenter.AngleTo(Owner.Calamity().mouseWorld);
             Projectile.velocity = currentRotation.AngleTowards(idealRotation, angularVelocity).ToRotationVector2();
@@ -73,18 +75,21 @@ namespace InfernumMode.Content.Projectiles.Melee
 
             Owner.fallStart = (int)(Owner.position.Y / 16f);
 
-            float velocityPower = Utils.Remap(CalamityUtils.Convert01To010(LungeProgression), 0f, 1f, 0.25f, 1f);
-            Vector2 newVelocity = Projectile.velocity * Myrindael.LungeSpeed * (0.09f + 0.91f * velocityPower);
-            Owner.velocity = newVelocity;
-            Owner.Calamity().LungingDown = Projectile.timeLeft >= 5;
-
-            // Release anime-like streak particle effects at the side of the owner to indicate motion.
-            if (Main.rand.NextBool(2))
+            if (LungeProgression < 1f)
             {
-                Vector2 energySpawnPosition = Owner.Center + Main.rand.NextVector2Circular(90f, 90f) + Owner.velocity * 2f;
-                Vector2 energyVelocity = -Owner.velocity.SafeNormalize(Vector2.UnitX * Owner.direction) * Main.rand.NextFloat(6f, 8.75f);
-                Particle energyLeak = new SquishyLightParticle(energySpawnPosition, energyVelocity, Main.rand.NextFloat(0.55f, 0.9f), Color.Yellow, 30, 3.4f, 4.5f);
-                GeneralParticleHandler.SpawnParticle(energyLeak);
+                float velocityPower = Utils.Remap(CalamityUtils.Convert01To010(LungeProgression), 0f, 1f, 0.25f, 1f);
+                Vector2 newVelocity = Projectile.velocity * Myrindael.LungeSpeed * (0.09f + 0.91f * velocityPower);
+                Owner.velocity = newVelocity;
+                Owner.Calamity().LungingDown = true;
+
+                // Release anime-like streak particle effects at the side of the owner to indicate motion.
+                if (Main.rand.NextBool(2))
+                {
+                    Vector2 energySpawnPosition = Owner.Center + Main.rand.NextVector2Circular(90f, 90f) + Owner.velocity * 2f;
+                    Vector2 energyVelocity = -Owner.velocity.SafeNormalize(Vector2.UnitX * Owner.direction) * Main.rand.NextFloat(6f, 8.75f);
+                    Particle energyLeak = new SquishyLightParticle(energySpawnPosition, energyVelocity, Main.rand.NextFloat(0.55f, 0.9f), Color.Yellow, 30, 3.4f, 4.5f);
+                    GeneralParticleHandler.SpawnParticle(energyLeak);
+                }
             }
 
             Time++;
@@ -99,7 +104,6 @@ namespace InfernumMode.Content.Projectiles.Melee
         {
             // Create lightning from the sky.
             SoundEngine.PlaySound(InfernumSoundRegistry.MyrindaelHitSound, Projectile.Center);
-            SoundEngine.PlaySound(CommonCalamitySounds.LargeWeaponFireSound with { Volume = 0.04f }, Projectile.Center);
             if (Main.myPlayer == Projectile.owner)
             {
                 for (int i = 0; i < 6; i++)
@@ -119,7 +123,7 @@ namespace InfernumMode.Content.Projectiles.Melee
         public float PierceWidthFunction(float completionRatio)
         {
             float width = Utils.GetLerpValue(0f, 0.1f, completionRatio, true) * Projectile.scale * 20f;
-            width *= 1f - (float)Math.Pow(LungeProgression, 5D);
+            width *= 1f - MathF.Pow(LungeProgression, 5f);
             return width;
         }
 
@@ -136,8 +140,8 @@ namespace InfernumMode.Content.Projectiles.Melee
             Color mainColor = CalamityUtils.MulticolorLerp(Main.GlobalTimeWrappedHourly * 2f % 1, Color.Cyan, Color.DeepSkyBlue, Color.Turquoise, Color.Blue);
             Color secondaryColor = CalamityUtils.MulticolorLerp((Main.GlobalTimeWrappedHourly * 2f + 0.2f) % 1, Color.Cyan, Color.DeepSkyBlue, Color.Turquoise, Color.Blue);
 
-            mainColor = Color.Lerp(Color.White, mainColor, 0.4f + 0.6f * (float)Math.Pow(LungeProgression, 0.5f));
-            secondaryColor = Color.Lerp(Color.White, secondaryColor, 0.4f + 0.6f * (float)Math.Pow(LungeProgression, 0.5f));
+            mainColor = Color.Lerp(Color.White, mainColor, 0.4f + 0.6f * MathF.Pow(LungeProgression, 0.5f));
+            secondaryColor = Color.Lerp(Color.White, secondaryColor, 0.4f + 0.6f * MathF.Pow(LungeProgression, 0.5f));
             Vector2 trailOffset = Projectile.Size * 0.5f - Main.screenPosition + (Projectile.rotation - MathHelper.PiOver4).ToRotationVector2() * 90f;
             GameShaders.Misc["CalamityMod:ExobladePierce"].SetShaderTexture(ModContent.Request<Texture2D>("CalamityMod/ExtraTextures/GreyscaleGradients/EternityStreak"));
             GameShaders.Misc["CalamityMod:ExobladePierce"].UseImage2("Images/Extra_189");

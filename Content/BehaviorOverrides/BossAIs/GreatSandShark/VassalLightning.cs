@@ -1,5 +1,6 @@
 ﻿using CalamityMod;
 using CalamityMod.Items.Weapons.Ranged;
+using InfernumMode.Assets.Sounds;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -50,6 +51,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             Projectile.hostile = true;
             Projectile.MaxUpdates = 6;
             Projectile.timeLeft = Projectile.MaxUpdates * Lifetime;
+            CooldownSlot = ImmunityCooldownID.Bosses;
         }
 
         public override void SendExtraAI(BinaryWriter writer)
@@ -79,7 +81,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             // Play a strike sound on the first frame.
             if (!HasPlayedSound)
             {
-                SoundEngine.PlaySound(HeavenlyGale.LightningStrikeSound with { Volume = 0.3f }, Main.player[Projectile.owner].Center);
+                SoundEngine.PlaySound(InfernumSoundRegistry.MyrindaelLightningSound with { Volume = 0.25f }, Main.player[Projectile.owner].Center);
                 HasPlayedSound = true;
             }
 
@@ -136,7 +138,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
 
         public Color PrimitiveColorFunction(float completionRatio)
         {
-            float colorInterpolant = (float)Math.Sin(Projectile.identity / 3f + completionRatio * 20f + Main.GlobalTimeWrappedHourly * 1.1f) * 0.5f + 0.5f;
+            float colorInterpolant = MathF.Sin(Projectile.identity / 3f + completionRatio * 20f + Main.GlobalTimeWrappedHourly * 1.1f) * 0.5f + 0.5f;
             Color color = CalamityUtils.MulticolorLerp(colorInterpolant, Color.Blue, Color.SkyBlue, Color.Cyan);
             return color;
         }
