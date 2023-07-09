@@ -5,8 +5,6 @@ using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using Terraria;
 using Terraria.ID;
@@ -67,7 +65,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             Time++;
 
             // Slowly spin around.
-            float angularVelocity = MathHelper.Clamp(Time / 240f, 0f, 1f) * MathHelper.Pi * 0.005f;
+            float angularVelocity = Clamp(Time / 240f, 0f, 1f) * Pi * 0.005f;
             Projectile.rotation += angularVelocity;
         }
 
@@ -78,7 +76,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             return CalamityUtils.CircularHitboxCollision(Projectile.Center, Projectile.width * 0.44f, targetHitbox);
         }
 
-        public float SunWidthFunction(float completionRatio) => Projectile.width * MathF.Sin(MathHelper.Pi * completionRatio);
+        public float SunWidthFunction(float completionRatio) => Projectile.width * Sin(Pi * completionRatio);
 
         public Color SunColorFunction(float completionRatio)
         {

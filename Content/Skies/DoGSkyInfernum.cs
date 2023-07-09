@@ -1,6 +1,6 @@
 using CalamityMod.NPCs.DevourerofGods;
 using InfernumMode.Assets.Sounds;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.ScreenEffects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -25,7 +25,7 @@ namespace InfernumMode.Content.Skies
         public override void SpecialVisuals(Player player, bool isActive)
         {
             if (!CosmicBackgroundSystem.EffectIsActive)
-                CosmicBackgroundSystem.MonolithIntensity = MathHelper.Clamp(CosmicBackgroundSystem.MonolithIntensity - 0.02f, 0f, 1f);
+                CosmicBackgroundSystem.MonolithIntensity = Clamp(CosmicBackgroundSystem.MonolithIntensity - 0.02f, 0f, 1f);
             player.ManageSpecialBiomeVisuals("InfernumMode:DoG", isActive);
         }
     }

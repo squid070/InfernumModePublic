@@ -91,7 +91,7 @@ namespace InfernumMode.Common.Graphics.Primitives
             effectView *= Matrix.CreateTranslation(0f, -height, 0f);
 
             // Flip the matrix around 180 degrees.
-            effectView *= Matrix.CreateRotationZ(MathHelper.Pi);
+            effectView *= Matrix.CreateRotationZ(Pi);
 
             // Account for the inverted gravity effect.
             if (Main.LocalPlayer.gravDir == -1f)
@@ -324,6 +324,11 @@ namespace InfernumMode.Common.Graphics.Primitives
 
             Main.instance.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices.ToArray(), 0, vertices.Count, triangleIndices.ToArray(), 0, triangleIndices.Count / 3);
             Main.pixelShader.CurrentTechnique.Passes[0].Apply();
+        }
+
+        public static void Dispose()
+        {
+            BaseEffect?.Dispose();
         }
     }
 }

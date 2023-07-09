@@ -1,6 +1,5 @@
 using CalamityMod.NPCs.PlaguebringerGoliath;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
@@ -11,7 +10,7 @@ namespace InfernumMode.Content.BossIntroScreens
     {
         public override TextColorData TextColor => new(completionRatio =>
         {
-            float colorFadeInterpolant = MathF.Sin(AnimationCompletion * MathHelper.Pi * 4f + completionRatio * MathHelper.TwoPi) * 0.5f + 0.5f;
+            float colorFadeInterpolant = Sin(AnimationCompletion * Pi * 4f + completionRatio * TwoPi) * 0.5f + 0.5f;
             return Color.Lerp(Color.Lime, Color.DarkOliveGreen, colorFadeInterpolant);
         });
 

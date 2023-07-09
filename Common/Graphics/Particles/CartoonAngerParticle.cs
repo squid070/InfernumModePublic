@@ -1,7 +1,6 @@
 ﻿using CalamityMod.Particles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -49,10 +48,10 @@ namespace InfernumMode.Common.Graphics.Particles
 
         public override void Update()
         {
-            float scaleFactor = MathHelper.Lerp(0.7f, 1.3f, MathF.Sin(MathHelper.TwoPi * Time / 27f + ID) * 0.5f + 0.5f);
+            float scaleFactor = Lerp(0.7f, 1.3f, Sin(TwoPi * Time / 27f + ID) * 0.5f + 0.5f);
             Scale = Utils.Remap(Time, 0f, 30f, 0.01f, StartingScale * scaleFactor);
             Color = Color.Lerp(StartingColor, EndingColor, LifetimeCompletion);
-            Color = Color.Lerp(Color, Color.Transparent, MathF.Pow(LifetimeCompletion, 3.5f));
+            Color = Color.Lerp(Color, Color.Transparent, Pow(LifetimeCompletion, 3.5f));
         }
 
         public override void CustomDraw(SpriteBatch spriteBatch)

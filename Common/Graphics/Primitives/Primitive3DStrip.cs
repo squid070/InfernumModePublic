@@ -28,7 +28,7 @@ namespace InfernumMode.Common.Graphics.Primitives
 
             HeightFunction = heightFunction;
             ColorFunction = colorFunction;
-            BaseEffect = new BasicEffect(Main.instance.GraphicsDevice)
+            BaseEffect ??= new BasicEffect(Main.instance.GraphicsDevice)
             {
                 VertexColorEnabled = true,
                 TextureEnabled = true
@@ -54,10 +54,10 @@ namespace InfernumMode.Common.Graphics.Primitives
             {
                 // Calculates the coordinates of a rectangle wrapped as a ring circle in 3D space.
                 float completionRatio = i / (float)vertexCount;
-                float angleCompletionRatio = MathHelper.TwoPi * completionRatio;
-                float x = MathHelper.Lerp(left.X, right.X, MathF.Cos(angleCompletionRatio) * 0.5f + 0.5f);
-                float z = MathF.Sin(angleCompletionRatio + wobblePhaseShift);
-                float y = MathHelper.Lerp(left.Y, right.Y, MathF.Pow(MathF.Sin(angleCompletionRatio * 0.5f), 2f)) + z * verticalWobble;
+                float angleCompletionRatio = TwoPi * completionRatio;
+                float x = Lerp(left.X, right.X, Cos(angleCompletionRatio) * 0.5f + 0.5f);
+                float z = Sin(angleCompletionRatio + wobblePhaseShift);
+                float y = Lerp(left.Y, right.Y, Pow(Sin(angleCompletionRatio * 0.5f), 2f)) + z * verticalWobble;
                 float height = HeightFunction(z * 0.5f + 0.5f);
                 Color color = ColorFunction(z * 0.5f + 0.5f);
 
@@ -108,6 +108,11 @@ namespace InfernumMode.Common.Graphics.Primitives
             var triangleIndices = CalculateIndices(vertices);
             Main.instance.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, vertices.Length, triangleIndices, 0, triangleIndices.Length / 3);
             Main.pixelShader.CurrentTechnique.Passes[0].Apply();
+        }
+
+        public static void Dispose()
+        {
+            BaseEffect?.Dispose();
         }
     }
 }

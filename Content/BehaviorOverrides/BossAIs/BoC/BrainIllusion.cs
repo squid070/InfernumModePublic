@@ -1,6 +1,5 @@
 using CalamityMod;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -57,7 +56,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BoC
             // Maintain an original offset angle but inherit the distance
             // from the target that the main boss has, while also fading away rapidly.
             NPC.Center = Target.Center + (ConvergeOffsetAngle + Owner.AngleFrom(Target.Center)).ToRotationVector2() * Owner.Distance(Target.Center);
-            NPC.Opacity = MathF.Pow(Owner.Opacity, 2f);
+            NPC.Opacity = Pow(Owner.Opacity, 2f);
         }
 
         public void CopyOwnerAttributes()

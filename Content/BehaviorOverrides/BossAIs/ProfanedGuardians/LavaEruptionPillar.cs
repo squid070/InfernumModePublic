@@ -6,7 +6,6 @@ using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Content.Projectiles.Wayfinder;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -67,7 +66,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                 StretchOffset = Main.rand.NextFloat(-0.1f, 0f) * Main.rand.NextFromList(-1, 1);
             }
             if (Timer >= TelegraphLength - 20)
-                CurrentLength = MaxLength * MathF.Sin((Timer - TelegraphLength - 10) / (Lifetime - TelegraphLength - 10) * MathF.PI);
+                CurrentLength = MaxLength * Sin((Timer - TelegraphLength - 10) / (Lifetime - TelegraphLength - 10) * PI);
             Timer++;
         }
 
@@ -83,8 +82,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
 
         public static Color ColorFunction(float completionRatio)
         {
-            float interpolant = (1f + MathF.Sin(Main.GlobalTimeWrappedHourly * 2f)) / 2f;
-            float colorInterpolant = MathHelper.Lerp(0.3f, 0.5f, interpolant);
+            float interpolant = (1f + Sin(Main.GlobalTimeWrappedHourly * 2f)) / 2f;
+            float colorInterpolant = Lerp(0.3f, 0.5f, interpolant);
             return Color.Lerp(Color.OrangeRed, Color.Gold, colorInterpolant);
         }
 
@@ -103,7 +102,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                 TelegraphDrawer ??= new PrimitiveTrailCopy(TelegraphWidthFunction, TelegraphColorFunction, null, true, InfernumEffectsRegistry.SideStreakVertexShader);
 
                 InfernumEffectsRegistry.SideStreakVertexShader.SetShaderTexture(InfernumTextureRegistry.CultistRayMap);
-                float opacityScalar = MathF.Sin(CalamityUtils.SineInOutEasing(Timer / (TelegraphLength + 20), 0) * MathF.PI);
+                float opacityScalar = Sin(CalamityUtils.SineInOutEasing(Timer / (TelegraphLength + 20), 0) * PI);
                 InfernumEffectsRegistry.SideStreakVertexShader.UseOpacity(0.5f * opacityScalar);
 
                 Vector2 startT = Projectile.Center;

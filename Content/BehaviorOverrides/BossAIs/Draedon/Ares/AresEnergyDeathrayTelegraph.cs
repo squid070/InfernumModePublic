@@ -1,6 +1,6 @@
 using CalamityMod.DataStructures;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.ScreenEffects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
@@ -35,7 +35,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
         public override void AI()
         {
             // Rapidly fade in.
-            Projectile.Opacity = MathHelper.Clamp(Projectile.Opacity + 0.15f, 0f, 1f);
+            Projectile.Opacity = Clamp(Projectile.Opacity + 0.15f, 0f, 1f);
         }
 
         public override void Kill(int timeLeft)

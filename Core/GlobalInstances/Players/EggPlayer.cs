@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Terraria;
+﻿using Terraria;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
 
@@ -44,9 +43,9 @@ namespace InfernumMode.Core.GlobalInstances.Players
 
             // Sort out the opacity.
             if (EggShieldActive)
-                EggShieldOpacity = MathHelper.Clamp(EggShieldOpacity + 0.1f, 0f, 1f);
+                EggShieldOpacity = Clamp(EggShieldOpacity + 0.1f, 0f, 1f);
             else
-                EggShieldOpacity = MathHelper.Clamp(EggShieldOpacity - 0.1f, 0f, 1f);
+                EggShieldOpacity = Clamp(EggShieldOpacity - 0.1f, 0f, 1f);
         }
 
         public override void PostUpdateEquips()

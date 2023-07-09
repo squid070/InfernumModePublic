@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -10,7 +9,7 @@ namespace InfernumMode.Content.BossIntroScreens
     {
         public override TextColorData TextColor => new(completionRatio =>
         {
-            float hue = MathF.Sin(completionRatio * MathHelper.Pi * 3f + AnimationCompletion * MathHelper.Pi) * 0.5f + 0.5f;
+            float hue = Sin(completionRatio * Pi * 3f + AnimationCompletion * Pi) * 0.5f + 0.5f;
             return Color.Lerp(Color.SkyBlue, Color.HotPink, hue);
         });
 

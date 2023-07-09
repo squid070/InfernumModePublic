@@ -1,5 +1,4 @@
 using CalamityMod;
-using CalamityMod.Items.Accessories;
 using CalamityMod.Items.Materials;
 using CalamityMod.Items.SummonItems;
 using CalamityMod.NPCs.AdultEidolonWyrm;
@@ -21,7 +20,6 @@ using CalamityMod.NPCs.GreatSandShark;
 using CalamityMod.NPCs.HiveMind;
 using CalamityMod.NPCs.Leviathan;
 using CalamityMod.NPCs.NormalNPCs;
-using CalamityMod.NPCs.OldDuke;
 using CalamityMod.NPCs.Perforator;
 using CalamityMod.NPCs.PlaguebringerGoliath;
 using CalamityMod.NPCs.Polterghast;
@@ -190,11 +188,11 @@ namespace InfernumMode.Core.GlobalInstances
             if (npc.type == ModContent.NPCType<Bumblefuck>())
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<DragonfollyRelic>());
 
+            // Providence only needs the wings added, as she drops the shield due to the temple being in hell.
             if (npc.type == ModContent.NPCType<Providence>())
             {
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs && !Main.dayTime, ModContent.ItemType<ProfanedCrystalDye>(), 1, 4, 5);
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<ProvidenceRelic>());
-                npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<ElysianAegis>());
             }
 
             if (npc.type == ModContent.NPCType<CeaselessVoid>())
@@ -209,7 +207,7 @@ namespace InfernumMode.Core.GlobalInstances
             if (npc.type == ModContent.NPCType<Polterghast>())
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<PolterghastRelic>());
 
-            if (npc.type == ModContent.NPCType<OldDuke>())
+            if (npc.type == ModContent.NPCType<OldDukeNPC>())
                 npcLoot.AddIf(() => InfernumMode.CanUseCustomAIs, ModContent.ItemType<OldDukeRelic>());
 
             if (npc.type == ModContent.NPCType<DevourerofGodsHead>())

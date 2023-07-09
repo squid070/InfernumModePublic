@@ -74,7 +74,7 @@ namespace InfernumMode.Core.GlobalInstances.GlobalItems
             if (InfernumMode.CanUseCustomAIs && item.type == ModContent.ItemType<ProfanedShard>())
             {
                 bool inGarden = Main.LocalPlayer.Infernum_Biome().InProfanedArena;
-                string summoningText = "Summons the Profaned Guardians when used on the cliff in the profaned garden at the far right of the underworld";
+                string summoningText = "Summons the Profaned Guardians when used on the cliff in the profaned garden at the far right of the underworld during day";
                 Color textColor = inGarden ? WayfinderSymbol.Colors[2] : Color.White;
                 replaceTooltipText("Tooltip1", summoningText, textColor);
 
@@ -102,7 +102,7 @@ namespace InfernumMode.Core.GlobalInstances.GlobalItems
 
             if (InfernumMode.CanUseCustomAIs && item.type == ModContent.ItemType<ProfanedCore>())
             {
-                string summoningText = "Summons Providence when used at the alter in the profaned temple at the far right of the underworld";
+                string summoningText = "Summons Providence when used at the altar in the profaned temple at the far right of the underworld";
                 replaceTooltipText("Tooltip1", summoningText);
             }
 

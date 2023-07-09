@@ -5,7 +5,6 @@ using InfernumMode.Common.Graphics.Interfaces;
 using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
@@ -67,8 +66,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
             }
 
             // Grow bigger up to a point.
-            float maxScale = MathHelper.Lerp(0.051f, 1.5f, Utils.GetLerpValue(0f, 30f, Prism.timeLeft, true));
-            Projectile.scale = MathHelper.Clamp(Projectile.scale + 0.04f, 0.05f, maxScale);
+            float maxScale = Lerp(0.051f, 1.5f, Utils.GetLerpValue(0f, 30f, Prism.timeLeft, true));
+            Projectile.scale = Clamp(Projectile.scale + 0.04f, 0.05f, maxScale);
 
             // Decide where to position the laserbeam.
             Projectile.Center = Prism.Top;
@@ -82,7 +81,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
 
         internal Color PrimitiveColorFunction(float completionRatio)
         {
-            float hue = (Projectile.ai[1] + MathF.Sin(Main.GlobalTimeWrappedHourly * 12.2f) * 0.04f) % 1f;
+            float hue = (Projectile.ai[1] + Sin(Main.GlobalTimeWrappedHourly * 12.2f) * 0.04f) % 1f;
             float opacity = Projectile.Opacity * Utils.GetLerpValue(0.97f, 0.9f, completionRatio, true);
             Color c = Main.hslToRgb(hue, 1f, 0.7f) * opacity;
             c.A /= 16;

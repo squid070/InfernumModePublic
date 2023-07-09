@@ -4,7 +4,6 @@ using InfernumMode.Common.Graphics;
 using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
@@ -29,7 +28,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
             npc.TargetClosest();
             Player target = Main.player[npc.target];
 
-            Vector2 spawnOffset = Vector2.UnitY.RotatedBy(MathHelper.Lerp(-0.97f, 0.97f, npc.whoAmI % 16f / 16f)) * 300f;
+            Vector2 spawnOffset = Vector2.UnitY.RotatedBy(Lerp(-0.97f, 0.97f, npc.whoAmI % 16f / 16f)) * 300f;
             if (npc.whoAmI * 113 % 2 == 1)
                 spawnOffset *= -1f;
 
@@ -86,7 +85,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
                 npc.damage = 95;
             }
 
-            npc.rotation += MathHelper.Pi;
+            npc.rotation += Pi;
             generalTimer++;
             return false;
         }
@@ -139,17 +138,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
                 // Draw the bloom laser line telegraph.
                 float laserRotation = -npc.rotation;
                 if (npc.spriteDirection == -1)
-                    laserRotation += MathHelper.Pi;
+                    laserRotation += Pi;
 
                 BloomLineDrawInfo lineInfo = new()
                 {
                     LineRotation = laserRotation,
-                    WidthFactor = 0.002f + MathF.Pow(telegraphInterpolant, 4f) * (MathF.Sin(Main.GlobalTimeWrappedHourly * 3f) * 0.001f + 0.001f),
-                    BloomIntensity = MathHelper.Lerp(0.3f, 0.4f, telegraphInterpolant),
-                    Scale = Vector2.One * telegraphInterpolant * MathHelper.Clamp(npc.Distance(Main.player[npc.target].Center) * 2.4f, 10f, 1600f),
+                    WidthFactor = 0.002f + Pow(telegraphInterpolant, 4f) * (Sin(Main.GlobalTimeWrappedHourly * 3f) * 0.001f + 0.001f),
+                    BloomIntensity = Lerp(0.3f, 0.4f, telegraphInterpolant),
+                    Scale = Vector2.One * telegraphInterpolant * Clamp(npc.Distance(Main.player[npc.target].Center) * 2.4f, 10f, 1600f),
                     MainColor = Color.Lerp(Color.Orange, Color.Red, telegraphInterpolant * 0.6f + 0.4f),
                     DarkerColor = Color.Orange,
-                    Opacity = MathF.Sqrt(telegraphInterpolant),
+                    Opacity = Sqrt(telegraphInterpolant),
                     BloomOpacity = 0.35f,
                     LightStrength = 5f
                 };
@@ -160,7 +159,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
                 float backglowOffset = telegraphInterpolant * 4f;
                 for (int i = 0; i < 12; i++)
                 {
-                    Vector2 drawOffset = (MathHelper.TwoPi * i / 12f).ToRotationVector2() * backglowOffset;
+                    Vector2 drawOffset = (TwoPi * i / 12f).ToRotationVector2() * backglowOffset;
                     Main.spriteBatch.Draw(texture, drawPosition + drawOffset, null, npc.GetAlpha(backglowColor), npc.rotation, origin, npc.scale, direction, 0f);
                 }
             }

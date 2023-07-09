@@ -1,6 +1,5 @@
 using CalamityMod.Events;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -33,7 +32,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
         {
             Time++;
 
-            Projectile.scale = MathF.Sin(Projectile.timeLeft / 30f * MathHelper.Pi) * 3f;
+            Projectile.scale = Sin(Projectile.timeLeft / 30f * Pi) * 3f;
             if (Projectile.scale > 1f)
                 Projectile.scale = 1f;
         }

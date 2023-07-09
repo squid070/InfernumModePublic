@@ -1,6 +1,5 @@
 using CalamityMod.NPCs.Cryogen;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
@@ -11,7 +10,7 @@ namespace InfernumMode.Content.BossIntroScreens
     {
         public override TextColorData TextColor => new(completionRatio =>
         {
-            return Color.Lerp(Color.Cyan, Color.LightCyan, (MathF.Sin(AnimationCompletion * MathHelper.Pi * 4f) * 0.5f + 0.5f) * 0.72f);
+            return Color.Lerp(Color.Cyan, Color.LightCyan, (Sin(AnimationCompletion * Pi * 4f) * 0.5f + 0.5f) * 0.72f);
         });
 
         public override bool TextShouldBeCentered => true;

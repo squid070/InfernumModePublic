@@ -4,7 +4,6 @@ using InfernumMode.Common.Graphics.Primitives;
 using InfernumMode.Content.Items.Weapons.Rogue;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.Graphics.Shaders;
 using Terraria.ID;
@@ -104,7 +103,7 @@ namespace InfernumMode.Content.Projectiles.Rogue
 
         public float TrailWidth(float completionRatio)
         {
-            float tipInterpolant = MathF.Sqrt(1f - MathF.Pow(Utils.GetLerpValue(0.3f, 0f, completionRatio, true), 2f));
+            float tipInterpolant = Sqrt(1f - Pow(Utils.GetLerpValue(0.3f, 0f, completionRatio, true), 2f));
             float width = Utils.GetLerpValue(1f, 0.4f, completionRatio, true) * tipInterpolant * Projectile.scale;
             return width * MaxWidth;
         }

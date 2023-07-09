@@ -1,7 +1,6 @@
 using InfernumMode.Assets.ExtraTextures;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ModLoader;
@@ -49,7 +48,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
             Vector2 drawPosition = Projectile.Center - Main.screenPosition;
             Vector2 scale1 = Vector2.One * Projectile.scale * 240f / ritual2.Size() * 2f;
 
-            float colorInterpolant = MathF.Cos(MathHelper.TwoPi * Time / 60f) * 0.5f + 0.5f;
+            float colorInterpolant = Cos(TwoPi * Time / 60f) * 0.5f + 0.5f;
             Color color1 = Color.Lerp(Color.Wheat, ProvidenceBehaviorOverride.IsEnraged ? Color.Cyan : Color.Yellow, colorInterpolant * 0.6f) * Projectile.scale;
 
             Main.spriteBatch.SetBlendState(BlendState.Additive);

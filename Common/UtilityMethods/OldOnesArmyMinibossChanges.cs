@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework;
 using System.Linq;
 using System.Reflection;
 using Terraria;
@@ -33,7 +32,7 @@ namespace InfernumMode.Common.UtilityMethods
             if (DD2Event.ReadyForTier3)
                 currentTier = 3;
 
-            float waveCompletion = MathHelper.Clamp(currentKillCount / (float)requiredKillCount, 0f, 1f);
+            float waveCompletion = Clamp(currentKillCount / (float)requiredKillCount, 0f, 1f);
             bool atEndOfWave = waveCompletion >= 0.9f;
             if (currentWave == 5 && currentTier == 1 && atEndOfWave)
                 minibossID = NPCID.DD2DarkMageT1;

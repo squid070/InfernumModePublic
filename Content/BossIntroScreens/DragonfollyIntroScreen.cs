@@ -1,6 +1,5 @@
 using CalamityMod.NPCs.Bumblebirb;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
@@ -11,10 +10,10 @@ namespace InfernumMode.Content.BossIntroScreens
     {
         public override TextColorData TextColor => new(completionRatio =>
         {
-            float colorFadeInterpolant = MathF.Sin(AnimationCompletion * MathHelper.Pi * 6f - completionRatio * MathHelper.Pi * 3f) * 0.5f + 0.5f;
+            float colorFadeInterpolant = Sin(AnimationCompletion * Pi * 6f - completionRatio * Pi * 3f) * 0.5f + 0.5f;
             Color featherColor = new(194, 145, 81);
             Color lightningColor = new(255, 41, 72);
-            return Color.Lerp(featherColor, lightningColor, MathF.Pow(colorFadeInterpolant, 10.1f));
+            return Color.Lerp(featherColor, lightningColor, Pow(colorFadeInterpolant, 10.1f));
         });
 
         public override bool TextShouldBeCentered => true;

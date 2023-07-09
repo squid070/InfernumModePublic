@@ -1,5 +1,5 @@
 using CalamityMod.Particles;
-using InfernumMode.Common.Graphics;
+using InfernumMode.Common.Graphics.ScreenEffects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
@@ -52,7 +52,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AdultEidolonWyrm
         public override void AI()
         {
             Projectile.Opacity = Utils.GetLerpValue(0f, 20f, Time, true) * Utils.GetLerpValue(46f, 248f, Projectile.Distance(ConvergenceCenter), true);
-            Projectile.rotation = Projectile.velocity.ToRotation() - MathHelper.PiOver2;
+            Projectile.rotation = Projectile.velocity.ToRotation() - PiOver2;
 
             // Release magic particles if close to invisible.
             if (Projectile.Opacity < 0.85f && Main.rand.NextFloat() < 1f - Projectile.Opacity)

@@ -3,7 +3,6 @@ using CalamityMod.DataStructures;
 using InfernumMode.Core.GlobalInstances.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -29,7 +28,7 @@ namespace InfernumMode.Content.Projectiles.Generic
 
         public override void AI()
         {
-            float scaleInterpolant = MathF.Pow(CalamityUtils.Convert01To010(Projectile.timeLeft / (float)Lifetime), 4.93f);
+            float scaleInterpolant = Pow(CalamityUtils.Convert01To010(Projectile.timeLeft / (float)Lifetime), 4.93f);
             Projectile.scale = scaleInterpolant * 1.67f;
 
             WorldSaveSystem.HasOpenedLostColosseumPortal = true;

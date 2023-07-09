@@ -4,9 +4,9 @@ using CalamityMod.NPCs.ProfanedGuardians;
 using CalamityMod.Particles;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
-using InfernumMode.Common.Graphics;
 using InfernumMode.Common.Graphics.Particles;
 using InfernumMode.Common.Graphics.Primitives;
+using InfernumMode.Common.Graphics.ScreenEffects;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Providence;
 using InfernumMode.Content.Projectiles.Pets;
 using InfernumMode.Content.Projectiles.Wayfinder;
@@ -16,7 +16,6 @@ using InfernumMode.Core.OverridingSystem;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
-using System;
 using System.Linq;
 using Terraria;
 using Terraria.Audio;
@@ -194,7 +193,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                         Vector2 impactCenter = npc.Center;
                         for (int j = 0; j < 50; j++)
                         {
-                            Particle rock = new ProfanedRockParticle(impactCenter, -Vector2.UnitY.RotatedByRandom(MathF.Tau) * Main.rand.NextFloat(3f, 6f), Color.White, Main.rand.NextFloat(0.85f, 1.15f), 120, Main.rand.NextFloat(0f, 0.2f), false);
+                            Particle rock = new ProfanedRockParticle(impactCenter, -Vector2.UnitY.RotatedByRandom(Tau) * Main.rand.NextFloat(3f, 6f), Color.White, Main.rand.NextFloat(0.85f, 1.15f), 120, Main.rand.NextFloat(0f, 0.2f), false);
                             GeneralParticleHandler.SpawnParticle(rock);
                         }
                         substate++;
@@ -288,11 +287,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
         public static void DrawBackglow(NPC npc, SpriteBatch spriteBatch, Texture2D npcTexture)
         {
             int backglowAmount = 12;
-            float sine = (1f + MathF.Sin(Main.GlobalTimeWrappedHourly * 2f)) / 2f;
-            float backglowDistance = MathHelper.Lerp(3.5f, 4.5f, sine);
+            float sine = (1f + Sin(Main.GlobalTimeWrappedHourly * 2f)) / 2f;
+            float backglowDistance = Lerp(3.5f, 4.5f, sine);
             for (int i = 0; i < backglowAmount; i++)
             {
-                Vector2 backglowOffset = (MathHelper.TwoPi * i / backglowAmount).ToRotationVector2() * backglowDistance;
+                Vector2 backglowOffset = (TwoPi * i / backglowAmount).ToRotationVector2() * backglowDistance;
                 Color backglowColor = WayfinderSymbol.Colors[1];
                 backglowColor.A = 0;
                 SpriteEffects direction = npc.spriteDirection == -1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
@@ -336,8 +335,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
             for (int i = 1; i < 8; i++)
             {
                 Vector2 arrowOrigin = arrowTexture.Size() * 0.5f;
-                float arrowRotation = direction.ToRotation() + MathHelper.PiOver2;
-                float sineValue = (1f + MathF.Sin(Main.GlobalTimeWrappedHourly * 10.5f - i)) / 2f;
+                float arrowRotation = direction.ToRotation() + PiOver2;
+                float sineValue = (1f + Sin(Main.GlobalTimeWrappedHourly * 10.5f - i)) / 2f;
                 float finalOpacity = CalamityUtils.SineInOutEasing(sineValue, 1);
                 spriteBatch.Draw(arrowTexture, drawPosition, null, drawColor * finalOpacity, arrowRotation, arrowOrigin, 0.75f, SpriteEffects.None, 0f);
                 drawPosition += direction * 75f;
@@ -355,8 +354,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
             InfernumEffectsRegistry.RealityTear2Shader.SetShaderTexture(shaderLayer);
             InfernumEffectsRegistry.RealityTear2Shader.Shader.Parameters["fadeOut"].SetValue(false);
 
-            float sine = (1f + MathF.Sin(Main.GlobalTimeWrappedHourly)) / 2f;
-            float opacity = MathHelper.Lerp(0.06f, 0.12f, sine);
+            float sine = (1f + Sin(Main.GlobalTimeWrappedHourly)) / 2f;
+            float opacity = Lerp(0.06f, 0.12f, sine);
 
             // Draw the overlay.
             DrawData overlay = new(npcTexture, npc.Center - Main.screenPosition, npc.frame, Color.White * opacity, 0f, npc.frame.Size() * 0.5f, 1f, direction, 0);

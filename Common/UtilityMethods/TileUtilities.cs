@@ -1,4 +1,3 @@
-using Microsoft.Xna.Framework;
 using static CalamityMod.CalamityUtils;
 
 namespace InfernumMode
@@ -12,7 +11,7 @@ namespace InfernumMode
             angleToOpenAir = null;
             if (!ParanoidTileRetrieval(x - 1, y).HasTile)
             {
-                angleToOpenAir = MathHelper.Pi;
+                angleToOpenAir = Pi;
                 return true;
             }
             if (!ParanoidTileRetrieval(x + 1, y).HasTile)
@@ -22,12 +21,12 @@ namespace InfernumMode
             }
             if (!ParanoidTileRetrieval(x, y - 1).HasTile)
             {
-                angleToOpenAir = MathHelper.PiOver2;
+                angleToOpenAir = PiOver2;
                 return true;
             }
             if (!ParanoidTileRetrieval(x, y + 1).HasTile)
             {
-                angleToOpenAir = -MathHelper.PiOver2;
+                angleToOpenAir = -PiOver2;
                 return true;
             }
 

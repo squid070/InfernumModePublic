@@ -5,7 +5,6 @@ using InfernumMode.Common.Graphics.Interfaces;
 using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
@@ -79,12 +78,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
         public override void AI()
         {
             // Grow bigger up to a point.
-            float maxScale = MathHelper.Lerp(0.051f, 1.5f, Utils.GetLerpValue(0f, 30f, Projectile.timeLeft, true) * Utils.GetLerpValue(0f, 16f, Time, true));
-            Projectile.scale = MathHelper.Clamp(Projectile.scale + 0.02f, 0.05f, maxScale);
+            float maxScale = Lerp(0.051f, 1.5f, Utils.GetLerpValue(0f, 30f, Projectile.timeLeft, true) * Utils.GetLerpValue(0f, 16f, Time, true));
+            Projectile.scale = Clamp(Projectile.scale + 0.02f, 0.05f, maxScale);
 
             // Spin the laserbeam.
-            float deviationAngle = (Time * MathHelper.TwoPi / 40f + LaserbeamIDRatio * SpinRate) / (LaserCount * SpinRate) * MathHelper.TwoPi;
-            float sinusoidYOffset = MathF.Cos(deviationAngle) * AngularOffset;
+            float deviationAngle = (Time * TwoPi / 40f + LaserbeamIDRatio * SpinRate) / (LaserCount * SpinRate) * TwoPi;
+            float sinusoidYOffset = Cos(deviationAngle) * AngularOffset;
             Projectile.velocity = Vector2.UnitY.RotatedBy(sinusoidYOffset) * VerticalSpinDirection;
 
             // Update the laser length.
@@ -101,8 +100,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.EmpressOfLight
         internal Color PrimitiveColorFunction(float completionRatio)
         {
             float opacity = Projectile.Opacity * Utils.GetLerpValue(0.97f, 0.9f, completionRatio, true) *
-                Utils.GetLerpValue(0f, MathHelper.Clamp(15f / LaserLength, 0f, 0.5f), completionRatio, true) *
-                MathF.Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3f);
+                Utils.GetLerpValue(0f, Clamp(15f / LaserLength, 0f, 0.5f), completionRatio, true) *
+                Pow(Utils.GetLerpValue(60f, 270f, LaserLength, true), 3f);
             Color c = Main.hslToRgb((completionRatio * 8f + Main.GlobalTimeWrappedHourly * 0.5f + Projectile.identity * 0.3156f) % 1f, 1f, 0.7f) * opacity;
             c.A = 0;
 

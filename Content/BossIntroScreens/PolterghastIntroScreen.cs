@@ -1,7 +1,6 @@
 using CalamityMod;
 using CalamityMod.NPCs.Polterghast;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
@@ -12,7 +11,7 @@ namespace InfernumMode.Content.BossIntroScreens
     {
         public override TextColorData TextColor => new(completionRatio =>
         {
-            float colorInterpolant = MathF.Sin(completionRatio * MathHelper.Pi * 4f + AnimationCompletion * MathHelper.TwoPi * 0.4f) * 0.5f + 0.5f;
+            float colorInterpolant = Sin(completionRatio * Pi * 4f + AnimationCompletion * TwoPi * 0.4f) * 0.5f + 0.5f;
             Color pink = Color.HotPink;
             Color cyan = Color.Cyan;
             return Color.Lerp(pink, cyan, CalamityUtils.Convert01To010(colorInterpolant * 3f % 1f));

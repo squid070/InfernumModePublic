@@ -49,7 +49,7 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 bool hoveringOverAnyIcon = false;
                 for (int i = 0; i < 3; i++)
                 {
-                    Vector2 iconDrawOffset = new(MathHelper.Lerp(-92f, 92f, i / 2f), -145f);
+                    Vector2 iconDrawOffset = new(Lerp(-92f, 92f, i / 2f), -145f);
                     hoveringOverAnyIcon |= HandleInteractionWithButton(baseDrawPosition + iconDrawOffset, i + 1, PrimaryMechToSummon == null);
                 }
 
@@ -97,7 +97,7 @@ namespace InfernumMode.Core.GlobalInstances.Systems
                 case 2:
                     iconScale = ExoMechSelectionUI.PrimeIconScale;
                     iconMechTexture = ModContent.Request<Texture2D>("CalamityMod/UI/DraedonSummoning/HeadIcon_Ares").Value;
-                    description = "Ares, a heavyweight, diabolical monstrosity with four Exo superweapons.";
+                    description = "Ares, a heavyweight, diabolical monstrosity with six Exo superweapons.";
                     hoverSound = ExoMechSelectionUI.AresHoverSound;
                     break;
                 case 3:
@@ -118,13 +118,16 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             if (hoveringOverIcon)
             {
                 // If so, cause the button to inflate a little bit.
-                iconScale = MathHelper.Clamp(iconScale + 0.0375f, 1f, 1.35f);
+                iconScale = Clamp(iconScale + 0.0375f, 1f, 1.35f);
 
                 // Play the hover sound.
                 if (ExoMechSelectionUI.HoverSoundMechType != (ExoMech)exoMech)
                 {
                     ExoMechSelectionUI.HoverSoundMechType = (ExoMech)exoMech;
-                    SoundEngine.PlaySound(hoverSound with { Volume = 1.5f });
+                    SoundEngine.PlaySound(hoverSound with
+                    {
+                        Volume = 1.5f
+                    });
                 }
 
                 // Make the selection known if a click is done and the icon isn't already in use.
@@ -151,7 +154,7 @@ namespace InfernumMode.Core.GlobalInstances.Systems
 
             // Otherwise, if not hovering and not selected, cause the button to deflate back to its normal size.
             else if (!alreadySelected)
-                iconScale = MathHelper.Clamp(iconScale - 0.05f, 1f, 1.2f);
+                iconScale = Clamp(iconScale - 0.05f, 1f, 1.2f);
 
             // Draw the icon with the new scale.
             Color iconColor = alreadySelected ? Color.Black * 0.8f : Color.White;
@@ -159,8 +162,11 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    Vector2 drawOffset = -Vector2.UnitY.RotatedBy(MathHelper.TwoPi * i / 4f) * iconScale * 2f;
-                    Main.spriteBatch.Draw(iconMechTexture, drawPosition + drawOffset, null, Color.Red with { A = 80 }, 0f, iconMechTexture.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
+                    Vector2 drawOffset = -Vector2.UnitY.RotatedBy(TwoPi * i / 4f) * iconScale * 2f;
+                    Main.spriteBatch.Draw(iconMechTexture, drawPosition + drawOffset, null, Color.Red with
+                    {
+                        A = 80
+                    }, 0f, iconMechTexture.Size() * 0.5f, iconScale, SpriteEffects.None, 0f);
                 }
             }
 

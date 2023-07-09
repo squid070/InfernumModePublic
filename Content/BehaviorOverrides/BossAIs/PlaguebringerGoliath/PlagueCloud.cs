@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -24,7 +23,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.PlaguebringerGoliath
 
         public override void AI()
         {
-            Projectile.Opacity = MathF.Sqrt(Projectile.timeLeft / 90f);
+            Projectile.Opacity = Sqrt(Projectile.timeLeft / 90f);
             Projectile.rotation += Projectile.velocity.Y * 0.015f;
             Projectile.velocity *= 0.98f;
         }

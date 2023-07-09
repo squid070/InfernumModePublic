@@ -10,7 +10,6 @@ using InfernumMode.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using ReLogic.Content;
-using System;
 using System.IO;
 using Terraria;
 using Terraria.GameContent;
@@ -101,8 +100,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AstrumDeus
 
         public static Color LaserColorFunction(float completionRatio)
         {
-            float colorInterpolant = MathF.Sin(Main.GlobalTimeWrappedHourly * -1.23f + completionRatio * 23f) * 0.5f + 0.5f;
-            return Color.Lerp(Color.Black, Color.Cyan, MathF.Pow(colorInterpolant, 3.3f) * 0.25f);
+            float colorInterpolant = Sin(Main.GlobalTimeWrappedHourly * -1.23f + completionRatio * 23f) * 0.5f + 0.5f;
+            return Color.Lerp(Color.Black, Color.Cyan, Pow(colorInterpolant, 3.3f) * 0.25f);
         }
 
         public override bool PreDraw(ref Color lightColor) => false;

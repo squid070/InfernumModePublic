@@ -4,7 +4,6 @@ using InfernumMode.Common.Graphics.Interfaces;
 using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.ID;
@@ -38,7 +37,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             // Fade in.
             Projectile.alpha = Utils.Clamp(Projectile.alpha - 25, 0, 255);
 
-            Projectile.scale = MathF.Sin(Time / 450f * MathHelper.Pi) * 3f;
+            Projectile.scale = Sin(Time / 450f * Pi) * 3f;
             if (Projectile.scale > 1f)
                 Projectile.scale = 1f;
 
@@ -48,14 +47,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
         public float WidthFunction(float completionRatio)
         {
             float squeezeInterpolant = Utils.GetLerpValue(0f, 0.05f, completionRatio, true) * Utils.GetLerpValue(1f, 0.95f, completionRatio, true);
-            return MathHelper.SmoothStep(2f, Projectile.width, squeezeInterpolant) * MathHelper.Clamp(Projectile.scale, 0.01f, 1f);
+            return SmoothStep(2f, Projectile.width, squeezeInterpolant) * Clamp(Projectile.scale, 0.01f, 1f);
         }
 
         public override bool ShouldUpdatePosition() => false;
 
         public Color ColorFunction(float completionRatio)
         {
-            Color color = Color.Lerp(Color.Orange, Color.DarkRed, MathF.Pow(completionRatio, 2f));
+            Color color = Color.Lerp(Color.Orange, Color.DarkRed, Pow(completionRatio, 2f));
             color = Color.Lerp(color, Color.Red, 0.65f);
             return color * Projectile.Opacity * 0.6f;
         }
@@ -74,7 +73,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
             for (int i = 0; i <= 8; i++)
             {
                 points.Add(Vector2.Lerp(Projectile.Center, Projectile.Center + Projectile.velocity * LaserLength, i / 8f));
-                originalRotations.Add(MathHelper.PiOver2);
+                originalRotations.Add(PiOver2);
             }
 
             BeamDrawer.DrawPixelated(points, Projectile.Size * 0.5f - Main.screenPosition, 60);

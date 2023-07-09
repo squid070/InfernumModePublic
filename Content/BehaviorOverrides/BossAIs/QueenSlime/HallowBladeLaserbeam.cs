@@ -5,7 +5,6 @@ using InfernumMode.Common.Graphics.Interfaces;
 using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -55,7 +54,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
                 Projectile.scale = 1f;
 
             // Make the laser expand outward.
-            LaserLength = MathHelper.Clamp(LaserLength + 180f, 100f, MaxLaserLength);
+            LaserLength = Clamp(LaserLength + 180f, 100f, MaxLaserLength);
 
             int queenSlimeIndex = NPC.FindFirstNPC(NPCID.QueenSlimeBoss);
             if (queenSlimeIndex != -1)
@@ -68,7 +67,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
 
         public static Color LaserColorFunction(float completionRatio)
         {
-            float colorInterpolant = 0.5f * MathF.Sin(-9f * Main.GlobalTimeWrappedHourly) + 0.5f;
+            float colorInterpolant = 0.5f * Sin(-9f * Main.GlobalTimeWrappedHourly) + 0.5f;
             return Color.Lerp(Color.HotPink, Color.Cyan, 0.25f * colorInterpolant);
         }
 

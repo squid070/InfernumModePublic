@@ -1,7 +1,6 @@
 using CalamityMod.NPCs.OldDuke;
 using CalamityMod.Projectiles.Boss;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -34,7 +33,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
 
         public override void AI()
         {
-            Projectile.Opacity = MathF.Sin(MathHelper.Pi * Time / 72f) * 1.35f;
+            Projectile.Opacity = Sin(Pi * Time / 72f) * 1.35f;
             if (Projectile.Opacity > 1f)
                 Projectile.Opacity = 1f;
             Projectile.scale = Projectile.Opacity;
@@ -49,7 +48,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.OldDuke
 
             if (Main.netMode != NetmodeID.MultiplayerClient && Time % 10f == 9f)
             {
-                Vector2 sharkVelocity = (MathHelper.TwoPi * Time / 120f).ToRotationVector2() * 8f;
+                Vector2 sharkVelocity = (TwoPi * Time / 120f).ToRotationVector2() * 8f;
                 int shark = NPC.NewNPC(Projectile.GetSource_FromAI(), (int)Projectile.Center.X, (int)Projectile.Center.Y, ModContent.NPCType<SulphurousSharkron>(), 0, 0f, 1f);
                 if (Main.npc.IndexInRange(shark))
                 {

@@ -1,7 +1,6 @@
 using CalamityMod.NPCs;
 using InfernumMode.Common.UtilityMethods;
 using InfernumMode.Core.OverridingSystem;
-using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent.Events;
@@ -72,7 +71,7 @@ namespace InfernumMode.Content.BehaviorOverrides.MiscAIs
             else if (npc.ai[1] == 1f)
             {
                 fadeOutTimer++;
-                npc.scale = MathHelper.Lerp(1f, 0.05f, Utils.GetLerpValue(500f, 600f, fadeOutTimer, true));
+                npc.scale = Lerp(1f, 0.05f, Utils.GetLerpValue(500f, 600f, fadeOutTimer, true));
 
                 // Kill the portal after enough time has passed.
                 if (fadeOutTimer >= 550f)

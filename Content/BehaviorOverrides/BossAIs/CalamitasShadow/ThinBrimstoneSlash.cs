@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -57,7 +56,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.CalamitasShadow
 
             Vector2 drawPosition = Projectile.Center - Main.screenPosition;
             Vector2 origin = texture.Size() * 0.5f;
-            Vector2 scale = new Vector2(MathHelper.Lerp(0.8f, 1.25f, MathF.Pow(progress, 0.45f)), MathHelper.Lerp(0.6f, 0.24f, MathF.Pow(progress, 0.4f))) * Projectile.scale;
+            Vector2 scale = new Vector2(Lerp(0.8f, 1.25f, Pow(progress, 0.45f)), Lerp(0.6f, 0.24f, Pow(progress, 0.4f))) * Projectile.scale;
 
             // Draw an inner bloom circle to signify power at the center of the strike along with two thinner lines.
             Vector2 bloomScale = Projectile.Size / bloomTexture.Size() * new Vector2(1f, 2f);

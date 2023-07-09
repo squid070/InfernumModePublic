@@ -2,7 +2,6 @@ using CalamityMod;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
 using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Terraria;
@@ -79,7 +78,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
                 if (Main.rand.NextBool(4))
                 {
                     float newIdealOffset = Main.rand.NextBool().ToDirectionInt() * Main.rand.NextFloat(4f, 28f);
-                    CurrentVerticalOffset = MathHelper.Lerp(CurrentVerticalOffset, newIdealOffset, 0.667f);
+                    CurrentVerticalOffset = Lerp(CurrentVerticalOffset, newIdealOffset, 0.667f);
 
                     Projectile.netUpdate = true;
                 }
@@ -87,9 +86,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
 
             // Fade in.
             float disappearInterpolant = Utils.GetLerpValue(0f, 24f, Projectile.timeLeft / Projectile.MaxUpdates, true);
-            float scaleGrowInterpolant = MathF.Pow(Utils.GetLerpValue(0f, 64f, Time, true), 1.72f);
+            float scaleGrowInterpolant = Pow(Utils.GetLerpValue(0f, 64f, Time, true), 1.72f);
             Projectile.Opacity = Utils.GetLerpValue(0f, 24f, Time / Projectile.MaxUpdates, true) * disappearInterpolant;
-            Projectile.scale = MathHelper.Lerp(0.24f, 1f, scaleGrowInterpolant) * disappearInterpolant;
+            Projectile.scale = Lerp(0.24f, 1f, scaleGrowInterpolant) * disappearInterpolant;
             Time++;
         }
 
@@ -108,7 +107,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
         #region Drawing
         internal float WidthFunction(float completionRatio)
         {
-            float baseWidth = MathHelper.Lerp(32f, 33f, MathF.Sin(MathHelper.Pi * 4f * completionRatio) * 0.5f + 0.5f) * Projectile.scale;
+            float baseWidth = Lerp(32f, 33f, Sin(Pi * 4f * completionRatio) * 0.5f + 0.5f) * Projectile.scale;
             return CalamityUtils.Convert01To010(completionRatio) * baseWidth * (1f + ScaleFactorDelta);
         }
 

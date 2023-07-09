@@ -1,7 +1,6 @@
 using CalamityMod.DataStructures;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.GameContent;
@@ -38,7 +37,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 Projectile.active = false;
 
             if (Projectile.timeLeft < 60)
-                Projectile.Opacity = MathHelper.Lerp(Projectile.Opacity, 0.002f, 0.1f);
+                Projectile.Opacity = Lerp(Projectile.Opacity, 0.002f, 0.1f);
 
             Time++;
         }
@@ -72,8 +71,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             Vector2 drawPosition = Projectile.Center - Main.screenPosition;
             for (int i = 0; i < 16; i++)
             {
-                float drawOffsetFactor = (MathF.Cos(Main.GlobalTimeWrappedHourly * 40f) * 0.5f + 0.5f) * scaleFactor * fadeToOrange * 8f + 1f;
-                Vector2 drawOffset = (MathHelper.TwoPi * i / 16f).ToRotationVector2() * drawOffsetFactor;
+                float drawOffsetFactor = (Cos(Main.GlobalTimeWrappedHourly * 40f) * 0.5f + 0.5f) * scaleFactor * fadeToOrange * 8f + 1f;
+                Vector2 drawOffset = (TwoPi * i / 16f).ToRotationVector2() * drawOffsetFactor;
                 Main.spriteBatch.Draw(starTexture, drawPosition + drawOffset, null, starColor * 0.4f, 0f, starTexture.Size() * 0.5f, Projectile.scale * scaleFactor, 0, 0f);
             }
             spriteBatch.Draw(starTexture, drawPosition, null, starColor * 4f, 0f, starTexture.Size() * 0.5f, Projectile.scale * scaleFactor, 0, 0f);
@@ -87,7 +86,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 Vector2 scale = new(scaleFactor * 1.5f, (start - end).Length() / lineTexture.Height);
                 Vector2 origin = new(lineTexture.Width * 0.5f, 0f);
                 Color drawColor = Color.White;
-                float rotation = (end - start).ToRotation() - MathHelper.PiOver2;
+                float rotation = (end - start).ToRotation() - PiOver2;
 
                 spriteBatch.Draw(lineTexture, start - Main.screenPosition, null, drawColor, rotation, origin, scale, 0, 0f);
             }
@@ -101,7 +100,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
             Vector2 initialVelocity = Vector2.UnitY * 6.5f;
             if (Projectile.identity % 2f == 1f)
-                initialVelocity = initialVelocity.RotatedBy(MathHelper.PiOver2);
+                initialVelocity = initialVelocity.RotatedBy(PiOver2);
 
             Utilities.NewProjectileBetter(Projectile.Center, -initialVelocity, ProjectileID.CultistBossFireBall, MoonLordCoreBehaviorOverride.FireballDamage, 0f);
             Utilities.NewProjectileBetter(Projectile.Center, initialVelocity, ProjectileID.CultistBossFireBall, MoonLordCoreBehaviorOverride.FireballDamage, 0f);

@@ -1,7 +1,6 @@
 ﻿using CalamityMod.Particles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -34,14 +33,14 @@ namespace InfernumMode.Common.Graphics.Particles
         public override void Update()
         {
             if (Time <= 10f)
-                Opacity = MathHelper.Clamp(Opacity + 0.1f, 0f, 1f);
+                Opacity = Clamp(Opacity + 0.1f, 0f, 1f);
             else if (Time >= Lifetime - 10f)
-                Opacity = MathHelper.Clamp(Opacity - 0.1f, 0f, 1f);
+                Opacity = Clamp(Opacity - 0.1f, 0f, 1f);
 
             // Rapidly affect the scale.
-            float scaleSine = (1f + MathF.Sin(Time * 0.25f)) / 2f;
+            float scaleSine = (1f + Sin(Time * 0.25f)) / 2f;
 
-            Scale = MathHelper.Lerp(MaxScale * 0.85f, MaxScale, scaleSine);
+            Scale = Lerp(MaxScale * 0.85f, MaxScale, scaleSine);
         }
 
         public override void CustomDraw(SpriteBatch spriteBatch)

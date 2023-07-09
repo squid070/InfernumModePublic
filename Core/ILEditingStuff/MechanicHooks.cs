@@ -26,7 +26,6 @@ using InfernumMode.Content.Items.Accessories;
 using InfernumMode.Content.Projectiles.Generic;
 using InfernumMode.Content.Subworlds;
 using InfernumMode.Core.Balancing;
-using InfernumMode.Core.GlobalInstances.GlobalItems;
 using InfernumMode.Core.GlobalInstances.Players;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.Netcode;
@@ -427,7 +426,7 @@ namespace InfernumMode.Core.ILEditingStuff
             // Draw the Brimstone Crescent forcefield.
             if (crescentPlayer.ForcefieldStrengthInterpolant > 0f)
             {
-                float scale = MathHelper.Lerp(0.55f, 1.5f, 1f - crescentPlayer.ForcefieldStrengthInterpolant);
+                float scale = Lerp(0.55f, 1.5f, 1f - crescentPlayer.ForcefieldStrengthInterpolant);
                 Color forcefieldColor = CalamityUtils.ColorSwap(Color.Lerp(Color.Red, Color.Yellow, 0.06f), Color.OrangeRed, 5f) * crescentPlayer.ForcefieldStrengthInterpolant;
                 CultistBehaviorOverride.DrawForcefield(forcefieldDrawPosition, 1.35f, forcefieldColor, InfernumTextureRegistry.FireNoise.Value, true, scale);
             }

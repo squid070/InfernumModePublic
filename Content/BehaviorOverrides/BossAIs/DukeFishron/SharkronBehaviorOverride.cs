@@ -1,5 +1,4 @@
 using InfernumMode.Core.OverridingSystem;
-using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -25,7 +24,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DukeFishron
             }
 
             // Fade in.
-            npc.Opacity = MathHelper.Clamp(npc.Opacity + 0.06f, 0f, 1f);
+            npc.Opacity = Clamp(npc.Opacity + 0.06f, 0f, 1f);
             npc.rotation = npc.velocity.ToRotation();
 
             return false;

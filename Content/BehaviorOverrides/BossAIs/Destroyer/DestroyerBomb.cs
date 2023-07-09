@@ -6,7 +6,6 @@ using InfernumMode.Common.Graphics.Interfaces;
 using InfernumMode.Common.Graphics.Particles;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -46,7 +45,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
                 Projectile.velocity.Y += 0.25f;
 
             // Rotate.
-            Projectile.rotation = Projectile.velocity.ToRotation() - MathHelper.PiOver2;
+            Projectile.rotation = Projectile.velocity.ToRotation() - PiOver2;
 
             // Collide with tiles after enough time has passed.
             Projectile.tileCollide = Projectile.timeLeft < 420;
@@ -92,12 +91,12 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Destroyer
             BloomLineDrawInfo lineInfo = new()
             {
                 LineRotation = laserRotation,
-                WidthFactor = 0.0035f + MathF.Pow(telegraphInterpolant, 4f) * (MathF.Sin(Main.GlobalTimeWrappedHourly * 3f) * 0.001f + 0.001f),
-                BloomIntensity = MathHelper.Lerp(0.3f, 0.4f, telegraphInterpolant),
+                WidthFactor = 0.0035f + Pow(telegraphInterpolant, 4f) * (Sin(Main.GlobalTimeWrappedHourly * 3f) * 0.001f + 0.001f),
+                BloomIntensity = Lerp(0.3f, 0.4f, telegraphInterpolant),
                 Scale = Vector2.One * telegraphInterpolant * 200f,
                 MainColor = Color.Lerp(Color.Orange, Color.Red, telegraphInterpolant * 0.6f + 0.4f),
                 DarkerColor = Color.Orange,
-                Opacity = MathF.Sqrt(telegraphInterpolant),
+                Opacity = Sqrt(telegraphInterpolant),
                 BloomOpacity = 0.375f,
                 LightStrength = 5f
             };

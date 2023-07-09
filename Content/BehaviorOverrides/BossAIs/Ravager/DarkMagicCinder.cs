@@ -2,7 +2,6 @@ using CalamityMod;
 using InfernumMode.Content.Dusts;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.GameContent;
 using Terraria.ID;
@@ -37,7 +36,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Ravager
         {
             Lighting.AddLight(Projectile.Center, Color.Blue.ToVector3() * 0.64f);
 
-            Projectile.Opacity = MathF.Sin(MathHelper.Pi * Projectile.timeLeft / 360f) * 5f;
+            Projectile.Opacity = Sin(Pi * Projectile.timeLeft / 360f) * 5f;
             if (Projectile.Opacity > 1f)
                 Projectile.Opacity = 1f;
 
@@ -48,7 +47,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Ravager
             if (Projectile.velocity.Length() < 27f)
                 Projectile.velocity *= 1.015f;
 
-            Projectile.rotation = Projectile.velocity.ToRotation() - MathHelper.PiOver2;
+            Projectile.rotation = Projectile.velocity.ToRotation() - PiOver2;
         }
 
         public override bool? CanDamage() => Projectile.Opacity > 0.75f ? null : false;
@@ -77,7 +76,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Ravager
 
             for (int i = 0; i < 6; i++)
             {
-                Vector2 drawOffset = (MathHelper.TwoPi * i / 6f).ToRotationVector2() * 4f;
+                Vector2 drawOffset = (TwoPi * i / 6f).ToRotationVector2() * 4f;
                 Main.spriteBatch.Draw(texture, drawPosition + drawOffset, frame, new Color(1f, 1f, 1f, 0f) * Projectile.Opacity * 0.65f, Projectile.rotation, origin, Projectile.scale, SpriteEffects.None, 0f);
             }
             CalamityUtils.DrawAfterimagesCentered(Projectile, ProjectileID.Sets.TrailingMode[Projectile.type], lightColor);

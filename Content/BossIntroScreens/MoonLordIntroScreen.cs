@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -16,7 +15,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override TextColorData TextColor => new(c =>
         {
-            return Color.Lerp(Color.Turquoise, Color.Gray, MathF.Sin(AnimationCompletion * 12f + c * MathHelper.Pi * 4f) * 0.5f + 0.5f);
+            return Color.Lerp(Color.Turquoise, Color.Gray, Sin(AnimationCompletion * 12f + c * Pi * 4f) * 0.5f + 0.5f);
         });
 
         public override Color ScreenCoverColor => Color.Black;

@@ -1,10 +1,10 @@
 ﻿using CalamityMod;
+using CalamityMod.NPCs.ExoMechs;
 using CalamityMod.NPCs.Yharon;
 using CalamityMod.Particles;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon;
-using InfernumMode.Core.GlobalInstances;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Terraria;
 using Terraria.GameContent;
-using Terraria.ID;
 using Terraria.ModLoader;
 using Terraria.UI.Chat;
 using static CalamityMod.UI.BossHealthBarManager;
@@ -225,7 +224,7 @@ namespace InfernumMode.Content.BossBars
 
             // Update the enrage fire particles.
             if (EnrageTimer > 0)
-                EnrageParticleSet.ParticleSpawnRate = (int)MathHelper.Lerp(600f, 4f, Utils.GetLerpValue(0f, 45f, EnrageTimer, true));
+                EnrageParticleSet.ParticleSpawnRate = (int)Lerp(600f, 4f, Utils.GetLerpValue(0f, 45f, EnrageTimer, true));
             else
                 EnrageParticleSet.ParticleSpawnRate = int.MaxValue;
             EnrageParticleSet.Update();
@@ -237,6 +236,8 @@ namespace InfernumMode.Content.BossBars
             int headIndex = AssociatedNPC.GetBossHeadTextureIndex();
             if (TextureAssets.NpcHeadBoss.IndexInRange(headIndex))
                 BossIcon = TextureAssets.NpcHeadBoss[headIndex].Value;
+            if (AssociatedNPC.type == ModContent.NPCType<Draedon>())
+                BossIcon = ModContent.Request<Texture2D>("CalamityMod/Items/Armor/Vanity/DraedonMask").Value;
 
             // Ensure there is the correct amount of indicators.
             int indicatorAmount = GetTotalPhaseIndicators();
@@ -339,7 +340,7 @@ namespace InfernumMode.Content.BossBars
 
             Vector2 leftBarTipPos = barCenter + new Vector2(-147f, 0f);
             Vector2 rightBarTipPos = barCenter + new Vector2(84f, 0f);
-            Vector2 mainBarTipPos = Vector2.Lerp(rightBarTipPos, leftBarTipPos, MathHelper.Clamp(currentRatio, 0f, 1f));
+            Vector2 mainBarTipPos = Vector2.Lerp(rightBarTipPos, leftBarTipPos, Clamp(currentRatio, 0f, 1f));
 
             // Draw the HP bar.
             Vector2 hpBarLeftPos = leftBarTipPos + new Vector2(10f, 0f);
@@ -389,7 +390,7 @@ namespace InfernumMode.Content.BossBars
 
             // Draw the icon.
             float idealIconSize = 40f;
-            float actualIconSize = MathHelper.Max(BossIcon.Width, BossIcon.Height);
+            float actualIconSize = MathF.Max(BossIcon.Width, BossIcon.Height);
             float iconScaleNeeded = idealIconSize / actualIconSize;
             Vector2 iconDrawPos = barCenter + new Vector2(135f, 0f);
             Color afterimageColor = Color.White;
@@ -404,8 +405,8 @@ namespace InfernumMode.Content.BossBars
 
             for (int i = 0; i < 12; i++)
             {
-                Vector2 backglowOffset = (MathHelper.TwoPi * i / 12f).ToRotationVector2() * 3f;
-                spriteBatch.Draw(BossIcon, iconDrawPos + backglowOffset, null, afterimageColor with { A = 0 } * 0.5f * MathF.Pow(mainOpacity, 2f), 0f, BossIcon.Size() * 0.5f, iconScaleNeeded, SpriteEffects.None, 0f);
+                Vector2 backglowOffset = (TwoPi * i / 12f).ToRotationVector2() * 3f;
+                spriteBatch.Draw(BossIcon, iconDrawPos + backglowOffset, null, afterimageColor with { A = 0 } * 0.5f * Pow(mainOpacity, 2f), 0f, BossIcon.Size() * 0.5f, iconScaleNeeded, SpriteEffects.None, 0f);
             }
             spriteBatch.Draw(BossIcon, iconDrawPos, null, Color.Lerp(drawColor, afterimageColor * mainOpacity, 0.75f), 0f, BossIcon.Size() * 0.5f, iconScaleNeeded, SpriteEffects.None, 0f);
 
@@ -444,7 +445,7 @@ namespace InfernumMode.Content.BossBars
             Vector2 percentBaseDrawPos = leftPhaseShellPos + new Vector2(-30f, -3f);
             spriteBatch.Draw(PercentageFrame, percentBaseDrawPos, null, drawColor, 0f, PercentageFrame.Size() * 0.5f, 1f, SpriteEffects.None, 0f);
             float totalRatio = (float)CombinedNPCLife / CombinedNPCMaxLife;
-            float formattedRatio = MathF.Truncate(totalRatio * 10000f) / 100;
+            float formattedRatio = Truncate(totalRatio * 10000f) / 100;
             if (float.IsNaN(formattedRatio))
                 formattedRatio = 0f;
             string percentText = formattedRatio.ToString() + "%";

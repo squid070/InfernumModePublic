@@ -5,7 +5,6 @@ using InfernumMode.Common.Graphics.Interfaces;
 using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
@@ -64,8 +63,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
 
         public float TornadoWidthFunction(float completionRatio)
         {
-            float scale = MathHelper.Lerp(0.04f, 1f, MathF.Pow(completionRatio, 0.82f)) * Projectile.scale;
-            float width = Projectile.width + MathF.Sin(MathHelper.Pi * completionRatio * 3f - Time / 5f) * 16f;
+            float scale = Lerp(0.04f, 1f, Pow(completionRatio, 0.82f)) * Projectile.scale;
+            float width = Projectile.width + Sin(Pi * completionRatio * 3f - Time / 5f) * 16f;
             return width * scale;
         }
 
@@ -78,7 +77,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon
         public override bool? Colliding(Rectangle projHitbox, Rectangle targetHitbox)
         {
             float _ = 0f;
-            return Collision.CheckAABBvLineCollision(targetHitbox.TopLeft(), targetHitbox.Size(), Projectile.Top, Projectile.Bottom - Vector2.UnitY * 125f, Projectile.width * 0.72f, ref _);
+            return Collision.CheckAABBvLineCollision(targetHitbox.TopLeft(), targetHitbox.Size(), Projectile.Top + Vector2.UnitY * 60f, Projectile.Bottom - Vector2.UnitY * 125f, Projectile.width * 0.72f, ref _);
         }
 
         public void DrawPixelPrimitives(SpriteBatch spriteBatch)

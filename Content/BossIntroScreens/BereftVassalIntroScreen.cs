@@ -1,7 +1,6 @@
 using CalamityMod;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark;
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
@@ -14,7 +13,7 @@ namespace InfernumMode.Content.BossIntroScreens
         {
             Color sandColor = new(191, 142, 104);
             Color waterColor = new(32, 175, 188);
-            return Color.Lerp(sandColor, waterColor, MathF.Sin(completionRatio * MathHelper.Pi * 4f + AnimationCompletion * MathHelper.Pi));
+            return Color.Lerp(sandColor, waterColor, Sin(completionRatio * Pi * 4f + AnimationCompletion * Pi));
         });
 
         public override bool TextShouldBeCentered => true;

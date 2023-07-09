@@ -2,7 +2,6 @@ using CalamityMod;
 using InfernumMode.Assets.ExtraTextures;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 using Terraria.DataStructures;
 using Terraria.Graphics.Shaders;
@@ -58,8 +57,8 @@ namespace InfernumMode.Common.BaseEntities
             Main.LocalPlayer.Calamity().GeneralScreenShakePower = DetermineScreenShakePower(1f - Projectile.timeLeft / (float)Lifetime, distanceFromPlayer);
 
             // Cause the wave to expand outward, along with its hitbox.
-            Radius = MathHelper.Lerp(Radius, MaxRadius, RadiusExpandRateInterpolant);
-            Projectile.scale = MathHelper.Lerp(MinScale, MaxScale, Utils.GetLerpValue(Lifetime, 0f, Projectile.timeLeft, true));
+            Radius = Lerp(Radius, MaxRadius, RadiusExpandRateInterpolant);
+            Projectile.scale = Lerp(MinScale, MaxScale, Utils.GetLerpValue(Lifetime, 0f, Projectile.timeLeft, true));
             Projectile.ExpandHitboxBy((int)(Radius * Projectile.scale), (int)(Radius * Projectile.scale));
         }
 
@@ -79,7 +78,7 @@ namespace InfernumMode.Common.BaseEntities
                 ExplosionNoiseTexture,
                 drawPosition,
                 new Rectangle(0, 0, Projectile.width, Projectile.height),
-                new Color(new Vector4(MathF.Sqrt(Projectile.timeLeft / (float)Lifetime))) * 0.7f * Opacity,
+                new Color(new Vector4(Sqrt(Projectile.timeLeft / (float)Lifetime))) * 0.7f * Opacity,
                 Projectile.rotation,
                 Projectile.Size,
                 scale,

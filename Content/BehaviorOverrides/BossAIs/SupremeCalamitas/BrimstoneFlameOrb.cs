@@ -7,7 +7,6 @@ using InfernumMode.Common.Graphics.Interfaces;
 using InfernumMode.Common.Graphics.Primitives;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
 using Terraria;
 using Terraria.Audio;
@@ -77,7 +76,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
 
                 for (int i = 0; i < LaserCount; i++)
                 {
-                    Vector2 laserDirection = (MathHelper.TwoPi * i / LaserCount + 0.8f).ToRotationVector2();
+                    Vector2 laserDirection = (TwoPi * i / LaserCount + 0.8f).ToRotationVector2();
                     Utilities.NewProjectileBetter(Projectile.Center, laserDirection, ModContent.ProjectileType<FlameOverloadBeam>(), SupremeCalamitasBehaviorOverride.FlameOverloadBeamDamage, 0f, -1, Owner.whoAmI);
                 }
             }
@@ -85,11 +84,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             Time++;
         }
 
-        public float OrbWidthFunction(float completionRatio) => MathHelper.SmoothStep(0f, Radius, MathF.Sin(MathHelper.Pi * completionRatio));
+        public float OrbWidthFunction(float completionRatio) => SmoothStep(0f, Radius, Sin(Pi * completionRatio));
 
         public Color OrbColorFunction(float completionRatio)
         {
-            Color c = Color.Lerp(Color.Yellow, Color.Red, MathHelper.Lerp(0.2f, 0.8f, Projectile.localAI[0] % 1f));
+            Color c = Color.Lerp(Color.Yellow, Color.Red, Lerp(0.2f, 0.8f, Projectile.localAI[0] % 1f));
             if (CalamityGlobalNPC.SCal == CalamityGlobalNPC.SCalLament)
                 c = Color.Lerp(c, Color.DeepSkyBlue, 0.65f);
             c = Color.Lerp(c, Color.White, completionRatio * 0.5f);
@@ -105,16 +104,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             // Draw telegraphs.
             if (TelegraphInterpolant is >= 0 and < 1)
             {
-                float telegraphWidth = MathHelper.Lerp(1f, 6f, TelegraphInterpolant);
+                float telegraphWidth = Lerp(1f, 6f, TelegraphInterpolant);
                 for (int i = 0; i < LaserCount; i++)
                 {
-                    Vector2 laserDirection = (MathHelper.TwoPi * i / LaserCount + 0.8f).ToRotationVector2();
+                    Vector2 laserDirection = (TwoPi * i / LaserCount + 0.8f).ToRotationVector2();
                     Vector2 start = Projectile.Center;
                     Vector2 end = Projectile.Center + laserDirection * 4200f;
                     Color telegraphColor = Color.Orange;
                     if (CalamityGlobalNPC.SCal == CalamityGlobalNPC.SCalLament)
                         telegraphColor = Color.Lerp(telegraphColor, Color.DeepSkyBlue, 0.65f);
-                    Main.spriteBatch.DrawLineBetter(start, end, telegraphColor * MathF.Pow(TelegraphInterpolant, 0.67f), telegraphWidth);
+                    Main.spriteBatch.DrawLineBetter(start, end, telegraphColor * Pow(TelegraphInterpolant, 0.67f), telegraphWidth);
                 }
             }
             return false;
@@ -133,9 +132,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.SupremeCalamitas
             List<float> rotationPoints = new();
             List<Vector2> drawPoints = new();
 
-            for (float offsetAngle = -MathHelper.PiOver2; offsetAngle <= MathHelper.PiOver2; offsetAngle += MathHelper.Pi / 30f)
+            for (float offsetAngle = -PiOver2; offsetAngle <= PiOver2; offsetAngle += Pi / 30f)
             {
-                Projectile.localAI[0] = MathHelper.Clamp((offsetAngle + MathHelper.PiOver2) / MathHelper.Pi, 0f, 1f);
+                Projectile.localAI[0] = Clamp((offsetAngle + PiOver2) / Pi, 0f, 1f);
 
                 rotationPoints.Clear();
                 drawPoints.Clear();

@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using System;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
@@ -12,7 +11,7 @@ namespace InfernumMode.Content.BossIntroScreens
         {
             Color shadowflameColor = new(200, 113, 255);
             Color boneColor = new(198, 187, 157);
-            return Color.Lerp(shadowflameColor, boneColor, MathF.Sin(completionRatio * MathHelper.Pi * 4f + AnimationCompletion * MathHelper.Pi / 3f) * 0.5f + 0.5f);
+            return Color.Lerp(shadowflameColor, boneColor, Sin(completionRatio * Pi * 4f + AnimationCompletion * Pi / 3f) * 0.5f + 0.5f);
         });
 
         public override bool TextShouldBeCentered => true;

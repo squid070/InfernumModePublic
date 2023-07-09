@@ -2,7 +2,6 @@ using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Common.BaseEntities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using Terraria;
 
 namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
@@ -21,13 +20,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
 
         public override float DetermineScreenShakePower(float lifetimeCompletionRatio, float distanceFromPlayer)
         {
-            float baseShakePower = MathHelper.Lerp(3f, 16f, MathF.Sin(MathHelper.Pi * lifetimeCompletionRatio));
+            float baseShakePower = Lerp(3f, 16f, Sin(Pi * lifetimeCompletionRatio));
             return baseShakePower * Utils.GetLerpValue(2200f, 1050f, distanceFromPlayer, true);
         }
 
         public override Color DetermineExplosionColor(float lifetimeCompletionRatio)
         {
-            return Color.Lerp(Color.Cyan, Color.Fuchsia, MathHelper.Clamp(lifetimeCompletionRatio * 1.75f, 0f, 1f));
+            return Color.Lerp(Color.Cyan, Color.Fuchsia, Clamp(lifetimeCompletionRatio * 1.75f, 0f, 1f));
         }
     }
 }

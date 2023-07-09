@@ -13,8 +13,8 @@ using CalamityMod.NPCs.PlaguebringerGoliath;
 using CalamityMod.NPCs.SupremeCalamitas;
 using CalamityMod.NPCs.Yharon;
 using CalamityMod.UI;
-using InfernumMode.Common.Graphics;
 using InfernumMode.Common.Graphics.Primitives;
+using InfernumMode.Common.Graphics.ScreenEffects;
 using InfernumMode.Content.Achievements;
 using InfernumMode.Content.Achievements.InfernumAchievements;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Cryogen;
@@ -173,7 +173,7 @@ namespace InfernumMode.Core.GlobalInstances
                     if (npc.Calamity().KillTime >= 1 && npc.Calamity().AITimer < npc.Calamity().KillTime)
                         npc.Calamity().AITimer = npc.Calamity().KillTime;
 
-                    // If any boss NPC is active, apply Zen to nearby players to reduce spawn rate.
+                    // If any boss NPC is active, apply Zen to nearby players to reduce the spawn rate.
                     if (Main.netMode != NetmodeID.Server && CalamityConfig.Instance.BossZen && (npc.Calamity().KillTime > 0 || npc.type == ModContent.NPCType<Draedon>() || npc.type == ModContent.NPCType<ThiccWaifu>()))
                     {
                         if (!Main.LocalPlayer.dead && Main.LocalPlayer.active && npc.WithinRange(Main.LocalPlayer.Center, 6400f))

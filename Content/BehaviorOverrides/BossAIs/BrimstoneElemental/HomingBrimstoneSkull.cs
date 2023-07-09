@@ -2,7 +2,6 @@ using CalamityMod;
 using CalamityMod.Dusts;
 using CalamityMod.Events;
 using Microsoft.Xna.Framework;
-using System;
 using System.IO;
 using Terraria;
 using Terraria.Audio;
@@ -62,7 +61,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
 
             if (Time < 0f)
             {
-                float speedInterpolant = MathF.Pow(Utils.GetLerpValue(-150f, -1f, Time, true), 4f);
+                float speedInterpolant = Pow(Utils.GetLerpValue(-150f, -1f, Time, true), 4f);
                 Vector2 endingVelocity = Projectile.velocity.SafeNormalize(Vector2.UnitY) * MaxSpeed;
                 Projectile.velocity = Vector2.Lerp(StartingVelocity, endingVelocity, speedInterpolant);
             }
@@ -78,9 +77,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
 
             Projectile.spriteDirection = (Projectile.velocity.X > 0f).ToDirectionInt();
             Projectile.rotation = Projectile.velocity.ToRotation();
-            Projectile.Opacity = MathHelper.Clamp(Projectile.Opacity + 0.04f, 0f, 1f);
+            Projectile.Opacity = Clamp(Projectile.Opacity + 0.04f, 0f, 1f);
             if (Projectile.spriteDirection == -1)
-                Projectile.rotation += MathHelper.Pi;
+                Projectile.rotation += Pi;
 
             Lighting.AddLight(Projectile.Center, Projectile.Opacity * 0.9f, 0f, 0f);
 
