@@ -1,3 +1,5 @@
+﻿global using static System.MathF;
+global using static Microsoft.Xna.Framework.MathHelper;
 using CalamityMod.Cooldowns;
 using InfernumMode.Assets.Effects;
 using InfernumMode.Content.BossBars;
@@ -14,22 +16,23 @@ using Terraria;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static CalamityMod.Particles.Metaballs.FusableParticleManager;
+using InfernumMode.Common.Graphics.Primitives;
 
 namespace InfernumMode
 {
     public class InfernumMode : Mod
     {
-        internal static InfernumMode Instance = null;
+        internal static InfernumMode Instance;
 
-        internal static Mod CalamityMod = null;
+        internal static Mod CalamityMod;
 
-        internal static Mod InfernumMusicMod = null;
+        internal static Mod InfernumMusicMod;
 
-        internal static Mod FargosMutantMod = null;
+        internal static Mod FargosMutantMod;
 
-        internal static Mod FargowiltasSouls = null;
+        internal static Mod FargowiltasSouls;
 
-        internal static Mod PhaseIndicator = null;
+        internal static Mod PhaseIndicator;
 
         public static bool MusicModIsActive
         {
@@ -162,6 +165,12 @@ namespace InfernumMode
             IntroScreenManager.Unload();
             BalancingChangesManager.Unload();
             HookManager.Unload();
+
+            Main.QueueMainThreadAction(() =>
+            {
+                PrimitiveTrailCopy.Dispose();
+                Primitive3DStrip.Dispose();
+            });
             Instance = null;
             CalamityMod = null;
         }

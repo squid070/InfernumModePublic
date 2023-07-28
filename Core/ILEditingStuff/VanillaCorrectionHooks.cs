@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.Balancing;
 using CalamityMod.BiomeManagers;
 using CalamityMod.CalPlayer;
@@ -1169,7 +1169,7 @@ namespace InfernumMode.Core.ILEditingStuff
     public class MakeDungeonSpawnAtLeftSideHook : IHookEdit
     {
         // This is so hideous but the alternative is IL editing on anonymous methods.
-        internal static bool ReturnZeroInRandomness = false;
+        internal static bool ReturnZeroInRandomness;
 
         public void Load()
         {
