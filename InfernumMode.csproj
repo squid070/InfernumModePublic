@@ -6,8 +6,19 @@
     <TargetFramework>net6.0</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>latest</LangVersion>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Content\BehaviorOverrides\BossAIs\StormWeaver\Textures\**" />
+    <EmbeddedResource Remove="Content\BehaviorOverrides\BossAIs\StormWeaver\Textures\**" />
+    <None Remove="Content\BehaviorOverrides\BossAIs\StormWeaver\Textures\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Remove="Localization\en-US.hjson" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Assets\Effects\Shapes\LightningShader.fx" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="tModLoader.CodeAssist" Version="0.1.*" />
   </ItemGroup>
@@ -19,7 +30,10 @@
       <HintPath>lib\Gif.dll</HintPath>
     </Reference>
     <Reference Include="SubworldLibrary">
-      <HintPath>..\..\ModReader\SubworldLibrary\SubworldLibrary.dll</HintPath>
+      <HintPath>E:\Downloads\SubworldLibrary\SubworldLibrary.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Content\Credits\Textures\" />
   </ItemGroup>
 </Project>
