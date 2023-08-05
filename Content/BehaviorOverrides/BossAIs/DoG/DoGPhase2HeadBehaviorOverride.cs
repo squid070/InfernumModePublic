@@ -229,7 +229,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                     Utilities.DeleteAllProjectiles(false, ModContent.ProjectileType<DoGChargeGate>());
                 }
 
-                Utilities.DisplayText("A GOD DOES NOT FEAR DEATH!", Color.Cyan);
+                CalamityUtils.DisplayLocalizedText("Mods.CalamityMod.Status.Boss.EdgyBossText6", Color.Cyan);
                 npc.netUpdate = true;
             }
 
@@ -570,17 +570,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
 
             // Say edgy things.
             if (deathAnimationTimer == textDelay)
-                Utilities.DisplayText("I WILL NOT BE DESTROYED!!!", Color.Cyan);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.DoGDeath1", Color.Cyan);
             if (deathAnimationTimer == textDelay + 50f)
-                Utilities.DisplayText("I WILL NOT BE DESTROYED!!!", Color.Cyan);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.DoGDeath2", Color.Cyan);
             if (deathAnimationTimer == textDelay + 100f)
-                Utilities.DisplayText("I WILL NOT BE DESTROYED!!!!", Color.Cyan);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.DoGDeath3", Color.Cyan);
 
             if (deathAnimationTimer == textDelay + 200f)
-                Utilities.DisplayText("I WILL NOT...", Color.Cyan);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.DoGDeath4", Color.Cyan);
 
             if (deathAnimationTimer == textDelay + 270f)
-                Utilities.DisplayText("I...", Color.Cyan);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.DoGDeath5", Color.Cyan);
 
             // Destroy most of DoG's first segments.
             if (deathAnimationTimer >= textDelay && deathAnimationTimer < deathAnimationTimer + segmentDestructionTime && deathAnimationTimer % 4f == 0f)
@@ -749,7 +749,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                 chompDistance += 160f;
             }
             else
-                HatGirl.SayThingWhileOwnerIsAlive(target, "Don't feel intimidated, face fear in the eyes and dash directly into the Devourer's maw!");
+                HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.DoGChargeTip");
 
             // Charge if the player is far away.
             // Don't do this at the start of the fight though. Doing so might lead to an unfair
@@ -1102,7 +1102,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                                 portal.Size *= scaleFactor;
                                 portal.ModProjectile<DoGChargeGate>().IsGeneralPortalIndex = true;
                             });
-                            Projectile.NewProjectile(npc.GetSource_FromAI(), npc.Center + npc.velocity * 64f, Vector2.Zero, ModContent.ProjectileType<DoGChargeGate>(), 0, 0f);
+
+                            Vector2 portalSpawnPosition = Vector2.Clamp(npc.Center + npc.velocity * 64f, Vector2.One * 320f, new Vector2(Main.maxTilesX, Main.maxTilesY) * 16f - Vector2.One * 320f);
+                            Projectile.NewProjectile(npc.GetSource_FromAI(), portalSpawnPosition, Vector2.Zero, ModContent.ProjectileType<DoGChargeGate>(), 0, 0f);
                             npc.netUpdate = true;
                         }
                         return;
@@ -1332,7 +1334,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
                     }
 
                     if (specialAttackType is SpecialAttackType.LaserWalls or SpecialAttackType.CircularLaserBurst)
-                        HatGirl.SayThingWhileOwnerIsAlive(target, "Oh man, theres so many lasers! Slow and precise movements seem like your best bet here...");
+                        HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.DoGLaserTip");
                 }
 
                 // Be completely invisible after the special attacks conclude.

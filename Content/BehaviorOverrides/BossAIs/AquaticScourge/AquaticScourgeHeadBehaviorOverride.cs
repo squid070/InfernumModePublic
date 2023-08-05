@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.CalPlayer;
 using CalamityMod.Events;
 using CalamityMod.NPCs.AcidRain;
@@ -58,7 +58,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
             GlobalNPCOverrides.StrikeNPCEvent += DisableNaturalASDeath;
         }
 
-        private void UpdateAcidHissSound(NPC npc, int hitDirection, double damage)
+        private void UpdateAcidHissSound(NPC npc, ref NPC.HitInfo hit)
         {
             // Ensure that the Aquatic Scourge stops the hissing sound if it's unexpectedly killed.
             bool aquaticScourge = npc.type == ModContent.NPCType<AquaticScourgeHead>() || npc.type == ModContent.NPCType<AquaticScourgeBody>() || npc.type == ModContent.NPCType<AquaticScourgeTail>();
@@ -71,7 +71,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
             }
         }
 
-        private bool DisableNaturalASDeath(NPC npc, ref double damage, int realDamage, int defense, ref float knockback, int hitDirection, ref bool crit)
+        private bool DisableNaturalASDeath(NPC npc, ref NPC.HitModifiers modifiers)
         {
             bool isAquaticScourge = npc.type == ModContent.NPCType<AquaticScourgeHead>() || npc.type == ModContent.NPCType<AquaticScourgeBody>() || npc.type == ModContent.NPCType<AquaticScourgeBodyAlt>() || npc.type == ModContent.NPCType<AquaticScourgeTail>();
             if (isAquaticScourge)
@@ -79,11 +79,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
                 NPC head = npc.realLife >= 0 ? Main.npc[npc.realLife] : npc;
 
                 // Disable damage and start the death animation if the hit would kill the scourge.
-                if (head.life - realDamage <= 1)
+                if (head.life - modifiers.FinalDamage.Base <= 1)
                 {
                     head.life = 0;
                     head.checkDead();
-                    damage = 0;
+                    modifiers.FinalDamage.Base *= 0;
                     npc.dontTakeDamage = true;
                     return false;
                 }
@@ -386,7 +386,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
 
             // Give a tip to encourage the player to go to the bubble.
             if (attackTimer == waterBubbleTime)
-                HatGirl.SayThingWhileOwnerIsAlive(target, "That bleach bubble looks like a good place to recover from the acidic water!");
+                HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.AquaticScourgeBubbleTip");
 
             // Emit bubbles around the player.
             if (Main.netMode != NetmodeID.Server)
@@ -787,7 +787,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
                     // Create rubble that aims backwards and some bubbles from below.
                     if (Main.rand.NextBool(25))
                     {
-                        HatGirl.SayThingWhileOwnerIsAlive(target, "Bonk!");
+                        HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.AquaticScourgeBonkJokeTip");
                         SoundEngine.PlaySound(InfernumSoundRegistry.SkeletronHeadBonkSound, target.Center);
                     }
                     else
@@ -949,8 +949,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
 
             if (attackTimer == slowdownTime)
             {
-                if (selfHurtHPRatio > 0f)
-                    npc.StrikeNPCNoInteraction((int)(npc.lifeMax * selfHurtHPRatio), 0f, 0);
+                if (selfHurtHPRatio > 0f && Main.netMode != NetmodeID.MultiplayerClient)
+                    npc.StrikeInstantKill();
 
                 SoundEngine.PlaySound(Mauler.RoarSound with { Pitch = 0.2f }, target.Center);
                 SoundEngine.PlaySound(InfernumSoundRegistry.AquaticScourgeGoreSound, target.Center);
@@ -1115,7 +1115,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
             if (acidVerticalLine == 0f)
             {
                 acidVerticalLine = MathF.Min(target.Bottom.Y + 2000f, CustomAbyss.AbyssTop * 16f + 900f);
-                Utilities.DisplayText("A deluge of acid is quickly rising from below!", Color.GreenYellow);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.AquaticScourgeFinalPhaseAcid", Color.GreenYellow);
 
                 SoundEngine.PlaySound(Mauler.RoarSound);
                 SoundEngine.PlaySound(InfernumSoundRegistry.SizzleSound);
@@ -1124,7 +1124,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
                 ScreenEffectSystem.SetFlashEffect(npc.Center, 3f, 45);
 
                 // Give a tip.
-                HatGirl.SayThingWhileOwnerIsAlive(target, "The water is almost boiling, I'd surface unless you want to become fried human!");
+                HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.AquaticScourgeAcidTip");
 
                 npc.netUpdate = true;
             }
@@ -1312,7 +1312,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
             if (attackTimer <= 1f)
             {
                 // Give a tip.
-                HatGirl.SayThingWhileOwnerIsAlive(target, "Looks like that's not all this serpent could do, we gotta skeddadle!");
+                HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.AquaticScourgeTyphoonTip");
 
                 SoundEngine.PlaySound(CalamityMod.NPCs.Leviathan.Leviathan.EmergeSound);
                 if (Main.netMode != NetmodeID.MultiplayerClient)
@@ -1808,8 +1808,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
         #region Tips
         public override IEnumerable<Func<NPC, string>> GetTips()
         {
-            yield return n => "The Serpent's frantic swimming seems to cause the water to be easier to traverse through, you could probably swim with your bare hands!";
-            yield return n => "If you feel you need more space, try clearing out the sulphurous sand around!";
+            yield return n => "Mods.InfernumMode.PetDialog.AquaticScourgeTip1";
+            yield return n => "Mods.InfernumMode.PetDialog.AquaticScourgeTip2";
         }
         #endregion Tips
     }

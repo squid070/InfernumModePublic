@@ -56,7 +56,7 @@ namespace InfernumMode.Content.BehaviorOverrides.AbyssAIs
         public override void SetStaticDefaults()
         {
             this.HideFromBestiary();
-            DisplayName.SetDefault("Tentacle");
+            // DisplayName.SetDefault("Tentacle");
             NPCID.Sets.MustAlwaysDraw[NPC.type] = true;
         }
 

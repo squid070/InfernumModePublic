@@ -1,5 +1,7 @@
+﻿using CalamityMod;
 using CalamityMod.NPCs.ExoMechs;
 using InfernumMode.Assets.Sounds;
+using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ModLoader;
@@ -24,19 +26,19 @@ namespace InfernumMode.Core.GlobalInstances.Players
         public void ToggleImmortality()
         {
             CyberneticImmortalityIsActive = !CyberneticImmortalityIsActive;
-            Utilities.DisplayText($"Cybernetic immortality has been {(CyberneticImmortalityIsActive ? "enabled" : "disabled")}.", Draedon.TextColor);
+            CalamityUtils.DisplayLocalizedText($"Mods.InfernumMode.Status.CyberneticImmortality{(CyberneticImmortalityIsActive ? "Enabled" : "Disabled")}", Draedon.TextColor);
         }
 
-        public override bool PreHurt(bool pvp, bool quiet, ref int damage, ref int hitDirection, ref bool crit, ref bool customDamage, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource, ref int cooldownCounter)
+        public override bool FreeDodge(Player.HurtInfo info)
         {
             if (CyberneticImmortalityIsActive && HurtSoundCountdown <= 0)
             {
                 HurtSoundCountdown = 60;
                 SoundEngine.PlaySound(InfernumSoundRegistry.AresTeslaShotSound, Player.Center);
-                playSound = false;
+                info.SoundDisabled = true;
             }
 
-            return !CyberneticImmortalityIsActive;
+            return CyberneticImmortalityIsActive;
         }
 
         public override bool PreKill(double damage, int hitDirection, bool pvp, ref bool playSound, ref bool genGore, ref PlayerDeathReason damageSource)

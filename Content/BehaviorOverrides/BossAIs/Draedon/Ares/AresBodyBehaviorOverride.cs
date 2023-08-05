@@ -573,7 +573,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
             {
                 npc.life = 0;
                 npc.HitEffect();
-                npc.StrikeNPC(10, 0f, 1);
+                NPC.HitInfo hit = new()
+                {
+                    Damage = 10,
+                    Knockback = 0f,
+                    HitDirection = 1
+                };
+                npc.StrikeNPC(hit);
                 npc.checkDead();
             }
         }
@@ -776,7 +782,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
 
                 // Have Draedon comment on the player's attempts to escape.
                 if (Main.netMode != NetmodeID.MultiplayerClient)
-                    CalamityUtils.DisplayLocalizedText("Mods.CalamityMod.DraedonAresEnrageText", DraedonNPC.TextColorEdgy);
+                    CalamityUtils.DisplayLocalizedText("Mods.CalamityMod.Status.Boss.DraedonAresEnrageText", DraedonNPC.TextColorEdgy);
 
                 enraged = 1f;
                 npc.netUpdate = true;
@@ -1004,11 +1010,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
                     cannonAttackTimer = -5f;
 
                     if (attackTimer == textSubstateTime / 2)
-                        Utilities.DisplayText("ARES-09: CORE TEMPERATURES RAPIDLY INCREASING. SELF DESTRUCTION IMMINENT.", AresTextColor);
+                        CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.ExoMechDesperationAres1", AresTextColor);
 
                     if (attackTimer >= textSubstateTime)
                     {
-                        Utilities.DisplayText("ARES-09: PREPARING 'PRECISION GAMMA-BLASTS' MUTUAL DESTRUCTION PROTOCOL.", AresTextColor);
+                        CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.ExoMechDesperationAres2", AresTextColor);
 
                         attackTimer = 0f;
                         attackSubstate = 1f;
@@ -1155,7 +1161,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
                         {
                             Volume = 2f
                         });
-                        Utilities.DisplayText("You have made a grave miscalculation.", DraedonNPC.TextColorEdgy);
+                        CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.DraedonAresDesperationBlenderLeaveWarning", DraedonNPC.TextColorEdgy);
 
                         NPC draedon = Main.npc[draedonIndex];
                         draedon.Infernum().ExtraAI[1] = 1f;
@@ -1196,7 +1202,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
                     {
                         npc.life = 0;
                         npc.HitEffect();
-                        npc.StrikeNPC(10, 0f, 1);
+                        NPC.HitInfo hit = new()
+                        {
+                            Damage = 10,
+                            Knockback = 0f,
+                            HitDirection = 1
+                        };
+                        npc.StrikeNPC(hit);
                         npc.checkDead();
                     }
 
@@ -1781,8 +1793,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
         #region Tips
         public override IEnumerable<Func<NPC, string>> GetTips()
         {
-            yield return n => "Best to keep close during these Exo Overload attacks, otherwise you may have trouble keeping up with the spin!";
-            yield return n => "Ares has one hell of a supercomputer, those arms are super predictive! Maybe you can use that to your advantage?";
+            yield return n => "Mods.InfernumMode.PetDialog.AresTip1";
+            yield return n => "Mods.InfernumMode.PetDialog.AresTip2";
         }
         #endregion Tips
     }

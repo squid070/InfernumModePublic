@@ -73,15 +73,15 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             GlobalNPCOverrides.StrikeNPCEvent += AddDamageMultiplier;
         }
 
-        private bool AddDamageMultiplier(NPC npc, ref double damage, int realDamage, int defense, ref float knockback, int hitDirection, ref bool crit)
+        private bool AddDamageMultiplier(NPC npc, ref NPC.HitModifiers modifiers)
         {
             // Make Thanatos' head take a flat multiplier in terms of final damage, as a means of allowing direct hits to be effective.
             if (npc.type == ModContent.NPCType<ThanatosHead>())
             {
-                damage = (int)(damage * FlatDamageBoostFactor);
+                modifiers.FinalDamage.Base *= FlatDamageBoostFactor;
                 if (npc.Calamity().DR > 0.999f)
                 {
-                    damage = 0D;
+                    modifiers.FinalDamage.Base *= 0f;
                     return false;
                 }
             }
@@ -92,11 +92,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
                 NPC head = npc.realLife >= 0 ? Main.npc[npc.realLife] : npc;
 
                 // Disable damage and start the death animation if the hit would kill Thanatos.
-                if (head.life - realDamage <= 1)
+                if (head.life - modifiers.FinalDamage.Base <= 1)
                 {
                     head.life = 0;
                     head.checkDead();
-                    damage = 0;
+                    modifiers.FinalDamage.Base *= 0f;
                     npc.dontTakeDamage = true;
                     return false;
                 }
@@ -441,7 +441,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             {
                 npc.life = 0;
                 npc.HitEffect();
-                npc.StrikeNPC(10, 0f, 1);
+                NPC.HitInfo hit = new()
+                {
+                    Damage = 10,
+                    Knockback = 0f,
+                    HitDirection = 0
+                };
+                npc.StrikeNPC(hit);
                 npc.checkDead();
             }
 
@@ -871,10 +877,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             ref float coolingOff = ref npc.Infernum().ExtraAI[0];
 
             if (attackTimer == chargeDelay / 2 && firstTimeAttacking)
-                Utilities.DisplayText("THANATOS-05: EXO TURRETS BURNING AT UNSTABLE ENERGY LEVELS. SELF DESTRUCTION IMMINENT.", ThanatosTextColor);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.ExoMechDesperationThanatos1", ThanatosTextColor);
 
             if (attackTimer == chargeDelay - 16f && firstTimeAttacking)
-                Utilities.DisplayText("THANATOS-05: PREPARING 'MAXIMUM OVERDRIVE CHARGE' MUTUTAL DESTRUCTION PROTOCOL.", ThanatosTextColor);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.ExoMechDesperationThanatos2", ThanatosTextColor);
 
             // Play a danger sound before the attack begins.
             if (attackTimer == chargeDelay - (firstTimeAttacking ? 90f : 12f))
@@ -962,7 +968,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Thanatos
             if (!target.HasShieldBash())
                 speedMultiplier *= 0.67f;
             else
-                HatGirl.SayThingWhileOwnerIsAlive(target, "Don't fret, face fear in the eyes and dash directly into Thanatos' face-plates!");
+                HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.ThanatosChargeTip");
 
             float lifeRatio = npc.life / (float)npc.lifeMax;
             float flyAcceleration = Lerp(0.045f, 0.037f, lifeRatio);

@@ -751,7 +751,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
                 }
 
                 // Give a tip.
-                HatGirl.SayThingWhileOwnerIsAlive(target, "Those crystals are equally spaced... seems like you can dodge them the same way consistently!");
+                HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.QueenSlimeCrystalTip");
             }
 
             // Create the spinning lasers.
@@ -1220,7 +1220,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
             bool solidGround = false;
             for (int i = -8; i < 8; i++)
             {
-                Tile ground = CalamityUtils.ParanoidTileRetrieval((int)(npc.Bottom.X / 16f) + i, (int)(npc.Bottom.Y / 16f) + 1);
+                Tile ground = ParanoidTileRetrieval((int)(npc.Bottom.X / 16f) + i, (int)(npc.Bottom.Y / 16f) + 1);
                 bool notAFuckingTree = ground.TileType is not TileID.Trees and not TileID.PineTree and not TileID.PalmTree;
                 if (ground.HasUnactuatedTile && notAFuckingTree && (Main.tileSolid[ground.TileType] || Main.tileSolidTop[ground.TileType]))
                 {
@@ -1235,10 +1235,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.QueenSlime
         #region Tips
         public override IEnumerable<Func<NPC, string>> GetTips()
         {
-            yield return n =>
-            {
-                return "Don't flail about, and figure out what she's doing. Do still try and stay on the move, though!";
-            };
+            yield return n => "Mods.InfernumMode.PetDialog.QueenSlimeTip1";
         }
         #endregion Tips
     }

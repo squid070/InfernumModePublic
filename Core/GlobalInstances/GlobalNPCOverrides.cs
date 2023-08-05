@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.Buffs.StatBuffs;
 using CalamityMod.Buffs.StatDebuffs;
 using CalamityMod.Events;
@@ -112,12 +112,13 @@ namespace InfernumMode.Core.GlobalInstances
             for (int i = 0; i < ExtraAI.Length; i++)
                 ExtraAI[i] = 0f;
 
-            ShouldUseSaturationBlur = false;
-            IsAbyssPredator = false;
-            IsAbyssPrey = false;
-            HasResetHP = false;
-            OptionalPrimitiveDrawer = null;
-            Optional3DStripDrawer = null;
+            var infernum = npc.Infernum();
+            infernum.ShouldUseSaturationBlur = false;
+            infernum.IsAbyssPredator = false;
+            infernum.IsAbyssPrey = false;
+            infernum.HasResetHP = false;
+            infernum.OptionalPrimitiveDrawer = null;
+            infernum.Optional3DStripDrawer = null;
 
             if (InfernumMode.CanUseCustomAIs)
             {
@@ -134,10 +135,10 @@ namespace InfernumMode.Core.GlobalInstances
         public override bool PreAI(NPC npc)
         {
             // Reset the saturation blur state.
-            ShouldUseSaturationBlur = false;
+            npc.Infernum().ShouldUseSaturationBlur = false;
 
             // Initialize the amount of players the NPC had when it spawned.
-            if (!TotalPlayersAtStart.HasValue)
+            if (!npc.Infernum().TotalPlayersAtStart.HasValue)
             {
                 int activePlayerCount = 0;
                 for (int i = 0; i < Main.maxPlayers; i++)
@@ -145,14 +146,14 @@ namespace InfernumMode.Core.GlobalInstances
                     if (Main.player[i].active)
                         activePlayerCount++;
                 }
-                TotalPlayersAtStart = activePlayerCount;
+                npc.Infernum().TotalPlayersAtStart = activePlayerCount;
                 npc.netUpdate = true;
             }
 
             if (InfernumMode.CanUseCustomAIs)
             {
                 // Correct an enemy's life depending on its cached true life value.
-                if (!HasResetHP && NPCHPValues.HPValues.TryGetValue(npc.type, out int maxHP) && maxHP >= 0)
+                if (!npc.Infernum().HasResetHP && NPCHPValues.HPValues.TryGetValue(npc.type, out int maxHP) && maxHP >= 0)
                 {
                     NPCHPValues.AdjustMaxHP(npc, ref maxHP);
 
@@ -162,10 +163,10 @@ namespace InfernumMode.Core.GlobalInstances
                         if (BossHealthBarManager.Bars.Any(b => b.NPCIndex == npc.whoAmI))
                             BossHealthBarManager.Bars.First(b => b.NPCIndex == npc.whoAmI).InitialMaxLife = npc.lifeMax;
 
+                        npc.Infernum().HasResetHP = true;
                         npc.netUpdate = true;
                     }
                 }
-                HasResetHP = true;
 
                 if (OverridingListManager.InfernumNPCPreAIOverrideList.TryGetValue(npc.type, out OverridingListManager.NPCPreAIDelegate value))
                 {
@@ -191,13 +192,12 @@ namespace InfernumMode.Core.GlobalInstances
                     npc.netOffset = Vector2.Zero;
 
                     bool result = value.Invoke(npc);
-                    if (ShouldUseSaturationBlur && !BossRushEvent.BossRushActive)
+                    if (npc.Infernum().ShouldUseSaturationBlur && !BossRushEvent.BossRushActive)
                         ScreenSaturationBlurSystem.ShouldEffectBeActive = true;
 
                     // Disable the effects of certain unpredictable freeze debuffs.
                     // Time Bolt and a few other weapon-specific debuffs are not counted here since those are more deliberate weapon mechanics.
                     // That said, I don't know a single person who uses Time Bolt so it's probably irrelevant either way lol.
-                    npc.buffImmune[ModContent.BuffType<ExoFreeze>()] = true;
                     npc.buffImmune[ModContent.BuffType<Eutrophication>()] = true;
                     npc.buffImmune[ModContent.BuffType<GalvanicCorrosion>()] = true;
                     npc.buffImmune[ModContent.BuffType<GlacialState>()] = true;
@@ -246,28 +246,28 @@ namespace InfernumMode.Core.GlobalInstances
             return base.CanHitPlayer(npc, target, ref cooldownSlot);
         }
 
-        public override void OnHitByProjectile(NPC npc, Projectile projectile, int damage, float knockback, bool crit)
+        public override void OnHitByProjectile(NPC npc, Projectile projectile, NPC.HitInfo hit, int damageDone)
         {
             if (!InfernumMode.CanUseCustomAIs)
                 return;
 
             // Make Cryogen release ice particles when hit.
             if (npc.type == ModContent.NPCType<CryogenNPC>() && OverridingListManager.Registered(npc.type))
-                CryogenBehaviorOverride.OnHitIceParticles(npc, projectile, crit);
+                CryogenBehaviorOverride.OnHitIceParticles(npc, projectile, hit.Crit);
         }
 
-        public override void HitEffect(NPC npc, int hitDirection, double damage)
+        public override void HitEffect(NPC npc, NPC.HitInfo hit)
         {
             if (!InfernumMode.CanUseCustomAIs)
                 return;
 
-            HitEffectsEvent?.Invoke(npc, hitDirection, damage);
+            HitEffectsEvent?.Invoke(npc, ref hit);
         }
 
-        public override bool StrikeNPC(NPC npc, ref double damage, int defense, ref float knockback, int hitDirection, ref bool crit)
+        public override void ModifyIncomingHit(NPC npc, ref NPC.HitModifiers modifiers)
         {
             if (!InfernumMode.CanUseCustomAIs)
-                return base.StrikeNPC(npc, ref damage, defense, ref knockback, hitDirection, ref crit);
+                return;
 
             // Loop through the StrikeNPC event subscribers and dynamically update the damage and such for every loop iteration.
             // If any of the subscribers instruct this method to return false and disable damage, that applies universally.
@@ -275,20 +275,15 @@ namespace InfernumMode.Core.GlobalInstances
             // last subscriber called, effectively ignoring whatever all the other subscribers say should happen.
             bool result = true;
             foreach (Delegate d in StrikeNPCEvent.GetInvocationList())
-            {
-                int realDamage = (int)Math.Ceiling(crit ? damage * 2D : damage);
-                result &= ((StrikeNPCDelegate)d).Invoke(npc, ref damage, realDamage, defense, ref knockback, hitDirection, ref crit);
-            }
-
-            return result;
+                result &= ((StrikeNPCDelegate)d).Invoke(npc, ref modifiers);
         }
 
-        public override void ModifyHitByProjectile(NPC npc, Projectile projectile, ref int damage, ref float knockback, ref bool crit, ref int hitDirection)
+        public override void ModifyHitByProjectile(NPC npc, Projectile projectile, ref NPC.HitModifiers modifiers)
         {
             if (!InfernumMode.CanUseCustomAIs)
                 return;
 
-            BalancingChangesManager.ApplyFromProjectile(npc, ref damage, projectile);
+            BalancingChangesManager.ApplyFromProjectile(npc, ref modifiers, projectile);
         }
 
         public override bool CheckDead(NPC npc)
@@ -301,7 +296,7 @@ namespace InfernumMode.Core.GlobalInstances
 
         public override bool CheckActive(NPC npc)
         {
-            if (DisableNaturalDespawning)
+            if (npc.Infernum().DisableNaturalDespawning)
                 return false;
 
             if (!InfernumMode.CanUseCustomAIs)

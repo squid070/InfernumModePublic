@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.Buffs.DamageOverTime;
 using InfernumMode.Assets.Sounds;
 using InfernumMode.Content.Projectiles.Pets;
@@ -151,16 +151,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             // Create a profaned temple after the moon lord is killed if it doesn't exist yet, for backwards world compatibility reasons.
             if (npc.type == NPCID.MoonLordCore && !WorldSaveSystem.HasGeneratedProfanedShrine && !WeakReferenceSupport.InAnySubworld())
             {
-                Utilities.DisplayText("A profaned shrine has erupted from the ashes at the underworld's edge!", Color.Orange);
+                CalamityUtils.DisplayLocalizedText("Mods.InfernumMode.Status.PostMLTempleCreation", Color.Orange);
                 ProfanedGarden.Generate(new(), new(new()));
                 WorldSaveSystem.HasGeneratedProfanedShrine = true;
             }
         }
 
-        private bool HandleMLBodyPhaseTriggers(NPC npc, ref double damage, int realDamage, int defense, ref float knockback, int hitDirection, ref bool crit)
+        private bool HandleMLBodyPhaseTriggers(NPC npc, ref NPC.HitModifiers modifiers)
         {
             if (npc.type is NPCID.MoonLordHand or NPCID.MoonLordHead)
-                HandleBodyPartDeathTriggers(npc, realDamage);
+                HandleBodyPartDeathTriggers(npc, modifiers.FinalDamage.Base);
             return true;
         }
 
@@ -358,7 +358,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
                 return;
 
             npc.life = 0;
-            npc.StrikeNPCNoInteraction(9999, 0f, 0);
+
+            if (Main.netMode != NetmodeID.MultiplayerClient)
+                npc.StrikeInstantKill();
             npc.checkDead();
         }
 
@@ -438,7 +440,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             // Create the black hole.
             if (attackTimer == 1f)
             {
-                HatGirl.SayThingWhileOwnerIsAlive(target, "The Moon Lord seems angry! Try to dodge the side projectiles, and don't touch that black hole!");
+                HatGirl.SayThingWhileOwnerIsAlive(target, "Mods.InfernumMode.PetDialog.MoonLordBlackHoleTip");
 
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                     Utilities.NewProjectileBetter(npc.Center, Vector2.Zero, ModContent.ProjectileType<VoidBlackHole>(), BlackHoleDamage, 0f, -1, 0f, npc.whoAmI);
@@ -631,13 +633,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             yield return n =>
             {
                 if (NPC.CountNPCS(NPCID.MoonLordFreeEye) >= 2)
-                    return "Those eyeballs perform attacks that require a lot of weaving! Make sure to not panic when they happen!";
+                    return "Mods.InfernumMode.PetDialog.MoonLordTip1";
                 return string.Empty;
             };
             yield return n =>
             {
                 if (TipsManager.ShouldUseJokeText)
-                    return "Squib emoji";
+                    return "Mods.InfernumMode.PetDialog.MoonLordJokeTip1";
                 return string.Empty;
             };
         }

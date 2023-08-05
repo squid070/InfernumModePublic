@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.BiomeManagers;
 using CalamityMod.CalPlayer;
 using CalamityMod.Events;
@@ -18,8 +18,10 @@ using CalamityMod.UI.DraedonSummoning;
 using CalamityMod.UI.ModeIndicator;
 using CalamityMod.World;
 using MonoMod.Cil;
-using MonoMod.RuntimeDetour.HookGen;
+using MonoMod.RuntimeDetour;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -27,232 +29,228 @@ namespace InfernumMode.Core.ILEditingStuff
 {
     public static partial class HookManager
     {
+        internal static List<ILHook> hooks;
+
         public static event ILContext.Manipulator ModifyPreAINPC
         {
-            add => HookEndpointManager.Modify(typeof(NPCLoader).GetMethod("PreAI", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(NPCLoader).GetMethod("PreAI", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(NPCLoader).GetMethod("PreAI", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ModifySetDefaultsNPC
         {
-            add => HookEndpointManager.Modify(typeof(NPCLoader).GetMethod("SetDefaults", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(NPCLoader).GetMethod("SetDefaults", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(NPCLoader).GetMethod("SetDefaults", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ModifyCheckDead
         {
-            add => HookEndpointManager.Modify(typeof(NPCLoader).GetMethod("CheckDead", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(NPCLoader).GetMethod("CheckDead", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(NPCLoader).GetMethod("CheckDead", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ModifyPreDrawNPC
         {
-            add => HookEndpointManager.Modify(typeof(NPCLoader).GetMethod("PreDraw", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(NPCLoader).GetMethod("PreDraw", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(NPCLoader).GetMethod("PreDraw", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ModifyPreDrawProjectile
         {
-            add => HookEndpointManager.Modify(typeof(ProjectileLoader).GetMethod("PreDraw", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(ProjectileLoader).GetMethod("PreDraw", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(ProjectileLoader).GetMethod("PreDraw", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ModifyFindFrameNPC
         {
-            add => HookEndpointManager.Modify(typeof(NPCLoader).GetMethod("FindFrame", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(NPCLoader).GetMethod("FindFrame", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(NPCLoader).GetMethod("FindFrame", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ModifyPreAIProjectile
         {
-            add => HookEndpointManager.Modify(typeof(ProjectileLoader).GetMethod("PreAI", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(ProjectileLoader).GetMethod("PreAI", Utilities.UniversalBindingFlags), value);
-        }
-
-        public static event ILContext.Manipulator ModifyTextUtility
-        {
-            add => HookEndpointManager.Modify(typeof(CalamityUtils).GetMethod("DisplayLocalizedText", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CalamityUtils).GetMethod("DisplayLocalizedText", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(ProjectileLoader).GetMethod("PreAI", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ModeIndicatorUIDraw
         {
-            add => HookEndpointManager.Modify(typeof(ModeIndicatorUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(ModeIndicatorUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(ModeIndicatorUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator CalamityWorldPostUpdate
         {
-            add => HookEndpointManager.Modify(typeof(WorldMiscUpdateSystem).GetMethod("PostUpdateWorld", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(WorldMiscUpdateSystem).GetMethod("PostUpdateWorld", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(WorldMiscUpdateSystem).GetMethod("PostUpdateWorld", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator CalamityPlayerModifyHitByProjectile
         {
-            add => HookEndpointManager.Modify(typeof(CalamityPlayer).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CalamityPlayer).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CalamityPlayer).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator CalamityGenNewTemple
         {
-            add => HookEndpointManager.Modify(typeof(CustomTemple).GetMethod("GenNewTemple", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CustomTemple).GetMethod("GenNewTemple", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CustomTemple).GetMethod("GenNewTemple", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator SepulcherHeadModifyProjectile
         {
-            add => HookEndpointManager.Modify(typeof(SepulcherHead).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(SepulcherHead).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(SepulcherHead).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator SepulcherBodyModifyProjectile
         {
-            add => HookEndpointManager.Modify(typeof(SepulcherBody).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(SepulcherBody).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(SepulcherBody).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator SepulcherBody2ModifyProjectile
         {
-            add => HookEndpointManager.Modify(typeof(SepulcherBodyEnergyBall).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(SepulcherBodyEnergyBall).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(SepulcherBodyEnergyBall).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator SepulcherTailModifyProjectile
         {
-            add => HookEndpointManager.Modify(typeof(SepulcherTail).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(SepulcherTail).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(SepulcherTail).GetMethod("ModifyHitByProjectile", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator DesertScourgeItemUseItem
         {
-            add => HookEndpointManager.Modify(typeof(DesertMedallion).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(DesertMedallion).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(DesertMedallion).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator AresBodyCanHitPlayer
         {
-            add => HookEndpointManager.Modify(typeof(AresBody).GetMethod("CanHitPlayer", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(AresBody).GetMethod("CanHitPlayer", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(AresBody).GetMethod("CanHitPlayer", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator YharonOnHitPlayer
         {
-            add => HookEndpointManager.Modify(typeof(Yharon).GetMethod("OnHitPlayer", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(Yharon).GetMethod("OnHitPlayer", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(Yharon).GetMethod("OnHitPlayer", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator SCalOnHitPlayer
         {
-            add => HookEndpointManager.Modify(typeof(SupremeCalamitas).GetMethod("OnHitPlayer", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(SupremeCalamitas).GetMethod("OnHitPlayer", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(SupremeCalamitas).GetMethod("OnHitPlayer", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator NPCStatsDefineContactDamage
         {
-            add => HookEndpointManager.Modify(typeof(NPCStats).GetMethod("GetNPCDamage", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(NPCStats).GetMethod("GetNPCDamage", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(NPCStats).GetMethod("GetNPCDamage", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ExoMechIsPresent
         {
-            add => HookEndpointManager.Modify(typeof(Draedon).GetMethod("get_ExoMechIsPresent", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(Draedon).GetMethod("get_ExoMechIsPresent", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(Draedon).GetMethod("get_ExoMechIsPresent", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ExoMechSelectionUIDraw
         {
-            add => HookEndpointManager.Modify(typeof(ExoMechSelectionUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(ExoMechSelectionUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(ExoMechSelectionUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ExoMechDropLoot
         {
-            add => HookEndpointManager.Modify(typeof(AresBody).GetMethod("DropExoMechLoot", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(AresBody).GetMethod("DropExoMechLoot", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(AresBody).GetMethod("DropExoMechLoot", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator UpdateRippers
         {
-            add => HookEndpointManager.Modify(typeof(CalamityPlayer).GetMethod("UpdateRippers", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CalamityPlayer).GetMethod("UpdateRippers", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CalamityPlayer).GetMethod("UpdateRippers", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator GetAdrenalineDamage
         {
-            add => HookEndpointManager.Modify(typeof(CalamityUtils).GetMethod("GetAdrenalineDamage", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CalamityUtils).GetMethod("GetAdrenalineDamage", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CalamityUtils).GetMethod("GetAdrenalineDamage", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator PlaceHellLab
         {
-            add => HookEndpointManager.Modify(typeof(DraedonStructures).GetMethod("PlaceHellLab", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(DraedonStructures).GetMethod("PlaceHellLab", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(DraedonStructures).GetMethod("PlaceHellLab", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator SpawnProvLootBox
         {
-            add => HookEndpointManager.Modify(typeof(Providence).GetMethod("SpawnLootBox", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(Providence).GetMethod("SpawnLootBox", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(Providence).GetMethod("SpawnLootBox", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator DashMovement
         {
-            add => HookEndpointManager.Modify(typeof(CalamityPlayer).GetMethod("ModDashMovement", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CalamityPlayer).GetMethod("ModDashMovement", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CalamityPlayer).GetMethod("ModDashMovement", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator BossRushTier
         {
-            add => HookEndpointManager.Modify(typeof(BossRushEvent).GetMethod("get_CurrentTier", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(BossRushEvent).GetMethod("get_CurrentTier", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(BossRushEvent).GetMethod("get_CurrentTier", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ExoMechsSkyIsActive
         {
-            add => HookEndpointManager.Modify(typeof(ExoMechsSky).GetMethod("get_CanSkyBeActive", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(ExoMechsSky).GetMethod("get_CanSkyBeActive", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(ExoMechsSky).GetMethod("get_CanSkyBeActive", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event Func<Func<Tile, bool>, Tile, bool> FargosCanDestroyTile
         {
-            add => HookEndpointManager.Add(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.FargoGlobalProjectile").GetMethod("OkayToDestroyTile", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.FargoGlobalProjectile").GetMethod("OkayToDestroyTile", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.FargoGlobalProjectile").GetMethod("OkayToDestroyTile", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator FargosCanDestroyTileWithInstabridge
         {
-            add => HookEndpointManager.Modify(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.Explosives.DoubleObsInstaBridgeProj").GetMethod("Kill", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.Explosives.DoubleObsInstaBridgeProj").GetMethod("Kill", Utilities.UniversalBindingFlags), value);
+            add => Modify(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.Explosives.DoubleObsInstaBridgeProj").GetMethod("Kill", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator FargosCanDestroyTileWithInstabridge2
         {
-            add => HookEndpointManager.Modify(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.Explosives.InstabridgeProj").GetMethod("Kill", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.Explosives.InstabridgeProj").GetMethod("Kill", Utilities.UniversalBindingFlags), value);
+            add => Modify(InfernumMode.FargosMutantMod.Code.GetType("Fargowiltas.Projectiles.Explosives.InstabridgeProj").GetMethod("Kill", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator GenerateSulphSeaCheeseCaves
         {
-            add => HookEndpointManager.Modify(typeof(SulphurousSea).GetMethod("GenerateCheeseWaterCaves", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(SulphurousSea).GetMethod("GenerateCheeseWaterCaves", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(SulphurousSea).GetMethod("GenerateCheeseWaterCaves", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator GenerateSulphSeaSpaghettiCaves
         {
-            add => HookEndpointManager.Modify(typeof(SulphurousSea).GetMethod("GenerateSpaghettiWaterCaves", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(SulphurousSea).GetMethod("GenerateSpaghettiWaterCaves", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(SulphurousSea).GetMethod("GenerateSpaghettiWaterCaves", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event Action<Action> GenerateAbyss
         {
-            add => HookEndpointManager.Add(typeof(Abyss).GetMethod("PlaceAbyss", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(Abyss).GetMethod("PlaceAbyss", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(Abyss).GetMethod("PlaceAbyss", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ExoMechTileTileColor
         {
-            add => HookEndpointManager.Modify(typeof(ExoMechsSky).GetMethod("OnTileColor", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(ExoMechsSky).GetMethod("OnTileColor", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(ExoMechsSky).GetMethod("OnTileColor", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public delegate bool AbyssRequirementDelegate(Player player, out int playerYTileCoords);
@@ -275,163 +273,177 @@ namespace InfernumMode.Core.ILEditingStuff
 
         public static event AbyssRequirementHookDelegate MeetsBaseAbyssRequirement
         {
-            add => HookEndpointManager.Add(typeof(AbyssLayer1Biome).GetMethod("MeetsBaseAbyssRequirement", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(AbyssLayer1Biome).GetMethod("MeetsBaseAbyssRequirement", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(AbyssLayer1Biome).GetMethod("MeetsBaseAbyssRequirement", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event AbyssInBiomeHookDelegate1 IsAbyssLayer1BiomeActive
         {
-            add => HookEndpointManager.Add(typeof(AbyssLayer1Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(AbyssLayer1Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(AbyssLayer1Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event AbyssInBiomeHookDelegate2 IsAbyssLayer2BiomeActive
         {
-            add => HookEndpointManager.Add(typeof(AbyssLayer2Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(AbyssLayer2Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(AbyssLayer2Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event AbyssInBiomeHookDelegate3 IsAbyssLayer3BiomeActive
         {
-            add => HookEndpointManager.Add(typeof(AbyssLayer3Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(AbyssLayer3Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(AbyssLayer3Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event AbyssInBiomeHookDelegate4 IsAbyssLayer4BiomeActive
         {
-            add => HookEndpointManager.Add(typeof(AbyssLayer4Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(AbyssLayer4Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(AbyssLayer4Biome).GetMethod("IsBiomeActive", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator AbyssLayer1Color
         {
-            add => HookEndpointManager.Modify(typeof(AbyssLayer1Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(AbyssLayer1Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(AbyssLayer1Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator AbyssLayer2Color
         {
-            add => HookEndpointManager.Modify(typeof(AbyssLayer2Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(AbyssLayer2Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(AbyssLayer2Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator AbyssLayer3Color
         {
-            add => HookEndpointManager.Modify(typeof(AbyssLayer3Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(AbyssLayer3Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(AbyssLayer3Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator AbyssLayer4Color
         {
-            add => HookEndpointManager.Modify(typeof(AbyssLayer4Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(AbyssLayer4Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(AbyssLayer4Biome).GetMethod("get_WaterStyle", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
         public static event ILContext.Manipulator BRSkyColor
         {
-            add => HookEndpointManager.Modify(typeof(BossRushSky).GetMethod("get_GeneralColor", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(BossRushSky).GetMethod("get_GeneralColor", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(BossRushSky).GetMethod("get_GeneralColor", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator BRXerocEyeTexure
         {
-            add => HookEndpointManager.Modify(typeof(BossRushSky).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(BossRushSky).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(BossRushSky).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator DoGSkyDraw
         {
-            add => HookEndpointManager.Modify(typeof(DoGBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(DoGBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(DoGBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event SCalSkyDrawDelegate SCalSkyDraw
         {
-            add => HookEndpointManager.Add(typeof(SCalBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(SCalBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(SCalBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event CalCloneSkyDrawDelegate CalCloneSkyDraw
         {
-            add => HookEndpointManager.Add(typeof(CalamitasCloneBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(CalamitasCloneBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(CalamitasCloneBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event YharonSkyDrawDelegate YharonSkyDraw
         {
-            add => HookEndpointManager.Add(typeof(YharonBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Remove(typeof(YharonBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            add => MonoModHooks.Add(typeof(YharonBackgroundScene).GetMethod("SpecialVisuals", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator UpdateBadLifeRegen
         {
-            add => HookEndpointManager.Modify(typeof(CalamityPlayer).GetMethod("UpdateBadLifeRegen", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CalamityPlayer).GetMethod("UpdateBadLifeRegen", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CalamityPlayer).GetMethod("UpdateBadLifeRegen", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator SelectSulphuricWaterColor
         {
-            add => HookEndpointManager.Modify(typeof(ILChanges).GetMethod("SelectSulphuricWaterColor", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(ILChanges).GetMethod("SelectSulphuricWaterColor", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(ILChanges).GetMethod("SelectSulphuricWaterColor", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator DrawCodebreakerUI
         {
-            add => HookEndpointManager.Modify(typeof(CodebreakerUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CodebreakerUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CodebreakerUI).GetMethod("Draw", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator DisplayCodebreakerCommunicationPanel
         {
-            add => HookEndpointManager.Modify(typeof(CodebreakerUI).GetMethod("DisplayCommunicationPanel", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CodebreakerUI).GetMethod("DisplayCommunicationPanel", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CodebreakerUI).GetMethod("DisplayCommunicationPanel", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator RuneOfKosCanUseItem
         {
-            add => HookEndpointManager.Modify(typeof(RuneofKos).GetMethod("CanUseItem", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(RuneofKos).GetMethod("CanUseItem", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(RuneofKos).GetMethod("CanUseItem", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator RuneOfKosUseItem
         {
-            add => HookEndpointManager.Modify(typeof(RuneofKos).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(RuneofKos).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(RuneofKos).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator PlaceForbiddenArchive
         {
-            add => HookEndpointManager.Modify(typeof(DungeonArchive).GetMethod("PlaceArchive", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(DungeonArchive).GetMethod("PlaceArchive", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(DungeonArchive).GetMethod("PlaceArchive", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator ProfanedShardUseItem
         {
-            add => HookEndpointManager.Modify(typeof(ProfanedShard).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(ProfanedShard).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(ProfanedShard).GetMethod("UseItem", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator CalGlobalNPCPostDraw
         {
-            add => HookEndpointManager.Modify(typeof(CalamityGlobalNPC).GetMethod("PostDraw", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CalamityGlobalNPC).GetMethod("PostDraw", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CalamityGlobalNPC).GetMethod("PostDraw", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator AquaticScourgeSpecialOnKill
         {
-            add => HookEndpointManager.Modify(typeof(AquaticScourgeHead).GetMethod("SpecialOnKill", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(AquaticScourgeHead).GetMethod("SpecialOnKill", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(AquaticScourgeHead).GetMethod("SpecialOnKill", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator CalPlayerProcessTriggers
         {
-            add => HookEndpointManager.Modify(typeof(CalamityPlayer).GetMethod("ProcessTriggers", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(CalamityPlayer).GetMethod("ProcessTriggers", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(CalamityPlayer).GetMethod("ProcessTriggers", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
         }
 
         public static event ILContext.Manipulator EternityHexAI
         {
-            add => HookEndpointManager.Modify(typeof(EternityHex).GetMethod("AI", Utilities.UniversalBindingFlags), value);
-            remove => HookEndpointManager.Unmodify(typeof(EternityHex).GetMethod("AI", Utilities.UniversalBindingFlags), value);
+            add => Modify(typeof(EternityHex).GetMethod("AI", Utilities.UniversalBindingFlags), value);
+            remove => FuckYou();
+        }
+
+        public static void FuckYou()
+        {
+
+        }
+
+        public static void Modify(MethodBase method, ILContext.Manipulator edit)
+        {
+            hooks ??= new();
+
+            var hook = new ILHook(method, edit);
+            hook.Apply();
+            hooks.Add(hook);
         }
     }
 }
