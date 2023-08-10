@@ -1,5 +1,5 @@
-using CalamityMod;
-using InfernumMode.Content.Items;
+﻿using CalamityMod;
+using InfernumMode.Content.Items.Misc;
 using InfernumMode.Content.Projectiles.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -23,7 +23,7 @@ namespace InfernumMode.Core.TileData
 
             public bool HasBlossom
             {
-                get => (PackedData & 1) == 1;
+                readonly get => (PackedData & 1) == 1;
                 set => PackedData = (byte)(value ? 0b1 : 0b0);
             }
         }
@@ -158,9 +158,18 @@ namespace InfernumMode.Core.TileData
             fixed (BlossomData* dataPtr = blossomWorldDataRef)
             {
                 byte* bytePtr = (byte*)dataPtr;
-                var blossomDataWrapper = new Span<byte>(bytePtr, blossomWorldDataRef.Length);
-                var savedDataWrapper = new Span<byte>(blossomData);
-                savedDataWrapper.CopyTo(blossomDataWrapper);
+                Span<byte> blossomDataWrapper = new(bytePtr, blossomWorldDataRef.Length);
+                Span<byte> savedDataWrapper = new(blossomData);
+
+
+                if (savedDataWrapper.Length == blossomDataWrapper.Length)
+                    savedDataWrapper.CopyTo(blossomDataWrapper);
+                else
+                {
+                    // Resize it if it isnt the correct length.
+                    blossomDataWrapper = new(bytePtr, blossomData.Length);
+                    savedDataWrapper.CopyTo(blossomDataWrapper);
+                }
             }
         }
     }

@@ -3,7 +3,6 @@ using InfernumMode.Content.Cooldowns;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
-using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.ModLoader;
 using static InfernumMode.Content.Items.Accessories.CherishedSealocket;
@@ -46,8 +45,8 @@ namespace InfernumMode.Core.GlobalInstances.Players
 
         public override void ResetEffects()
         {
-            if (!MechanicalEffectsApply)
-                RemainingHits = MaxHighDRHits;
+            //if (!MechanicalEffectsApply)
+            //    RemainingHits = MaxHighDRHits;
 
             MechanicalEffectsApply = false;
             ForcefieldCanDraw = false;

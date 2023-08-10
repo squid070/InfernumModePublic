@@ -4,6 +4,7 @@ using CalamityMod.Particles;
 using InfernumMode.Assets.Sounds;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
@@ -69,8 +70,10 @@ namespace InfernumMode.Content.Projectiles.Rogue
 
         public override void AI()
         {
+            int holdoutCount = Main.projectile.Where(p => p.active && p.owner == Owner.whoAmI && p.type == Type).ToArray().Length;
+
             // Die if no longer holding the click button or otherwise cannot use the item.
-            if (!Owner.channel || Owner.dead || !Owner.active || Owner.noItems || Owner.CCed)
+            if (!Owner.channel || Owner.dead || !Owner.active || Owner.noItems || Owner.CCed || holdoutCount > 1)
             {
                 Projectile.Kill();
                 return;
@@ -111,7 +114,7 @@ namespace InfernumMode.Content.Projectiles.Rogue
         public void DoBehavior_SummonDorks()
         {
             int energyChargeUpTime = 90;
-            int animationTime = 210;
+            int animationTime = 150;
 
             // Charge up energy.
             float chargeUpInterpolant = Utils.GetLerpValue(0f, animationTime * 0.7f, Time, true);
@@ -173,7 +176,7 @@ namespace InfernumMode.Content.Projectiles.Rogue
             int energyReleaseRate = Owner.ActiveItem().useTime;
             if (Time % energyReleaseRate == energyReleaseRate - 1f)
             {
-                SoundEngine.PlaySound(ArtAttack.UseSound with { Pitch = 0.67f }, Projectile.Center);
+                SoundEngine.PlaySound(ArtAttack.UseSound with { Pitch = 0.67f, Volume = 0.8f }, Projectile.Center);
 
                 // Release one big bolt from the book.
                 if (Main.myPlayer == Projectile.owner)
@@ -199,6 +202,8 @@ namespace InfernumMode.Content.Projectiles.Rogue
             }
         }
 
+        public override bool? CanDamage() => false;
+
         public override bool PreDraw(ref Color lightColor)
         {
             // Draw the summoning circle if necessary.
@@ -217,7 +222,7 @@ namespace InfernumMode.Content.Projectiles.Rogue
 
         public void DrawSummoningCircle()
         {
-            float scale = SummoningCircleScale * Projectile.scale * 2f;
+            float scale = SummoningCircleScale * Projectile.scale * 1.4f;
             Vector2 drawPosition = Owner.Center + Vector2.UnitY * Owner.gfxOffY - Main.screenPosition;
             Texture2D magicCircleTexture = ModContent.Request<Texture2D>("CalamityMod/Projectiles/Magic/RancorMagicCircle").Value;
             Texture2D magicCircleTextureBlurred = ModContent.Request<Texture2D>("CalamityMod/Projectiles/Magic/RancorMagicCircleGlowmask").Value;
