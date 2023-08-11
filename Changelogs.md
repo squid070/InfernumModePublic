@@ -1,4 +1,8 @@
-﻿# V 1.9.25 Changelogs
+﻿# V 1.9.26 Changelogs
+
+- Hopefully fixed world loading crashing again.
+
+# V 1.9.25 Changelogs
 
 - Localization fixes.
 - Updated outdated relic sprites.
