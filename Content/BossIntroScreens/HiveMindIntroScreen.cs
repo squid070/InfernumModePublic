@@ -19,7 +19,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Collective Growth\nThe Hive Mind";
+        // public override string TextToDisplay => "Collective Growth\nThe Hive Mind";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<HiveMind>());
 

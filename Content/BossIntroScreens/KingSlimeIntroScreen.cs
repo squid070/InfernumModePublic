@@ -17,7 +17,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Monarch of the Gelatinous\nKing Slime";
+        // public override string TextToDisplay => "Monarch of the Gelatinous\nKing Slime";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.KingSlime);
 

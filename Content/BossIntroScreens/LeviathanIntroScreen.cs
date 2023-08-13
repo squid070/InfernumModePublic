@@ -20,7 +20,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Timeworn Beast\nThe Leviathan";
+        // public override string TextToDisplay => "Timeworn Beast\nThe Leviathan";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<Leviathan>());
 

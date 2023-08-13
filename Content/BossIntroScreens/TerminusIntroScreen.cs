@@ -19,7 +19,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override int AnimationTime => 360;
 
-        public override string TextToDisplay => "You found the Terminus!";
+        // public override string TextToDisplay => "You found the Terminus!";
 
         public override bool ShouldBeActive() => !NPC.AnyNPCs(ModContent.NPCType<PrimordialWyrmHead>()) && Utilities.AnyProjectiles(ModContent.ProjectileType<TerminusAnimationProj>());
 

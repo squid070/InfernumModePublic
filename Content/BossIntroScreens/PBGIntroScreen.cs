@@ -18,7 +18,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Biomechanical Colossus\nThe Plaguebringer Goliath";
+        // public override string TextToDisplay => "Biomechanical Colossus\nThe Plaguebringer Goliath";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<PlaguebringerGoliath>());
 

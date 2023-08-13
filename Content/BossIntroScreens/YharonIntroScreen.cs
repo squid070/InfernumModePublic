@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 
 namespace InfernumMode.Content.BossIntroScreens
@@ -22,14 +23,16 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay
+        public override LocalizedText TextToDisplay
         {
             get
             {
-                if (IntroScreenManager.ShouldDisplayJokeIntroText || Utilities.IsAprilFirst())
-                    return "Grand\nYharon";
+                // if (IntroScreenManager.ShouldDisplayJokeIntroText || Utilities.IsAprilFirst())
+                //     return "Grand\nYharon";
+                //
+                // return "Unwavering Guardian\nYharon";
 
-                return "Unwavering Guardian\nYharon";
+                return GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText || Utilities.IsAprilFirst() ? "JokeTextToDisplay" : "TextToDisplay");
             }
         }
 
@@ -66,8 +69,8 @@ namespace InfernumMode.Content.BossIntroScreens
             float completionRatio = Utils.GetLerpValue(TextDelayInterpolant, 0.92f, animationTimer / (float)AnimationTime, true);
 
             // If the completion ratio exceeds the point where the name is displayed, display all letters.
-            int startOfLargeTextIndex = TextToDisplay.IndexOf('\n');
-            int currentIndex = (int)(completionRatio * TextToDisplay.Length);
+            int startOfLargeTextIndex = TextToDisplay.Value.IndexOf('\n');
+            int currentIndex = (int)(completionRatio * TextToDisplay.Value.Length);
             if (currentIndex >= startOfLargeTextIndex)
                 completionRatio = 1f;
 

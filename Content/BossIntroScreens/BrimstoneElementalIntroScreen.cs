@@ -17,7 +17,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Scarred Numen\nThe Brimstone Elemental";
+        // public override string TextToDisplay => "Scarred Numen\nThe Brimstone Elemental";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<BrimstoneElemental>());
 

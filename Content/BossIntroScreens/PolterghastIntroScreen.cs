@@ -21,7 +21,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Wrathful Coalescence\nThe Polterghast";
+        // public override string TextToDisplay => "Wrathful Coalescence\nThe Polterghast";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<Polterghast>());
 

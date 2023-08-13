@@ -20,7 +20,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Atmospheric Predator\nThe Storm Weaver";
+        // public override string TextToDisplay => "Atmospheric Predator\nThe Storm Weaver";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<StormWeaverHead>()) && Main.npc[NPC.FindFirstNPC(ModContent.NPCType<StormWeaverHead>())].ai[1] != 0f;
 

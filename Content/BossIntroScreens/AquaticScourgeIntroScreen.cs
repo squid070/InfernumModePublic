@@ -19,7 +19,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Sulphuric Serpent\nThe Aquatic Scourge";
+        // public override string TextToDisplay => "Sulphuric Serpent\nThe Aquatic Scourge";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<AquaticScourgeHead>());
 

@@ -17,7 +17,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Hive Matriarch\nQueen Bee";
+        // public override string TextToDisplay => "Hive Matriarch\nQueen Bee";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.QueenBee);
 

@@ -19,7 +19,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Terror of the Seas\nDuke Fishron";
+        // public override string TextToDisplay => "Terror of the Seas\nDuke Fishron";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.DukeFishron);
 

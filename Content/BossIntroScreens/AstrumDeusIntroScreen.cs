@@ -18,7 +18,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "The Star Weaver\nAstrum Deus";
+        // public override string TextToDisplay => "The Star Weaver\nAstrum Deus";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<AstrumDeusHead>());
 

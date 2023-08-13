@@ -19,7 +19,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Forgotten Deity\nAnahita";
+        // public override string TextToDisplay => "Forgotten Deity\nAnahita";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<Anahita>());
 

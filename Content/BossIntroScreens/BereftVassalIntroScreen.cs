@@ -20,7 +20,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Argus\nThe Bereft Vassal";
+        // public override string TextToDisplay => "Argus\nThe Bereft Vassal";
 
         public override bool ShouldBeActive()
         {

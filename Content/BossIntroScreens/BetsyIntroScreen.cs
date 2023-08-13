@@ -20,7 +20,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Mother of Wyverns\nBetsy";
+        // public override string TextToDisplay => "Mother of Wyverns\nBetsy";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.DD2Betsy);
 

@@ -18,7 +18,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "The Old Man's Curse\nSkeletron";
+        // public override string TextToDisplay => "The Old Man's Curse\nSkeletron";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.SkeletronHead);
 

@@ -36,6 +36,229 @@ Mods: {
 			WishesHeader: Dev Wishes
 		}
 
+		IntroScreen: {
+			AEWIntroScreen: {
+				TextToDisplay: "Primeval Warden\nThe Eidolon Wyrm"
+			}
+			
+			AnahitaIntroScreen: {
+				TextToDisplay: "Forgotten Deity\nAnahita"
+			}
+			
+			AquaticScourgeIntroScreen: {
+				TextToDisplay: "Sulphuric Serpent\nThe Aquatic Scourge"
+			}
+			
+			AresIntroScreen: {
+				TextToDisplay: "The Ultimate War Machine\nAres"
+				JokeTextToDisplay: "Prediction Game Master\nAres"
+			}
+			
+			ArtemisAndApolloIntroScreen: {
+				TextToDisplay: "The Supreme Hunters\nArtemis and Apollo"
+			}
+			
+			AstrumAureusIntroScreen: {
+				TextToDisplay: "The Infected Stomper\nAstrum Aureus"
+			}
+			
+			AstrumDeusIntroScreen: {
+				TextToDisplay: "The Star Weaver\nAstrum Deus"
+			}
+			
+			BereftVassalIntroScreen: {
+				TextToDisplay: "Argus\nThe Bereft Vassal"
+			}
+			
+			BetsyIntroScreen: {
+				TextToDisplay: "Mother of Wyverns\nBetsy"
+			}
+			
+			BrainOfCthulhuIntroScreen: {
+				TextToDisplay: "Eldritch Mind\nThe Brain of Cthulhu"
+			}
+			
+			BrimstoneElementalIntroScreen: {
+				TextToDisplay: "Scarred Numen\nThe Brimstone Elemental"
+			}
+			
+			CalamitasShadowIntroScreen: {
+				TextToDisplay: "False Witch\nCalamitas' Shadow"
+			}
+			
+			CeaselessVoidIntroScreen: {
+				TextToDisplay: "The Never-Ending\nCeaseless Void"
+			}
+			
+			CrabulonIntroScreen: {
+				TextToDisplay: "The Reanimated Carcass\nCrabulon"
+			}
+			
+			CryogenIntroScreen: {
+				TextToDisplay: "The Unstable Prison\nCryogen"
+			}
+			
+			CultistIntroScreen: {
+				TextToDisplay: "Ancient Doomsayer\nThe Lunatic Cultist"
+			}
+			
+			DeerclopsIntroScreen: {
+				TextToDisplay: "Winter Beast\nThe Deerclops"
+			}
+			
+			DesertScourgeIntroScreen: {
+				TextToDisplay: "Dried Glutton\nThe Desert Scourge"
+			}
+			
+			DestroyerIntroScreen: {
+				TextToDisplay: "World Excavator\nThe Destroyer"
+			}
+			
+			DoGIntroScreen: {
+				TextToDisplay: "The Conceited\nDevourer of Gods"
+			}
+			
+			DraedonIntroScreen: {
+				TextToDisplay: "The Cosmic Engineer\nDraedon"
+			}
+			
+			DragonfollyIntroScreen: {
+				TextToDisplay: "False Offspring\nThe Dragonfolly"
+			}
+			
+			DreadnautilusIntroScreen: {
+				TextToDisplay: "Nightmare of the Blood Moon\nDreadnautilus"
+			}
+			
+			DukeFishronIntroScreen: {
+				TextToDisplay: "Terror of the Seas\nDuke Fishron"
+			}
+			
+			EaterOfWorldsIntroScreen: {
+				TextToDisplay: "Terror of the Corruption\nThe Eater of Worlds"
+			}
+			
+			EmpressOfLightIntroScreen: {
+				TextToDisplay: "Prismatic Fae\nThe Empress of Light"
+			}
+			
+			EyeOfCthulhuIntroScreen: {
+				TextToDisplay: "Demonic Seer\nThe Eye of Cthulhu"
+			}
+			
+			GolemIntroScreen: {
+				TextToDisplay: "The Ancient Idol\nGolem"
+				JokeTextToDisplay: "NUMBER ! SALSMAN\n[Circa 1997]"
+			}
+			
+			GreatSandSharkIntroScreen: {
+				TextToDisplay: "Taurus\nThe Great Sand Shark"
+			}
+			
+			HiveMindIntroScreen: {
+				TextToDisplay: "Collective Growth\nThe Hive Mind"
+			}
+			
+			KingSlimeIntroScreen: {
+				TextToDisplay: "Monarch of the Gelatinous\nKing Slime"
+			}
+			
+			LeviathanIntroScreen: {
+				TextToDisplay: "Timeworn Beast\nThe Leviathan"
+			}
+			
+			MoonLordIntroScreen: {
+				TextToDisplay: "Eldritch Remains\nThe Moon Lord"
+			}
+			
+			OldDukeIntroScreen: {
+				TextToDisplay: "Sulphuric Terror\nThe Old Duke"
+				JokeTextToDisplay: "Speed Demon\nThe Old Duke"
+			}
+			
+			PBGIntroScreen: {
+				TextToDisplay: "Biomechanical Colossus\nThe Plaguebringer Goliath"
+			}
+			
+			PerforatorHiveIntroScreen: {
+				TextToDisplay: "Bloodied Parasites\nThe Perforators"
+			}
+			
+			PerforatorHiveIntroScreen: {
+				TextToDisplay: "The Overgrowth\nPlantera"
+			}
+			
+			PolterghastIntroScreen: {
+				TextToDisplay: "Wrathful Coalescence\nThe Polterghast"
+			}
+			
+			ProfanedGuardiansIntroScreen: {
+				TextToDisplay: "Disciples of Purity\nThe Profaned Guardians"
+			}
+			
+			ProfanedTempleIntroScreen: {
+				TextToDisplay: "Cleansed Site\nThe Profaned Garden"
+			}
+			
+			ProvidenceIntroScreen: {
+				TextToDisplay: "Cleansed Site\nThe Profaned Garden"
+				EnragedTextToDisplay: "The Blaze of Purity\nProvidence"
+			}
+			
+			QueenBeeIntroScreen: {
+				TextToDisplay: "Hive Matriarch\nQueen Bee"
+			}
+			
+			QueenSlimeIntroScreen: {
+				TextToDisplay: "Hallowed Mass\nThe Queen Slime"
+			}
+			
+			RavagerIntroScreen: {
+				TextToDisplay: "The Fortress of Flesh\nRavager"
+			}
+			
+			SCalIntroScreen: {
+				TextToDisplay: "The Brimstone Witch\nCalamitas"
+			}
+			
+			SkeletronIntroScreen: {
+				TextToDisplay: "The Old Man's Curse\nSkeletron"
+			}
+			
+			SkeletronPrimeIntroScreen: {
+				TextToDisplay: "Contraption of Dread\nSkeletron Prime"
+			}
+			
+			SlimeGodIntroScreen: {
+				TextToDisplay: "Primordial Formation\nThe Slime God"
+			}
+			
+			StormWeaverIntroScreen: {
+				TextToDisplay: "Atmospheric Predator\nThe Storm Weaver"
+			}
+			
+			TerminusIntroScreen: {
+				TextToDisplay: "You found the Terminus!"
+			}
+			
+			ThanatosIntroScreen: {
+				TextToDisplay: "The Perfect Annihilator\nThanatos"
+			}
+			
+			TwinsIntroScreen: {
+				TextToDisplay: "Mechanical Observers\nThe Twins"
+			}
+			
+			WoFIntroScreen: {
+				TextToDisplay: "Hungering Conglomeration\nThe Wall of Flesh"
+			}
+			
+			YharonIntroScreen: {
+				TextToDisplay: "Unwavering Guardian\nYharon"
+				JokeTextToDisplay: "Grand\nYharon"
+			}
+		}
+
 		Projectiles: {
 			AbyssalIce.DisplayName: Abyssal Ice
 			BoxJellyZap.DisplayName: Jelly Zap

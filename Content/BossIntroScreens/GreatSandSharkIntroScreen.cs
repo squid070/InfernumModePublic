@@ -19,7 +19,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Taurus\nThe Great Sand Shark";
+        // public override string TextToDisplay => "Taurus\nThe Great Sand Shark";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<GreatSandShark>());
 

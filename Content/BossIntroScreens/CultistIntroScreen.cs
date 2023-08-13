@@ -14,7 +14,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "Ancient Doomsayer\nThe Lunatic Cultist";
+        // public override string TextToDisplay => "Ancient Doomsayer\nThe Lunatic Cultist";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.CultistBoss);
 

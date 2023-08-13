@@ -23,7 +23,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool CaresAboutBossEffectCondition => true;
 
-        public override string TextToDisplay => "Primeval Warden\nThe Eidolon Wyrm";
+        // public override string TextToDisplay => "Primeval Warden\nThe Eidolon Wyrm";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<PrimordialWyrmHead>());
 

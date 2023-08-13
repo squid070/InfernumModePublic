@@ -30,7 +30,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override string TextToDisplay => "The Fortress of Flesh\nRavager";
+        // public override string TextToDisplay => "The Fortress of Flesh\nRavager";
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<RavagerBody>());
 
