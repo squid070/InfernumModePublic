@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.Buffs.StatBuffs;
 using CalamityMod.UI;
 using InfernumMode.Core;
@@ -138,7 +138,7 @@ namespace InfernumMode.Content.BossIntroScreens
             string suffix = $"IntroScreen.{GetType().Name}";
             string localizationKey = $"{suffix}.{key}";
             
-            return LanguageUtilities.GetLocalization(localizationKey);
+            return Utilities.GetLocalization(localizationKey);
         }
         
         

@@ -1,12 +1,14 @@
 ﻿using Terraria.Localization;
 
-namespace InfernumMode.Common.UtilityMethods
+namespace InfernumMode
 {
-    public static class LanguageUtilities
+    public static partial class Utilities
     {
-        public static LocalizedText GetLocalization(string key)
-        {
-            return Language.GetOrRegister(InfernumMode.Instance.GetLocalizationKey(key));
-        }
+        /// <summary>
+        /// Shortcut for <see cref="Language.GetText(string)"/> with "Mods.InfernumMode." already prefixed.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static LocalizedText GetLocalization(string key) => Language.GetOrRegister(InfernumMode.Instance.GetLocalizationKey(key));
     }
 }

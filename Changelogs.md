@@ -1,4 +1,12 @@
-﻿# V 1.9.26 Changelogs
+﻿# V 1.9.27 Changelogs
+
+- Hopefully fixed rendertarget creation crashing for ancient GPUs.
+- Added a lightning overlay effect to Storm Weaver.
+- Added localization to the Boss Intro Cards.
+- Unloading fixes.
+- Credits fixes.
+
+# V 1.9.26 Changelogs
 
 - Hopefully fixed world loading crashing again.
 
