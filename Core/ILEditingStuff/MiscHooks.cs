@@ -14,6 +14,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.GameInput;
 using Terraria.ID;
+using Terraria.Localization;
 using Terraria.ModLoader;
 using Terraria.UI;
 using static InfernumMode.Core.ILEditingStuff.HookManager;
@@ -74,7 +75,7 @@ namespace InfernumMode.Core.ILEditingStuff
                 return;
 
             // Add mouse text.
-            Main.hoverItemName = "Open Death Wishes";
+            Main.hoverItemName = Utilities.GetLocalization("UI.WishesHoverTextButton").Value;
 
             // Handle clicking the icon.
             if (!PlayerInput.IgnoreMouseInterface)
