@@ -18,9 +18,6 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool TextShouldBeCentered => true;
 
-        // There is no credit. Your idea has been STOLEN!
-        // public override string TextToDisplay => "The Infected Stomper\nAstrum Aureus";
-
         public override Effect ShaderToApplyToLetters => InfernumEffectsRegistry.MechsIntroLetterShader.Shader;
 
         public override void PrepareShader(Effect shader)

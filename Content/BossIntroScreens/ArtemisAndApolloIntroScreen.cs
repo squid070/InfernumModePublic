@@ -18,8 +18,6 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool TextShouldBeCentered => true;
 
-        // public override string TextToDisplay => "The Supreme Hunters\nArtemis and Apollo";
-
         public override Effect ShaderToApplyToLetters => InfernumEffectsRegistry.MechsIntroLetterShader.Shader;
 
         public override void PrepareShader(Effect shader)

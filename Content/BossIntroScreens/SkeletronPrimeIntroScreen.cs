@@ -16,8 +16,6 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool TextShouldBeCentered => true;
 
-        // public override string TextToDisplay => "Contraption of Dread\nSkeletron Prime";
-
         public override Effect ShaderToApplyToLetters => InfernumEffectsRegistry.MechsIntroLetterShader.Shader;
 
         public override void PrepareShader(Effect shader)

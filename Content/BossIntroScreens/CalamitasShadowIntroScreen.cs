@@ -15,8 +15,6 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        // public override string TextToDisplay => "False Witch\nCalamitas' Shadow";
-
         public override float TextScale => MajorBossTextScale;
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<CalamitasClone>());

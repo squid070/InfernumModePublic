@@ -19,8 +19,6 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override int AnimationTime => 210;
 
-        // public override string TextToDisplay => "Cleansed Site\nThe Profaned Garden";
-
         public override bool ShouldBeActive() => !SubworldSystem.IsActive<LostColosseum>() &&
             Main.LocalPlayer.Infernum_Biome().ZoneProfaned && !Main.LocalPlayer.Infernum_Biome().ProfanedTempleAnimationHasPlayed;
 

@@ -19,8 +19,6 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        // public override string TextToDisplay => "The Overgrowth\nPlantera";
-
         public override float TextScale => MajorBossTextScale;
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.Plantera);

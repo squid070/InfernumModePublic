@@ -18,18 +18,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool TextShouldBeCentered => true;
 
-        public override LocalizedText TextToDisplay
-        {
-            get
-            {
-                // if (IntroScreenManager.ShouldDisplayJokeIntroText)
-                //     return "Prediction Game Master\nAres";
-                //
-                // return "The Ultimate War Machine\nAres";
-
-                return GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText ? "JokeTextToDisplay" : "TextToDisplay");
-            }
-        }
+        public override LocalizedText TextToDisplay => GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText ? "JokeTextToDisplay" : "TextToDisplay");
 
         public override Effect ShaderToApplyToLetters => InfernumEffectsRegistry.MechsIntroLetterShader.Shader;
 

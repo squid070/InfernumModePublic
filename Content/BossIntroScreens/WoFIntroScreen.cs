@@ -20,8 +20,6 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override int AnimationTime => 240;
 
-        // public override string TextToDisplay => "Hungering Conglomeration\nThe Wall of Flesh";
-
         public override float TextScale => MajorBossTextScale;
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.WallofFlesh);

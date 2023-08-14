@@ -22,17 +22,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override LocalizedText TextToDisplay
-        {
-            get
-            {
-                // if (ProvidenceBehaviorOverride.IsEnraged)
-                //     return "The Blaze of Purity\nProvidence";
-                // return "The Blaze of Absolution\nProvidence";
-                
-                return GetLocalizedText(ProvidenceBehaviorOverride.IsEnraged ? "EnragedTextToDisplay" : "TextToDisplay");
-            }
-        }
+        public override LocalizedText TextToDisplay => GetLocalizedText(ProvidenceBehaviorOverride.IsEnraged ? "EnragedTextToDisplay" : "TextToDisplay");
 
         public override float TextScale => MajorBossTextScale;
 

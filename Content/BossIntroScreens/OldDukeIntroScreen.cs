@@ -21,17 +21,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override LocalizedText TextToDisplay
-        {
-            get
-            {
-                // if (IntroScreenManager.ShouldDisplayJokeIntroText)
-                //     return "Speed Demon\nThe Old Duke";
-                //
-                // return "Sulphuric Terror\nThe Old Duke";
-                return GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText ? "JokeTextToDisplay" : "TextToDisplay");
-            }
-        }
+        public override LocalizedText TextToDisplay => GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText ? "JokeTextToDisplay" : "TextToDisplay");
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(ModContent.NPCType<OldDuke>());
 

@@ -21,8 +21,6 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => true;
 
-        // public override string TextToDisplay => "The Brimstone Witch\nCalamitas";
-
         public override float TextScale => MajorBossTextScale;
 
         public override Effect ShaderToApplyToLetters => InfernumEffectsRegistry.SCalIntroLetterShader.Shader;

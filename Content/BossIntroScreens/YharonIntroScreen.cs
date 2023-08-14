@@ -23,18 +23,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override LocalizedText TextToDisplay
-        {
-            get
-            {
-                // if (IntroScreenManager.ShouldDisplayJokeIntroText || Utilities.IsAprilFirst())
-                //     return "Grand\nYharon";
-                //
-                // return "Unwavering Guardian\nYharon";
-
-                return GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText || Utilities.IsAprilFirst() ? "JokeTextToDisplay" : "TextToDisplay");
-            }
-        }
+        public override LocalizedText TextToDisplay => GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText || Utilities.IsAprilFirst() ? "JokeTextToDisplay" : "TextToDisplay");
 
         public override float TextScale => MajorBossTextScale;
 

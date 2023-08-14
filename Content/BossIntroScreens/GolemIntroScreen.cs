@@ -19,18 +19,7 @@ namespace InfernumMode.Content.BossIntroScreens
 
         public override bool ShouldCoverScreen => false;
 
-        public override LocalizedText TextToDisplay
-        {
-            get
-            {
-                // if (IntroScreenManager.ShouldDisplayJokeIntroText)
-                //     return "NUMBER ! SALSMAN\n[Circa 1997]";
-                //
-                // return "The Ancient Idol\nGolem";
-
-                return GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText ? "JokeTextToDisplay" : "TextToDisplay");
-            }
-        }
+        public override LocalizedText TextToDisplay => GetLocalizedText(IntroScreenManager.ShouldDisplayJokeIntroText ? "JokeTextToDisplay" : "TextToDisplay");
 
         public override bool ShouldBeActive() => NPC.AnyNPCs(NPCID.Golem);
 
