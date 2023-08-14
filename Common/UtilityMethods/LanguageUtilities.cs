@@ -2,7 +2,7 @@
 
 namespace InfernumMode.Common.UtilityMethods
 {
-    public static class LangHelper
+    public static class LanguageUtilities
     {
         public static LocalizedText GetLocalization(string key)
         {

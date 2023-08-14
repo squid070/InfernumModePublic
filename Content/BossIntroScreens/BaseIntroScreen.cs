@@ -138,7 +138,7 @@ namespace InfernumMode.Content.BossIntroScreens
             string suffix = $"IntroScreen.{GetType().Name}";
             string localizationKey = $"{suffix}.{key}";
             
-            return LangHelper.GetLocalization(localizationKey);
+            return LanguageUtilities.GetLocalization(localizationKey);
         }
         
         
