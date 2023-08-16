@@ -1,4 +1,12 @@
-﻿# V 1.9.27 Changelogs
+﻿# V 1.9.28 Changelogs
+- More localization fixes.
+- Fixed a lot of things being invisible.
+- Even MORE localization fixes.
+- Fixed incorrect texture path.
+- Fixed The Wayfinder creating a portal at the integer limit under specific circumstances.
+- Added a temporary message on world load informing the user if they have either music mod that it may cause crashes, until the issue is properly fixed.
+
+# V 1.9.27 Changelogs
 
 - Hopefully fixed rendertarget creation crashing for ancient GPUs.
 - Added a lightning overlay effect to Storm Weaver.
