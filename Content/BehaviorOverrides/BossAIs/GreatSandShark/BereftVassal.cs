@@ -1168,7 +1168,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
                 // Prevent slow slide drifting.
                 NPC.velocity.X *= 0.9f;
 
-                if (AttackTimer % waveReleaseRate == waveReleaseRate - 1f && !NPC.WithinRange(Target.Center, 300f))
+                if (Main.netMode != NetmodeID.MultiplayerClient && AttackTimer % waveReleaseRate == waveReleaseRate - 1f && !NPC.WithinRange(Target.Center, 300f))
                 {
                     // Release an even spread of waves.
                     for (int i = 0; i < waveCount; i++)
