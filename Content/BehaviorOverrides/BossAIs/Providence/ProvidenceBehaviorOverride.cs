@@ -237,7 +237,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
 
         public static bool IsEnraged => !Main.dayTime || BossRushEvent.BossRushActive;
 
-        public static bool SyncAttacksWithMusic => Main.netMode == NetmodeID.SinglePlayer && InfernumMode.CalMusicModIsActive && Main.musicVolume > 0f && !BossRushEvent.BossRushActive;
+        public static bool SyncAttacksWithMusic => false;//Main.netMode == NetmodeID.SinglePlayer && InfernumMode.CalMusicModIsActive && Main.musicVolume > 0f && !BossRushEvent.BossRushActive;
 
         public static readonly Color[] NightPalette = new[]
         {
@@ -290,6 +290,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
         {
             Phase2LifeRatio
         };
+
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 600;
+            npc.height = 450;
+            npc.scale = 1f;
+            npc.defense = 50;
+            npc.DR_NERD(0.3f);
+            npc.Opacity = 0f;
+        }
 
         public override bool PreAI(NPC npc)
         {
@@ -388,7 +399,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
                 if (player.dead || !player.active || !npc.WithinRange(player.Center, 10000f))
                     continue;
 
-                target.DoInfiniteFlightCheck(IsEnraged ? Color.Turquoise : Color.Yellow);
+                player.DoInfiniteFlightCheck(IsEnraged ? Color.Turquoise : Color.Yellow);
             }
 
             // For a few frames Providence will play Boss 1 due to the custom music system. Don't allow this.

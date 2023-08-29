@@ -1,4 +1,21 @@
-﻿# V 1.9.28 Changelogs
+﻿# V 1.9.29 Chabgelogs
+- Localized Achivements.
+- Various minor multiplayer fixes.
+- Fixed issues with newly generated worlds not properly saving things like the Profaned Garden position.
+- Crabulons falling mushrooms constantly deal damage again.
+- Disabled the tracked music feature, to fix it causing hardcrashes.
+- Fixed the Defender Guardian dealing contact damage while invisible.
+- Hopefully properly fixed the credits missing texture issues.
+- Ceaseless Void's chains now physically interact with friendly projectiles.
+- Fixed The Devorour of Gods having an extra phase notch at 80% hp.
+- Hopefully made the abyss generate on top of the Forbidden Archive less often.
+- Fixed a concerning number of Bereft Vassals spawning in multiplayer.
+- Fixed rare crash when using Kevin.
+- Hopefully fixed infinite flight not being correctly applied in multiplayer.
+- Cal Shadow applies hexes to all players close enough in multiplayer.
+- Fixed issues with Adult Eidolyn Wyrm duplicating projectiles in multiplayer.
+
+# V 1.9.28 Changelogs
 - More localization fixes.
 - Fixed a lot of things being invisible.
 - Even MORE localization fixes.

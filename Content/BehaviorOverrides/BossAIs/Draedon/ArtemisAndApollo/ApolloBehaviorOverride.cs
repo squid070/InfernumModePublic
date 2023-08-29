@@ -98,6 +98,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
         #endregion Netcode Syncs
 
         #region AI
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 204;
+            npc.height = 226;
+            npc.scale = 1f;
+            npc.Opacity = 0f;
+            npc.defense = 80;
+            npc.DR_NERD(0.25f);
+        }
+
         public override bool PreAI(NPC npc)
         {
             // Define the life ratio.
@@ -589,7 +600,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ArtemisAndApoll
 
             // Provide the target infinite flight time.
             if (npc.type == ModContent.NPCType<Apollo>())
-                target.DoInfiniteFlightCheck(Color.ForestGreen);
+            {
+                for (int i = 0; i < Main.maxPlayers; i++)
+                {
+                    Player player = Main.player[i];
+                    if (player.dead || !player.active || !npc.WithinRange(player.Center, 10000f))
+                        continue;
+
+                    player.DoInfiniteFlightCheck(Color.ForestGreen);
+                }
+            }
 
             if (npc.type == ModContent.NPCType<Apollo>() && CalamityGlobalNPC.draedonExoMechTwinRed >= 0)
             {

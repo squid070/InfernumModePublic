@@ -120,6 +120,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
         #endregion Netcode Syncs
 
         #region AI
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 220;
+            npc.height = 252;
+            npc.scale = 1f;
+            npc.Opacity = 0f;
+            npc.defense = 100;
+            npc.DR_NERD(0.35f);
+        }
+
         public override bool PreAI(NPC npc)
         {
             // Define the life ratio.
@@ -1131,7 +1142,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.Ares
                 // Do things during the blender.
                 case 3:
                     // Grant the target infinite flight time.
-                    target.DoInfiniteFlightCheck(Color.DarkRed);
+                    for (int i = 0; i < Main.maxPlayers; i++)
+                    {
+                        Player player = Main.player[i];
+                        if (player.dead || !player.active || !npc.WithinRange(player.Center, 10000f))
+                            continue;
+
+                        player.DoInfiniteFlightCheck(Color.DarkRed);
+                    }
 
                     // Make the laser spin.
                     float spinSpeedInterpolant = Utils.GetLerpValue(0f, 360f, attackTimer, true);

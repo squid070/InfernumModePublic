@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.Buffs.StatDebuffs;
 using CalamityMod.Items.Placeables.Furniture.DevPaintings;
 using CalamityMod.Items.SummonItems;

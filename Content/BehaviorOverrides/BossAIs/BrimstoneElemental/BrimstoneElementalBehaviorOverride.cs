@@ -82,6 +82,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
             Phase2LifeRatio
         };
 
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 100;
+            npc.height = 150;
+            npc.scale = 1f;
+            npc.Opacity = 1f;
+            npc.defense = 15;
+            npc.DR_NERD(0.15f);
+        }
+
         public override bool PreAI(NPC npc)
         {
             // Select a new target if an old one was lost.
@@ -94,6 +105,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
             // Reset DR and its breakability every frame.
             npc.Calamity().DR = BaseDR;
             npc.Calamity().unbreakableDR = false;
+
+            // Reset homing every frame.
+            npc.chaseable = true;
 
             if (!target.active || target.dead || !npc.WithinRange(target.Center, 7200f))
             {
@@ -573,6 +587,9 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.BrimstoneElemental
             // Have a small delay prior to the bullet hell to allow the target to prepare.
             if (attackTimer < bulletHellShootDelay)
                 return;
+
+            // Prevent homing.
+            npc.chaseable = false;
 
             // Release the bullet hell cinders.
             shootTimer++;

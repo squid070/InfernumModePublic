@@ -89,6 +89,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
             Phase3LifeRatio
         };
 
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 196;
+            npc.height = 196;
+            npc.scale = 1f;
+            npc.Opacity = 1f;
+            npc.defense = 8;
+            npc.DR_NERD(0.5f);
+        }
+
         public override bool PreAI(NPC npc)
         {
             // Give a visual offset to the boss.
@@ -499,7 +510,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
                                 if (target.Center.Y < npc.Center.Y - 400f)
                                     shroomVelocity.Y *= 1.5f;
 
-                                Utilities.NewProjectileBetter(clawCenter, shroomVelocity, ModContent.ProjectileType<MushBomb>(), MushroomBombDamage, 0f, -1, 0f, npc.Bottom.Y);
+                                Utilities.NewProjectileBetter(clawCenter, shroomVelocity, ModContent.ProjectileType<MushBombInfernum>(), MushroomBombDamage, 0f, -1, 0f, npc.Bottom.Y);
                             }
                         }
                     }

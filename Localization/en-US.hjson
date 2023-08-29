@@ -1116,6 +1116,7 @@ Mods: {
 			WayfinderHoldout.DisplayName: Wayfinder
 			WayfinderItemProjectile.DisplayName: Wayfinder
 			WayfinderSymbol.DisplayName: Wayfinder Gate Symbol
+			MushBombInfernum.DisplayName: Mush Bomb Infernum
 		}
 
 		NPCs: {
@@ -2031,8 +2032,6 @@ Mods: {
 			DraedonDefeat9: But now, I must return to my machinery. You may use the Codebreaker if you wish to face my creations once again.
 			DraedonDefeat10: In the meantime, I bid you farewell, and good luck in your future endeavors.
 			SCalCongratulations: ... Congratulations.
-			AchievementCompletionText: Achievement Completed! [c/ff884d:{0}]
-			DevWishCompletionText: Dev Wish Completed! [c/ff884d:{0}]
 		}
 
 		PetDialog: {

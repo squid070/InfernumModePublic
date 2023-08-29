@@ -5,6 +5,7 @@ using CalamityMod.NPCs;
 using CalamityMod.NPCs.Polterghast;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.Effects;
+using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Assets.Sounds;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist;
 using InfernumMode.Content.Buffs;
@@ -143,6 +144,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             Phase3LifeRatio
         };
 
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 90;
+            npc.height = 120;
+            npc.scale = 1f;
+            npc.defense = 90;
+            npc.DR_NERD(0.2f);
+        }
+
         public override bool PreAI(NPC npc)
         {
             // Set the whoAmI index.
@@ -156,6 +167,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             {
                 for (int i = 0; i < 4; i++)
                     NPC.NewNPC(npc.GetSource_FromAI(), (int)npc.Center.X, (int)npc.Center.Y, ModContent.NPCType<PolterghastLeg>(), 1, i);
+
                 npc.localAI[3] = 1f;
             }
 
@@ -702,7 +714,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             npc.damage = 0;
 
             // Provide the target infinite flight time.
-            target.DoInfiniteFlightCheck(Color.LightCyan);
+            for (int i = 0; i < Main.maxPlayers; i++)
+            {
+                Player player = Main.player[i];
+                if (player.dead || !player.active || !npc.WithinRange(player.Center, 10000f))
+                    continue;
+
+                player.DoInfiniteFlightCheck(Color.LightCyan);
+            }
 
             if (ringShootCounter >= ringCount)
             {
@@ -1290,7 +1309,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
             npc.damage = 0;
 
             // Provide the target infinite flight time.
-            target.DoInfiniteFlightCheck(Color.LightCyan);
+            for (int i = 0; i < Main.maxPlayers; i++)
+            {
+                Player player = Main.player[i];
+                if (player.dead || !player.active || !npc.WithinRange(player.Center, 10000f))
+                    continue;
+
+                player.DoInfiniteFlightCheck(Color.LightCyan);
+            }
 
             // Drift towards the target.
             npc.Center = npc.Center.MoveTowards(target.Center, 4f);
@@ -1469,6 +1495,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Polterghast
                 (telegraphStart + telegraphEnd) * 0.5f,
                 telegraphEnd
             };
+            InfernumEffectsRegistry.SideStreakVertexShader.UseImage1(InfernumTextureRegistry.WavyNoise);
             npc.Infernum().OptionalPrimitiveDrawer.Draw(telegraphPoints, -Main.screenPosition, 44);
 
             if (inPhase3 || enraged)

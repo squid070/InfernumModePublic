@@ -10,6 +10,7 @@ using InfernumMode.Assets.Sounds;
 using InfernumMode.Common.Graphics.Particles;
 using InfernumMode.Common.Graphics.ScreenEffects;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod;
 using InfernumMode.Core.GlobalInstances;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
@@ -91,6 +92,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.StormWeaver
         {
             Phase2LifeRatio
         };
+
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 74;
+            npc.height = 74;
+            npc.scale = 1f;
+            npc.defense = 150;
+            npc.Opacity = 1f;
+            npc.Calamity().DR = 0.1f;
+        }
 
         public override bool PreAI(NPC npc)
         {
@@ -876,7 +888,14 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.StormWeaver
                 npc.Center = npc.Center.MoveTowards(spinDestination, target.velocity.Length() * 1.2f + 35f);
 
                 // Grant the target infinite flight time, so that they don't run out in the middle of a flight and get screwed by losing the ability to dodge the wind.
-                target.DoInfiniteFlightCheck(Color.Pink);
+                for (int i = 0; i < Main.maxPlayers; i++)
+                {
+                    Player player = Main.player[i];
+                    if (player.dead || !player.active || !npc.WithinRange(player.Center, 10000f))
+                        continue;
+
+                    player.DoInfiniteFlightCheck(Color.Pink);
+                }
 
                 if (attackTimer % windGustReleaseRate == 0f)
                 {

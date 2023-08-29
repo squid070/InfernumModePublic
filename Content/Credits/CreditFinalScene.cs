@@ -53,8 +53,8 @@ namespace InfernumMode.Content.Credits
             DominicTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/Dom", AssetRequestMode.ImmediateLoad).Value;
             IbanTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/Iban", AssetRequestMode.ImmediateLoad).Value;
             JaretoTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/Jareto", AssetRequestMode.ImmediateLoad).Value;
-            JoeyTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/joey", AssetRequestMode.ImmediateLoad).Value;
-            LglTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/lgl", AssetRequestMode.ImmediateLoad).Value;
+            JoeyTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/JoeyTexture", AssetRequestMode.ImmediateLoad).Value;
+            LglTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/LglTexture", AssetRequestMode.ImmediateLoad).Value;
             MattikTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/Mattik", AssetRequestMode.ImmediateLoad).Value;
             MyraTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/Myra", AssetRequestMode.ImmediateLoad).Value;
             PikyTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Credits/Textures/Piky", AssetRequestMode.ImmediateLoad).Value;
@@ -153,8 +153,8 @@ namespace InfernumMode.Content.Credits
             Main.pixelShader.CurrentTechnique.Passes[0].Apply();
 
             // Draw the infernal chalice
-            Texture2D chaliceTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Tiles/InfernalChaliceTileAnimation").Value;
-            Texture2D chaliceGlowmask = ModContent.Request<Texture2D>("InfernumMode/Content/Tiles/InfernalChaliceTileAnimation").Value;
+            Texture2D chaliceTexture = ModContent.Request<Texture2D>("InfernumMode/Content/Tiles/Wishes/InfernalChaliceTileAnimation").Value;
+            Texture2D chaliceGlowmask = ModContent.Request<Texture2D>("InfernumMode/Content/Tiles/Wishes/InfernalChaliceTileAnimation").Value;
             int frame = (int)(Main.GlobalTimeWrappedHourly * 11f) % 8;
             Vector2 drawPosition = ImagePosition + new Vector2(0f, -13.5f);
             Rectangle frameRect = chaliceTexture.Frame(1, 8, 0, frame);

@@ -150,7 +150,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
         public override float[] PhaseLifeRatioThresholds => new float[]
         {
             Phase2LifeRatio,
-            DoGPhase2HeadBehaviorOverride.CanUseSpecialAttacksLifeRatio,
             DoGPhase2HeadBehaviorOverride.FinalPhaseLifeRatio
         };
 
@@ -225,6 +224,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
         #endregion Loading
 
         #region AI
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 104;
+            npc.height = 104;
+            npc.scale = 1.2f;
+            npc.Opacity = 0f;
+            npc.defense = 0;
+            npc.Calamity().DR = 0.3f;
+            npc.takenDamageMultiplier = 2f;
+        }
+
         public override bool PreAI(NPC npc)
         {
             ref float universalFightTimer = ref npc.Infernum().ExtraAI[UniversalFightTimerIndex];

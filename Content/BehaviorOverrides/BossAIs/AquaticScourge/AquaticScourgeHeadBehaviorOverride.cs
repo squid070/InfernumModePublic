@@ -164,6 +164,18 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
             AquaticScourgeAttackType.SulphurousTyphoon,
         };
 
+        public override void SetDefaults(NPC npc)
+        {
+            // Set defaults that, if were to be changed by Calamity, would cause significant issues to the fight.
+            npc.width = 90;
+            npc.height = 90;
+            npc.scale = 1f;
+            npc.Opacity = 1f;
+            npc.defense = 10;
+            npc.DR_NERD(0.05f);
+            npc.chaseable = false;
+        }
+
         public override bool PreAI(NPC npc)
         {
             // Select a new target if an old one was lost.
@@ -225,7 +237,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
             {
                 target.breath = target.breathMax;
                 target.ignoreWater = true;
-                target.DoInfiniteFlightCheck(Color.Lime);
+
+                // Give targets infinite flight time.
+                for (int i = 0; i < Main.maxPlayers; i++)
+                {
+                    Player player = Main.player[i];
+                    if (player.dead || !player.active || !npc.WithinRange(player.Center, 10000f))
+                        continue;
+
+                    player.DoInfiniteFlightCheck(Color.Lime);
+                }
             }
 
             // Stop despawning.

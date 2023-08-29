@@ -6,13 +6,14 @@ namespace InfernumMode.Core.GlobalInstances.Systems
 {
     public class WorldResetSystem : ModSystem
     {
+        // For some reason, resetting worldgen stuff here seems to fully reset it, implying it isn't being correctly saved?
+        // TODO: Look into this.
         public override void OnWorldLoad()
         {
-            //Below commented resets are removed because they're made in world gen, and are never saved before this reset triggers.
             WorldSaveSystem.InfernumMode = false;
             WorldSaveSystem.AbyssLayer1ForestSeed = 0;
             WorldSaveSystem.AbyssLayer3CavernSeed = 0;
-            WorldSaveSystem.BlossomGardenCenter = Point.Zero;
+            //WorldSaveSystem.BlossomGardenCenter = Point.Zero;
             WorldSaveSystem.DisplayedEmodeWarningText = false;
             WorldSaveSystem.DownedBereftVassal = false;
             //WorldSaveSystem.EidolistWorshipPedestalCenter = Point.Zero;
@@ -33,7 +34,6 @@ namespace InfernumMode.Core.GlobalInstances.Systems
             //WorldSaveSystem.ProvidenceDoorXPosition = 0;
             //WorldSaveSystem.SquidDenCenter = Point.Zero;
             WorldSaveSystem.WayfinderGateLocation = Vector2.Zero;
-
         }
 
         public override void OnWorldUnload()
