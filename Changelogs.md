@@ -1,4 +1,11 @@
-﻿# V 1.9.29 Chabgelogs
+﻿# V 1.9.30 Changelogs
+- More ToastyQoL support.
+- Fixed world updating breaking in MP when spawning nuclear terrors.
+- Fixed eidolists spawning at the top of the world in bugged 1.9.28 worlds.
+- Fixed sharkrons never despawning.
+- Changed the Infernum Difficulty to add itself properly.
+
+# V 1.9.29 Changelogs
 - Localized Achivements.
 - Various minor multiplayer fixes.
 - Fixed issues with newly generated worlds not properly saving things like the Profaned Garden position.
