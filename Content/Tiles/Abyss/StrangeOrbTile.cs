@@ -1,8 +1,6 @@
-﻿using CalamityMod.Items.Pets;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Terraria;
-using Terraria.DataStructures;
 using Terraria.GameContent;
 using Terraria.ModLoader;
 using Terraria.ObjectData;
@@ -36,11 +34,6 @@ namespace InfernumMode.Content.Tiles.Abyss
         public override bool CanExplode(int i, int j) => false;
 
         public override bool CanKillTile(int i, int j, ref bool blockDamaged) => NPC.downedBoss3;
-
-        public override void KillMultiTile(int i, int j, int frameX, int frameY)
-        {
-            Item.NewItem(new EntitySource_TileBreak(i, j), i * 16, j * 16, 32, 32, ModContent.ItemType<StrangeOrb>());
-        }
 
         public override bool PreDraw(int i, int j, SpriteBatch spriteBatch)
         {

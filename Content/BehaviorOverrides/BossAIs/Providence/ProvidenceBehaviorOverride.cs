@@ -1,12 +1,15 @@
 ﻿using CalamityMod;
 using CalamityMod.Events;
+using CalamityMod.Items.SummonItems;
 using CalamityMod.NPCs;
+using CalamityMod.NPCs.DevourerofGods;
 using CalamityMod.NPCs.ProfanedGuardians;
 using CalamityMod.NPCs.Providence;
 using CalamityMod.Particles;
 using CalamityMod.Projectiles.Boss;
 using CalamityMod.Sounds;
 using InfernumMode.Assets.Effects;
+using InfernumMode.Assets.ExtraTextures;
 using InfernumMode.Assets.Sounds;
 using InfernumMode.Common.Graphics.AttemptRecording;
 using InfernumMode.Common.Graphics.Particles;
@@ -14,6 +17,7 @@ using InfernumMode.Common.Graphics.ScreenEffects;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Yharon;
 using InfernumMode.Content.Credits;
+using InfernumMode.Content.Projectiles.Generic;
 using InfernumMode.Content.Projectiles.Pets;
 using InfernumMode.Content.Projectiles.Wayfinder;
 using InfernumMode.Core;
@@ -205,6 +209,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
 
         public const int StartedWithMusicDisabledIndex = 12;
 
+        public const int DrawCrystalInterpolant = 13;
+
         public const float DefaultLavaHeight = 1400f;
 
         public const float HighestLavaHeight = 2284f;
@@ -364,12 +370,11 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
                 {
                     Pitch = 0.5f
                 });
+
                 Main.LocalPlayer.Infernum_Camera().CurrentScreenShakePower = 18f;
                 ScreenEffectSystem.SetBlurEffect(npc.Center, 1.2f, 25);
                 ScreenEffectSystem.SetFlashEffect(npc.Center, 5f, 50);
-
-                if (InfernumConfig.Instance.FlashbangOverlays)
-                    MoonlordDeathDrama.RequestLight(5f, Main.LocalPlayer.Center);
+                MoonlordDeathDrama.RequestLight(5f, Main.LocalPlayer.Center);
 
                 if (Main.netMode != NetmodeID.MultiplayerClient)
                 {
@@ -382,8 +387,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
                     npc.netUpdate = true;
                 }
 
-                if (Main.netMode != NetmodeID.Server)
-                    MediaPlayer.Stop();
+                //if (Main.netMode != NetmodeID.Server)
+                //    MediaPlayer.Stop();
             }
 
             drawState = (int)ProvidenceFrameDrawingType.WingFlapping;
@@ -2127,7 +2132,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
             }
 
             // Cast the laser telegraphs.
-            int telegraphTime = 45;
+            int telegraphTime = IsEnraged ? 48 : 55;
             int laserShootTime = 35;
             bool bellIsPlaying = SyncAttacksWithMusic && ProvidenceTrackedMusic.Bells.Any(b => attackTimer >= b.StartInFrames && attackTimer < b.EndInFrames);
             bool shootLaser = bellIsPlaying;
@@ -2142,11 +2147,10 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
 
             // Force a laser to be shot if there hasn't been one in a while. This is done to prevent awkward transition points in the song without bells from messing with fight flow.
             if (countdownUntilNextLaser > 0f)
-            {
-                countdownUntilNextLaser--;
-                if (countdownUntilNextLaser <= 0f)
-                    shootLaser = true;
-            }
+                countdownUntilNextLaser--;             
+
+            if (countdownUntilNextLaser <= 0f)
+                shootLaser = true;
 
             // Release slow fireballs from the lava below.
             if (Main.netMode != NetmodeID.MultiplayerClient && localAttackTimer % 18 == 17)
@@ -2597,6 +2601,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
 
             ref float burnIntensity = ref npc.localAI[3];
 
+            ref float drawCrystal = ref npc.Infernum().ExtraAI[DrawCrystalInterpolant];
+
             void drawProvidenceInstance(Vector2 baseDrawPosition, int frameOffset, Color baseDrawColor)
             {
                 rockTextureString = "InfernumMode/Content/BehaviorOverrides/BossAIs/Providence/Sheets/";
@@ -2735,6 +2741,34 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
                 }
             }
 
+            // Only draw the crystal in the post death cutscene.
+            if (drawCrystal == 1f)
+            {
+                Color timeColor = Color.Lerp(WayfinderSymbol.Colors[0], WayfinderSymbol.Colors[2], 0.2f);
+                if (IsEnraged)
+                    timeColor = Color.DeepSkyBlue;
+
+                Texture2D fatCrystalTexture = ModContent.Request<Texture2D>("InfernumMode/Content/BehaviorOverrides/BossAIs/Providence/ProvidenceCrystal").Value;
+                Texture2D bloomTexture = InfernumTextureRegistry.BloomFlare.Value;
+
+                spriteBatch.Draw(bloomTexture, npc.Center - Main.screenPosition, null, timeColor with { A = 0 } * Lerp(0.3f, 0.6f, (1f + Sin(PI * Main.GlobalTimeWrappedHourly * 1.1f)) * 0.5f), Main.GlobalTimeWrappedHourly, bloomTexture.Size() * 0.5f, 0.3f, SpriteEffects.None, 0f);;
+                spriteBatch.Draw(bloomTexture, npc.Center - Main.screenPosition, null, Color.Lerp(timeColor, Color.White, 0.3f) with { A = 0 } * Lerp(0.3f, 0.6f, (1f + Sin(PI * Main.GlobalTimeWrappedHourly * 1.4f)) * 0.5f), -Main.GlobalTimeWrappedHourly, bloomTexture.Size() * 0.5f, 0.3f, SpriteEffects.None, 0f); ;
+                
+                float crystalScale = npc.scale * Lerp(0.9f, 1.1f, (1f + Sin(PI * Main.GlobalTimeWrappedHourly * 0.85f)) * 0.5f);
+
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector2 offset = (TwoPi * i / 8f + Main.GlobalTimeWrappedHourly).ToRotationVector2() * Lerp(4f, 10f, (1f + Sin(PI * Main.GlobalTimeWrappedHourly)) * 0.5f);
+                    Color glowColor = Color.LightPink with { A = 0 } * 0.5f;
+                    spriteBatch.Draw(fatCrystalTexture, npc.Center + offset - Main.screenPosition, null, glowColor, npc.rotation, fatCrystalTexture.Size() * 0.5f, crystalScale, SpriteEffects.None, 0f);
+                }
+
+                spriteBatch.Draw(fatCrystalTexture, npc.Center - Main.screenPosition, null, Color.White, npc.rotation, fatCrystalTexture.Size() * 0.5f, crystalScale, SpriteEffects.None, 0f);
+                spriteBatch.Draw(fatCrystalTexture, npc.Center - Main.screenPosition, null, timeColor with { A = 0 } * Sin(PI * Main.GlobalTimeWrappedHourly * 0.8f) * 0.7f, npc.rotation, fatCrystalTexture.Size() * 0.5f, crystalScale, SpriteEffects.None, 0f);
+
+                return false;
+            }
+
             int totalProvidencesToDraw = (int)Lerp(1f, 30f, burnIntensity);
             for (int i = 0; i < totalProvidencesToDraw; i++)
             {
@@ -2784,6 +2818,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Providence
         #region Tips
         public override IEnumerable<Func<NPC, string>> GetTips()
         {
+            yield return n => "Mods.InfernumMode.PetDialog.ProvidenceTip1";
+            yield return n => "Mods.InfernumMode.PetDialog.ProvidenceTip2";
             yield return n =>
             {
                 if (Main.dayTime && Main.time >= Main.dayLength - 3600D)

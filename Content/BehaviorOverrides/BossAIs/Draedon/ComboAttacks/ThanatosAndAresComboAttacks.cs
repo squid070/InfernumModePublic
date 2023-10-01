@@ -1,4 +1,4 @@
-using CalamityMod;
+﻿using CalamityMod;
 using CalamityMod.Items.Weapons.DraedonsArsenal;
 using CalamityMod.NPCs;
 using CalamityMod.NPCs.ExoMechs.Ares;
@@ -158,7 +158,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ComboAttacks
                 {
                     frame = (int)AresBodyFrameType.Laugh;
                     if (attackTimer == attackDelay - 45f)
-                        DoLaughEffect(npc, target);
+                        DoLaughEffect(npc);
                 }
 
                 // Create telegraphs.
@@ -235,12 +235,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Draedon.ComboAttacks
             float flyAcceleration = 1.022f;
             if (CurrentThanatosPhase != 4 || CurrentAresPhase != 4)
             {
-                slashAnticipationTime -= 54;
+                bool targetHasDash = target.HasDash();
+                slashAnticipationTime -= targetHasDash ? 54 : 40;
                 slashTime -= 7;
                 redirectTime -= 7;
                 chargeTime -= 21;
                 slashCount += 3;
-                flyAcceleration += 0.008f;
+                flyAcceleration += targetHasDash ? 0.008f : 0.006f;
             }
 
             // Thanatos attempts to slam into the target and accelerate.

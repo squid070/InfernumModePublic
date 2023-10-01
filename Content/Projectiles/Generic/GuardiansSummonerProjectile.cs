@@ -1,3 +1,4 @@
+﻿using System.Linq;
 using CalamityMod;
 using CalamityMod.NPCs.ProfanedGuardians;
 using CalamityMod.NPCs.Providence;
@@ -43,7 +44,7 @@ namespace InfernumMode.Content.Projectiles.Generic
 
         public static Player Player => Main.LocalPlayer;
 
-        private Vector2 DefaultPlayerPosition;
+        public Player Owner => Main.player[Projectile.owner];
 
         public float FireballScale
         {
@@ -78,23 +79,31 @@ namespace InfernumMode.Content.Projectiles.Generic
 
         public override void AI()
         {
+            // Die if the player does.
+            if (Owner.dead || !Owner.active)
+            {
+                Projectile.Kill();
+                Player.Infernum_Camera().ScreenFocusHoldInPlaceTime = 0;
+                return;
+            }
+
             if (Time == 0)
             {
                 Player.Infernum_Camera().ScreenFocusHoldInPlaceTime = Lifetime;
 
-                DefaultPlayerPosition = Player.Center;
-
                 // If infernum is not enabled, just spawn the guardians.
-                if (Main.netMode != NetmodeID.MultiplayerClient && !WorldSaveSystem.InfernumMode)
+                if (Main.netMode != NetmodeID.MultiplayerClient && !WorldSaveSystem.InfernumModeEnabled)
                 {
                     NPC.SpawnOnPlayer(Main.player[Projectile.owner].whoAmI, ModContent.NPCType<ProfanedGuardianCommander>());
                     Projectile.Kill();
                     return;
                 }
 
+                BlockerSystem.Start(true, true, () =>
+                {
+                    return Main.projectile.Any(proj => proj.type == Type && proj.active);
+                });
             }
-
-            Player.Center = DefaultPlayerPosition;
 
             float particleCircleSize = Lerp(500f, 200f, Time / SpawnTime);
             int rockSpawnRate = (int)Lerp(3f, 1f, Time / SpawnTime);
@@ -169,10 +178,6 @@ namespace InfernumMode.Content.Projectiles.Generic
             {
                 Player.Infernum_Camera().ScreenFocusPosition = MainPosition;
                 Player.Infernum_Camera().ScreenFocusInterpolant = CalamityUtils.SineInOutEasing(Clamp(Time / MoveTime, 0f, 1f), 0);
-
-                // Disable input and UI during the animation.
-                Main.blockInput = true;
-                Main.hideUI = true;
             }
 
             if (Time is >= 210f and <= SpawnTime)
@@ -228,11 +233,11 @@ namespace InfernumMode.Content.Projectiles.Generic
             Time++;
         }
 
-        public override void Kill(int timeLeft)
-        {
-            Main.blockInput = false;
-            Main.hideUI = false;
-        }
+        //public override void Kill(int timeLeft)
+        //{
+        //    //Main.blockInput = false;
+        //    //Main.hideUI = false;
+        //}
 
         private static void CreateSpawnExplosion(Vector2 impactCenter)
         {

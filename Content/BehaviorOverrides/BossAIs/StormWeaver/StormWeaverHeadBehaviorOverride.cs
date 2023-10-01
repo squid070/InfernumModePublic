@@ -10,7 +10,6 @@ using InfernumMode.Assets.Sounds;
 using InfernumMode.Common.Graphics.Particles;
 using InfernumMode.Common.Graphics.ScreenEffects;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge;
-using InfernumMode.Content.BehaviorOverrides.BossAIs.SlimeGod;
 using InfernumMode.Core.GlobalInstances;
 using InfernumMode.Core.GlobalInstances.Systems;
 using InfernumMode.Core.OverridingSystem;
@@ -990,5 +989,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.StormWeaver
             npc.netUpdate = true;
         }
         #endregion AI
+
+        #region Tips
+        public override IEnumerable<Func<NPC, string>> GetTips()
+        {
+            yield return n => "Mods.InfernumMode.PetDialog.StormWeaverTip1";
+
+        }
+        #endregion Tips
     }
 }

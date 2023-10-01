@@ -380,6 +380,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             int animationTime = spearSpinTime + spearStrikeTime + animationFocusReturnTime;
             ref float hasBegunAnimation = ref NPC.Infernum().ExtraAI[0];
 
+
             // Disable damage entirely.
             NPC.dontTakeDamage = true;
             NPC.damage = 0;
@@ -396,6 +397,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
             {
                 hasBegunAnimation = 1f;
                 SpearRotation = NPC.AngleTo(Target.Center) + PiOver4;
+                BlockerSystem.Start(true, true, () =>
+                {
+                    int index = NPC.FindFirstNPC(Type);
+                    if (Main.npc.IndexInRange(index))
+                    {
+                        NPC vassal = Main.npc[index];
+                        if ((BereftVassalAttackType)vassal.ai[0] == BereftVassalAttackType.IdleState)
+                            return true;
+                    }
+                    return false;
+                });
                 NPC.netUpdate = true;
             }
 
@@ -460,23 +472,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
                     Music = MusicLoader.GetMusicSlot(musicMod, "Sounds/Music/BereftVassal");
             }
 
-            // Disable controls and UI for the target.
-            if (Main.myPlayer == NPC.target && Main.netMode == NetmodeID.SinglePlayer)
-            {
-                Main.hideUI = true;
-                Main.blockInput = true;
-            }
-
             if (AttackTimer >= animationTime + animationFocusReturnTime)
-            {
-                if (Main.myPlayer == NPC.target && Main.netMode == NetmodeID.SinglePlayer)
-                {
-                    Main.hideUI = false;
-                    Main.blockInput = false;
-                }
-
                 SelectNextAttack();
-            }
         }
 
         public void DoBehavior_SandBlobSlam()
@@ -1555,8 +1552,17 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark
                 // Disable controls and UI for the target.
                 if (Main.myPlayer == NPC.target)
                 {
-                    Main.hideUI = true;
-                    Main.blockInput = true;
+                    BlockerSystem.Start(true, true, () =>
+                    {
+                        int index = NPC.FindFirstNPC(Type);
+                        if (Main.npc.IndexInRange(index))
+                        {
+                            NPC vassal = Main.npc[index];
+                            if (vassal.ai[1] >= jumpHoverTime + hornSoundTime + gssSummonDelay - 54f)
+                                return false;
+                        }
+                        return true;
+                    });
                 }
 
                 // Delete all old projectiles.

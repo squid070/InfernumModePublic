@@ -20,7 +20,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
             Projectile.height = 14;
             Projectile.hostile = true;
             Projectile.tileCollide = false;
-            Projectile.Opacity = 0.25f;
+            Projectile.Opacity = 1f;
             Projectile.penetrate = 1;
             Projectile.timeLeft = 600;
             Projectile.aiStyle = 1;
@@ -46,7 +46,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.Crabulon
             Projectile.velocity.X *= 0.995f;
         }
 
-        public override void Kill(int timeLeft)
+        public override void OnKill(int timeLeft)
         {
             SoundEngine.PlaySound(in SoundID.NPCDeath1, Projectile.Center);
             Projectile.position.X = Projectile.position.X + (Projectile.width / 2);

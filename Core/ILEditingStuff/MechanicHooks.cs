@@ -15,11 +15,13 @@ using CalamityMod.Schematics;
 using CalamityMod.Systems;
 using CalamityMod.Tiles.Abyss;
 using InfernumMode.Assets.ExtraTextures;
+using InfernumMode.Common.Graphics;
 using InfernumMode.Common.UtilityMethods;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.CeaselessVoid;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Cultist;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Golem;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.GreatSandShark;
+using InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.Signus;
 using InfernumMode.Content.BehaviorOverrides.BossAIs.StormWeaver;
 using InfernumMode.Content.Items.Accessories;
@@ -336,7 +338,7 @@ namespace InfernumMode.Core.ILEditingStuff
 
     public class DrawCherishedSealocketHook : IHookEdit
     {
-        public static RenderTarget2D PlayerForcefieldTarget
+        public static ManagedRenderTarget PlayerForcefieldTarget
         {
             get;
             internal set;
@@ -361,16 +363,16 @@ namespace InfernumMode.Core.ILEditingStuff
 
             // Draw the render target, optionally with a dye shader.
             Main.spriteBatch.End();
-            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer, null, Main.GameViewMatrix.TransformationMatrix);
+            Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, SamplerState.LinearWrap, DepthStencilState.None, Main.Rasterizer);
 
             float shieldScale = Main.LocalPlayer.GetModPlayer<SealocketPlayer>().ForcefieldOpacity * 0.3f;
             Vector2 shieldSize = Vector2.One * shieldScale * 512f;
-            Rectangle shaderArea = Utils.CenteredRectangle(PlayerForcefieldTarget.Size(), shieldSize);
+            Rectangle shaderArea = Utils.CenteredRectangle(PlayerForcefieldTarget.Target.Size(), shieldSize);
             SealocketPlayer sealocketPlayer = Main.LocalPlayer.GetModPlayer<SealocketPlayer>();
 
             if (sealocketPlayer.ForcefieldOpacity >= 0.01f && sealocketPlayer.ForcefieldDissipationInterpolant < 0.99f)
-                ForcefieldShader?.Apply(null, new(PlayerForcefieldTarget, Vector2.Zero, shaderArea, Color.White));
-            Main.spriteBatch.Draw(PlayerForcefieldTarget, Main.LocalPlayer.Center - Main.screenPosition, null, Color.White, 0f, PlayerForcefieldTarget.Size() * 0.5f, 1f, 0, 0f);
+                ForcefieldShader?.Apply(null, new(PlayerForcefieldTarget.Target, Vector2.Zero, shaderArea, Color.White));
+            Main.spriteBatch.Draw(PlayerForcefieldTarget.Target, Main.LocalPlayer.Center - Main.screenPosition, null, Color.White, 0f, PlayerForcefieldTarget.Target.Size() * 0.5f, 1f, 0, 0f);
 
             Main.spriteBatch.ExitShaderRegion();
 
@@ -380,12 +382,10 @@ namespace InfernumMode.Core.ILEditingStuff
         private void PrepareSealocketTarget(On_Main.orig_CheckMonoliths orig)
         {
             orig();
-            InitializeTargetIfNecessary();
 
             var device = Main.instance.GraphicsDevice;
             RenderTargetBinding[] bindings = device.GetRenderTargets();
-            device.SetRenderTarget(PlayerForcefieldTarget);
-            device.Clear(Color.Transparent);
+            PlayerForcefieldTarget.SwapToRenderTarget();
 
             // Draw forcefields to the render target.
             Main.spriteBatch.Begin();
@@ -398,14 +398,6 @@ namespace InfernumMode.Core.ILEditingStuff
             }
             Main.spriteBatch.End();
             device.SetRenderTargets(bindings);
-        }
-
-        public static void InitializeTargetIfNecessary()
-        {
-            if (PlayerForcefieldTarget is not null || Main.netMode == NetmodeID.Server)
-                return;
-
-            PlayerForcefieldTarget = new(Main.instance.GraphicsDevice, Main.screenWidth, Main.screenHeight);
         }
 
         public static void DrawForcefield(Player player)
@@ -443,6 +435,7 @@ namespace InfernumMode.Core.ILEditingStuff
             On_Main.CheckMonoliths += PrepareSealocketTarget;
             On_Main.DrawInfernoRings += DrawForcefields;
             DyeFindingSystem.FindDyeEvent += FindSealocketItemDyeShader;
+            PlayerForcefieldTarget = new(true, RenderTargetManager.CreateScreenSizedTarget);
         }
 
         public void Unload()
@@ -701,9 +694,17 @@ namespace InfernumMode.Core.ILEditingStuff
 
     public class ChangeProfanedShardUsageHook : IHookEdit
     {
-        public void Load() => ProfanedShardUseItem += SummonGuardianSpawnerManager;
+        public void Load()
+        {
+            ProfanedShardUseItem += SummonGuardianSpawnerManager;
+            ProfanedShardCanUseItem += CanUseItemEdit;
+        }
 
-        public void Unload() => ProfanedShardUseItem -= SummonGuardianSpawnerManager;
+        public void Unload()
+        {
+            ProfanedShardUseItem -= SummonGuardianSpawnerManager;
+            ProfanedShardCanUseItem -= CanUseItemEdit;
+        }
 
         private void SummonGuardianSpawnerManager(ILContext il)
         {
@@ -712,7 +713,7 @@ namespace InfernumMode.Core.ILEditingStuff
             cursor.EmitDelegate((Player player) =>
             {
                 // Normal spawning stuff
-                if (!WorldSaveSystem.InfernumMode)
+                if (!WorldSaveSystem.InfernumModeEnabled)
                 {
                     // This runs like 6 times without this check for some fucking reason.
                     if (!NPC.AnyNPCs(ModContent.NPCType<ProfanedGuardianCommander>()))
@@ -728,6 +729,28 @@ namespace InfernumMode.Core.ILEditingStuff
                     Utilities.NewProjectileBetter(player.Center, Vector2.Zero, ModContent.ProjectileType<GuardiansSummonerProjectile>(), 0, 0f);
             });
             cursor.Emit(OpCodes.Ldc_I4_1);
+            cursor.Emit(OpCodes.Ret);
+        }
+
+        private void CanUseItemEdit(ILContext il)
+        {
+            ILCursor cursor = new(il);
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate((Player player) =>
+            {
+                bool correctBiome = player.Hitbox.Intersects(GuardianComboAttackManager.ShardUseisAllowedArea) && !WeakReferenceSupport.InAnySubworld();
+                bool bossIsNotPresent = !NPC.AnyNPCs(ModContent.NPCType<ProfanedGuardianCommander>());
+
+                if (InfernumMode.CanUseCustomAIs)
+                    return correctBiome && bossIsNotPresent && !BossRushEvent.BossRushActive;
+                else
+                {
+                    // Base cals checks, so they still function if you have the mod on but not the mode.
+                    if (!NPC.AnyNPCs(ModContent.NPCType<ProfanedGuardianCommander>()) && (Main.dayTime || Main.remixWorld) && (player.ZoneHallow || player.ZoneUnderworldHeight))
+                        return !BossRushEvent.BossRushActive;
+                    return false;
+                }
+            });
             cursor.Emit(OpCodes.Ret);
         }
     }

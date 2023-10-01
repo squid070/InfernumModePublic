@@ -274,8 +274,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             if (!target.active || target.dead)
             {
                 npc.velocity *= 0.9f;
-                if (InfernumConfig.Instance.FlashbangOverlays)
-                    MoonlordDeathDrama.RequestLight(despawnTimer / 45f, npc.Center);
+                MoonlordDeathDrama.RequestLight(despawnTimer / 45f, npc.Center);
                 despawnTimer++;
 
                 attackState = -1f;
@@ -390,8 +389,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             {
                 if (attackTimer == 4f)
                     SoundEngine.PlaySound(SoundID.NPCDeath61, npc.Center);
-                if (InfernumConfig.Instance.FlashbangOverlays)
-                    MoonlordDeathDrama.RequestLight(attackTimer / 60f, npc.Center);
+
+                MoonlordDeathDrama.RequestLight(attackTimer / 60f, npc.Center);
             }
             else
             {
@@ -631,6 +630,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
         public override IEnumerable<Func<NPC, string>> GetTips()
         {
+            yield return n => "Mods.InfernumMode.PetDialog.MoonLordTip2";
             yield return n =>
             {
                 if (NPC.CountNPCS(NPCID.MoonLordFreeEye) >= 2)

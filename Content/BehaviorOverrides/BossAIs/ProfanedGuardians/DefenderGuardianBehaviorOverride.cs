@@ -196,8 +196,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                             Particle ashes = new MediumMistParticle(position, velocity, WayfinderSymbol.Colors[1], Color.Gray, Main.rand.NextFloat(0.75f, 0.95f), 400, Main.rand.NextFloat(-0.05f, 0.05f));
                             GeneralParticleHandler.SpawnParticle(ashes);
                         }
-                        if (InfernumConfig.Instance.FlashbangOverlays)
-                            MoonlordDeathDrama.RequestLight(1f, target.Center);
+
+                        MoonlordDeathDrama.RequestLight(1f, target.Center);
 
                         // Create a bunch of rock particles to indicate a heavy impact.
                         Vector2 impactCenter = npc.Center;
@@ -212,12 +212,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                     break;
 
                 case 1:
-                    if (InfernumConfig.Instance.FlashbangOverlays && localAttackTimer == 30f)
+                    if (localAttackTimer == 30f)
                         typeof(MoonlordDeathDrama).GetField("whitening", Utilities.UniversalBindingFlags).SetValue(null, 1f);
+
                     npc.Opacity = 0f;
+
                     if (localAttackTimer > 45f)
                     {
-                        Main.hideUI = false;
                         SelectNewAttack(commander, ref attackTimer, (float)GuardiansAttackType.LargeGeyserAndCharge);
                         commander.Infernum().ExtraAI[CommanderAttackCyclePositionIndex] = 1f;
 

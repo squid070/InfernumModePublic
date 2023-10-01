@@ -15,21 +15,24 @@ namespace InfernumMode.Common.Graphics
 
         public static event RenderTargetUpdateDelegate RenderTargetUpdateLoopEvent;
 
-        internal static void ResetTargetSizes(On_Main.orig_SetDisplayMode orig, int width, int height, bool fullscreen)
+        /// <summary>
+        /// How many frames should pass since a target was last accessed before automatically disposing of it.
+        /// </summary>
+        public const int TimeBeforeAutoDispose = 600;
+
+        internal static void ResetTargetSizes(Vector2 obj)
         {
             foreach (ManagedRenderTarget target in ManagedTargets)
             {
                 // Don't attempt to recreate targets that are already initialized or shouldn't be recreated.
-                if (target is null || !target.IsDisposed || target.WaitingForFirstInitialization)
+                if (target is null || target.IsDisposed || target.WaitingForFirstInitialization)
                     continue;
 
                 ScreenSaturationBlurSystem.DrawActionQueue.Enqueue(() =>
                 {
-                    target.Recreate(width, height);
+                    target.Recreate((int)obj.X, (int)obj.Y);
                 });
             }
-
-            orig(width, height, fullscreen);
         }
 
         internal static void DisposeOfTargets()
@@ -52,16 +55,32 @@ namespace InfernumMode.Common.Graphics
         {
             ManagedTargets = new();
             Main.OnPreDraw += HandleTargetUpdateLoop;
-            On_Main.SetDisplayMode += ResetTargetSizes;
+            Main.OnResolutionChanged += ResetTargetSizes;
         }
 
         public override void OnModUnload()
         {
             DisposeOfTargets();
             Main.OnPreDraw -= HandleTargetUpdateLoop;
-            On_Main.SetDisplayMode -= ResetTargetSizes;
         }
 
-        private void HandleTargetUpdateLoop(GameTime obj) => RenderTargetUpdateLoopEvent?.Invoke();
+        private void HandleTargetUpdateLoop(GameTime obj)
+        {
+            // Auto dispose of targets that havent been used in a while, to stop them hogging GPU memory.
+            if (ManagedTargets != null)
+            {
+                foreach (ManagedRenderTarget target in ManagedTargets)
+                {
+                    if (target == null || target.IsDisposed || !target.ShouldAutoDispose)
+                        continue;
+
+                    if (target.TimeSinceLastAccessed >= TimeBeforeAutoDispose)
+                        target.Dispose();
+                    else
+                        target.TimeSinceLastAccessed++;
+                }
+            }
+            RenderTargetUpdateLoopEvent?.Invoke();
+        }
     }
 }

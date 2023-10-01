@@ -4,7 +4,6 @@ using CalamityMod.Particles;
 using InfernumMode.Assets.Sounds;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Linq;
 using Terraria;
 using Terraria.Audio;
 using Terraria.ModLoader;
@@ -53,8 +52,6 @@ namespace InfernumMode.Content.Projectiles.Rogue
 
         public override string Texture => "InfernumMode/Content/Items/Weapons/Rogue/Dreamtastic";
 
-        // public override void SetStaticDefaults() => DisplayName.SetDefault("Dreamtastic");
-
         public override void SetDefaults()
         {
             Projectile.width = 54;
@@ -70,10 +67,8 @@ namespace InfernumMode.Content.Projectiles.Rogue
 
         public override void AI()
         {
-            int holdoutCount = Main.projectile.Where(p => p.active && p.owner == Owner.whoAmI && p.type == Type).ToArray().Length;
-
             // Die if no longer holding the click button or otherwise cannot use the item.
-            if (!Owner.channel || Owner.dead || !Owner.active || Owner.noItems || Owner.CCed || holdoutCount > 1)
+            if (!Owner.channel || Owner.dead || !Owner.active || Owner.noItems || Owner.CCed)
             {
                 Projectile.Kill();
                 return;

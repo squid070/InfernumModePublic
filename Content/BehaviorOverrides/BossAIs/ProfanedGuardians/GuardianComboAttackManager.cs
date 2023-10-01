@@ -30,7 +30,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
         {
             ref float lastOffsetY = ref npc.Infernum().ExtraAI[0];
 
-            float wallCreationRate = 60f;
+            float wallCreationRate = 90f;
             int wallsToSimulate = 7;
 
             // Do not take or deal damage.
@@ -50,7 +50,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         // The base velocity of the walls.
-                        Vector2 velocity = -Vector2.UnitX * 9f;
+                        Vector2 velocity = -Vector2.UnitX * 8f;
                         // The distance between each wall.
                         float gapBetweenWalls = velocity.X * wallCreationRate;
 
@@ -95,6 +95,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
             }
         }
 
+        // I cannot take this anymore.
         public static void DoBehavior_FlappyBird(NPC npc, Player target, ref float attackTimer, NPC commander)
         {
             // This attack ends automatically when the crystal wall dies, it advances the attackers attack state, which the other
@@ -103,7 +104,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
             // The commander bobs on the spot, pausing to aim and fire a fire beam at the player from afar.
             if (npc.type == CommanderType)
             {
-                float deathrayFireRate = 165;
+                float deathrayFireRate = 235;
                 float initialDelay = 120;
                 ref float movementTimer = ref npc.Infernum().ExtraAI[0];
 
@@ -151,7 +152,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                 // This is basically flappy bird, the attacker spawns fire walls like the pipes that move towards the entrance of the garden.
                 ref float lastOffsetY = ref npc.Infernum().ExtraAI[0];
                 ref float movedToPosition = ref npc.Infernum().ExtraAI[1];
-                float wallCreationRate = 60f;
+                float wallCreationRate = 90f;
                 ref float drawFireSuckup = ref npc.ai[2];
                 drawFireSuckup = 1;
                 ref float fireSuckupWidth = ref commander.Infernum().ExtraAI[DefenderFireSuckupWidthIndex];
@@ -180,21 +181,21 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                         // Create walls of fire with a random gap in them based off of the last one.
                         if (attackTimer % wallCreationRate == 0f && Main.netMode != NetmodeID.MultiplayerClient && crystal.ai[0] == 0f)
                         {
-                            Vector2 velocity = -Vector2.UnitX * 9f;
+                            Vector2 velocity = -Vector2.UnitX * 8f;
                             Vector2 baseCenter = CrystalPosition + new Vector2(220f, 0f);
                             // Create a random offset.
                             float yRandomOffset;
                             Vector2 previousCenter = baseCenter + new Vector2(0f, lastOffsetY);
                             Vector2 newCenter;
                             int attempts = 0;
-                            // Attempt to get one within a certain distance, but give up after 30 attempts.
+                            // Attempt to get one within a certain distance, but give up after 100 attempts.
                             do
                             {
                                 yRandomOffset = Main.rand.NextFloat(-600f, 200f);
                                 newCenter = baseCenter + new Vector2(0f, yRandomOffset);
                                 attempts++;
                             }
-                            while (newCenter.Distance(previousCenter) > 400f || attempts < 30);
+                            while (newCenter.Distance(previousCenter) > 400f || attempts < 100);
 
                             // Set the new random offset as the last one.
                             lastOffsetY = yRandomOffset;
@@ -1913,6 +1914,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                 Vector2 focusPosition = target.Center + new Vector2(0f, target.gfxOffY) + (-0.4f).ToRotationVector2() * 70f;
                 target.Infernum_Camera().ScreenFocusInterpolant = 1f;
                 target.Infernum_Camera().ScreenFocusPosition = focusPosition;
+
                 if (substate < 6f)
                 {
                     target.Infernum_Camera().CurrentScreenShakePower = 2f;
@@ -1921,9 +1923,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                     npc.dontTakeDamage = true;
                     // Do not deal damage.
                     npc.damage = 0;
-                    // Hide UI.
-                    if (Main.myPlayer == npc.target && Main.netMode == NetmodeID.SinglePlayer)
-                        Main.hideUI = true;
                 }
 
                 // Spawn cool symbols.
@@ -1960,6 +1959,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                             // Mark the spear for removal.
                             spearStatus = (float)DefenderShieldStatus.MarkedForRemoval;
                         break;
+
                     case 3:
                         npc.velocity *= 0.9f;
                         break;
@@ -1999,7 +1999,16 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.ProfanedGuardians
                         Vector2 hoverDestination = target.Center + new Vector2(1200f, 0f);
 
                         if (localAttackTimer == 1)
+                        {
                             npc.Center = hoverDestination;
+                            if (Main.myPlayer == npc.target && Main.netMode == NetmodeID.SinglePlayer)
+                            {
+                                BlockerSystem.Start(false, true, () =>
+                                {
+                                    return NPC.AnyNPCs(DefenderType);
+                                });
+                            }
+                        }
                         npc.velocity = (npc.velocity * 7f + npc.SafeDirectionTo(hoverDestination) * MathF.Min(npc.Distance(hoverDestination), flySpeed)) / 8f;
                         npc.spriteDirection = (npc.DirectionTo(target.Center).X > 0f) ? 1 : -1;
 
