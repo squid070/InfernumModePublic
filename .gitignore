@@ -334,3 +334,7 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+#necessary for my terraria to load this properly. dunno how to not committ this so if i forget and pr this at some point you should probably say something
+Localization/en-US.hjson
+InfernumMode.csproj
