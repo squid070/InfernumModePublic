@@ -24,7 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CalamityMod">
-      <HintPath>C:\ModReader\CalamityMod\CalamityMod.dll</HintPath>
+      <HintPath>..\ModAssemblies\CalamityMod_v2.0.3.6.dll</HintPath>
     </Reference>
     <Reference Include="Gif.Components">
       <HintPath>lib\Gif.dll</HintPath>

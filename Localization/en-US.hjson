@@ -1143,7 +1143,16 @@ Mods: {
 			ExplodingServant.DisplayName: Servant of Cthulhu
 			GolemFistLeft.DisplayName: Golem Fist
 			GolemFistRight.DisplayName: Golem Fist
-			BereftVassal.DisplayName: Argus, the Bereft Vassal
+
+			BereftVassal: {
+				DisplayName: Argus, the Bereft Vassal
+
+				BossChecklistIntegration: {
+					EntryName: Bereft Vassal
+					SpawnInfo: Use a [i:7119] at the pedestal in the heart of the desert.
+				}
+			}
+
 			Ninja.DisplayName: Ninja
 			BuilderDroneBig.DisplayName: Big Builder Drone
 			BuilderDroneSmall.DisplayName: Small Builder Drone
@@ -1934,12 +1943,12 @@ Mods: {
 			ProfanedGardenLocationSetter: {
 				DisplayName: Profaned Garden Location Setter
 				Tooltip:
-				'''
-				Use this to fix the profaned garden not functioning properly.
-				Left click the bottom-center of the Profaned Plaque tile in the middle of the garden.
-				This will center the garden position around that point correctly.
-				ou can right click to revert the position to the previous one.
-				'''
+					'''
+					Use this to fix the profaned garden not functioning properly.
+					Left click the bottom-center of the Profaned Plaque tile in the middle of the garden.
+					This will center the garden position around that point correctly.
+					ou can right click to revert the position to the previous one.
+					'''
 			}
 		}
 
