@@ -1,4 +1,4 @@
-﻿using CalamityMod;
+using CalamityMod;
 using CalamityMod.Buffs.DamageOverTime;
 using InfernumMode.Assets.Sounds;
 using InfernumMode.Content.Projectiles.Pets;
@@ -143,7 +143,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
         public override void Load()
         {
             GlobalNPCOverrides.OnKillEvent += GenerateProfanedTempleIfNecessary;
-            GlobalNPCOverrides.StrikeNPCEvent += HandleMLBodyPhaseTriggers;
+            //GlobalNPCOverrides.StrikeNPCEvent += HandleMLBodyPhaseTriggers;
         }
 
         private void GenerateProfanedTempleIfNecessary(NPC npc)
@@ -353,14 +353,21 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
         public static void HandleBodyPartDeathTriggers(NPC npc, double realDamage)
         {
+
             int minLife = (int)(npc.lifeMax * 0.18) + 1;
             if (npc.life - realDamage > minLife)
                 return;
-
+            CalamityUtils.DisplayLocalizedText("Mods.CalamityMod.Status.Progression.DargonBossText");
             npc.life = 0;
-
             if (Main.netMode != NetmodeID.MultiplayerClient)
+            {
                 npc.StrikeInstantKill();
+                ModContent.GetInstance<InfernumMode>().Logger.Debug("Server is informed of ML death");
+            }
+            else
+            {
+                ModContent.GetInstance<InfernumMode>().Logger.Debug("Client is informed of ML death");
+            }
             npc.checkDead();
         }
 

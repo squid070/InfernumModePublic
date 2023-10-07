@@ -1,6 +1,6 @@
 author = Dominic Karma, Toasty
 version = 1.9.32
-displayName = Calamity Mod Infernum Mode
+displayName = Calamity Mod Test Infernum Mode 
 modReferences = CalamityMod, SubworldLibrary
 hideCode = false
 hideResources = false
