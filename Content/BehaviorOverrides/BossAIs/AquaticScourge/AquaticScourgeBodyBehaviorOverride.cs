@@ -42,6 +42,13 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.AquaticScourge
             //Due to slight amounts of lag a multiplayer client's Aquatic Scourge Body can perform its AI before its npc.realLife can be assigned. This causes the worm to decapitate itself immediately.
             if (Main.netMode == NetmodeID.MultiplayerClient && npc.realLife == -1)
             {
+                npc.timeLeft -= 100;
+                if (npc.timeLeft < 100)
+                {
+                    npc.life = 0;
+                    npc.HitEffect();
+                    npc.active = false;
+                }
                 return;
             }
             // Go away if the ahead segment is not present.
