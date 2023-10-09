@@ -143,6 +143,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
         public override void Load()
         {
             GlobalNPCOverrides.OnKillEvent += GenerateProfanedTempleIfNecessary;
+            //Server side never receives StrikeNPCEvent, so i changed the calculation to be done in the AI function. Might change this to a server packet later in case handling it in AI breaks something.
             //GlobalNPCOverrides.StrikeNPCEvent += HandleMLBodyPhaseTriggers;
         }
 
@@ -357,17 +358,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             int minLife = (int)(npc.lifeMax * 0.18) + 1;
             if (npc.life - realDamage > minLife)
                 return;
-            CalamityUtils.DisplayLocalizedText("Mods.CalamityMod.Status.Progression.DargonBossText");
             npc.life = 0;
-            if (Main.netMode != NetmodeID.MultiplayerClient)
-            {
-                npc.StrikeInstantKill();
-                ModContent.GetInstance<InfernumMode>().Logger.Debug("Server is informed of ML death");
-            }
-            else
-            {
-                ModContent.GetInstance<InfernumMode>().Logger.Debug("Client is informed of ML death");
-            }
             npc.checkDead();
         }
 

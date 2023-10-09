@@ -48,15 +48,6 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
             // Does it still not work in multiplayer somehow? I don't give even the slighest of a fuck.
             if (npc.life < npc.lifeMax * 0.18 && npc.ai[0] != -2)
             {
-                if (Main.netMode != NetmodeID.MultiplayerClient)
-                {
-                    npc.StrikeInstantKill();
-                    ModContent.GetInstance<InfernumMode>().Logger.Debug("Server is informed of ML's hand's death");
-                }
-                else
-                {
-                    ModContent.GetInstance<InfernumMode>().Logger.Debug("Client is informed of ML's hand's death");
-                }
                 npc.netUpdate = true;
                 npc.checkDead();
                 hasPopped = true;
