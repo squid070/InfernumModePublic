@@ -6,10 +6,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <LangVersion>latest</LangVersion>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE;TML_2023_08</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Content\BehaviorOverrides\BossAIs\StormWeaver\Textures\**" />
@@ -27,7 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CalamityMod">
-      <HintPath>..\ModAssemblies\CalamityMod_v2.0.3.6.dll</HintPath>
+      <HintPath>C:\ModReader\CalamityMod\CalamityMod.dll</HintPath>
     </Reference>
     <Reference Include="Gif.Components">
       <HintPath>lib\Gif.dll</HintPath>
