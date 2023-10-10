@@ -46,13 +46,8 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.MoonLord
 
             // Hacky workaround to problems with popping.
             // Does it still not work in multiplayer somehow? I don't give even the slighest of a fuck.
-            if (npc.life < npc.lifeMax * 0.18 && npc.ai[0] != -2)
-            {
-                npc.netUpdate = true;
-                npc.checkDead();
-                hasPopped = true;
-                npc.dontTakeDamage = true;
-            }
+            if (npc.life < npc.lifeMax * 0.18)
+                npc.life = (int)(npc.lifeMax * 0.18);
 
             int idealFrame = 0;
 
