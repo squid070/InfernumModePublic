@@ -195,7 +195,7 @@ namespace InfernumMode.Content.BehaviorOverrides.BossAIs.DoG
             bool isDoG = npc.type == ModContent.NPCType<DoGHead>() || npc.type == ModContent.NPCType<DevourerofGodsBody>() || npc.type == ModContent.NPCType<DevourerofGodsTail>();
             return !isDoG || HandleDoGLifeBasedHitTriggers(npc, modifiers.FinalDamage.Base, ref modifiers);
         }
-        //HandleDoGLifeBasedHitTriggers will never be run clientside, thus ensuring DoG will never properly change phase. This sends a packet to the server to run the intended health phase change calculations.
+        //HandleDoGLifeBasedHitTriggers will never be run serverside, thus ensuring DoG will never properly change phase. This sends a packet to the server to run the intended health phase change calculations.
         public static void UpdateDoGPhaseServer(int npcID, double damage)
         {
             NPC npc = Main.npc[npcID];
